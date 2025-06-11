@@ -28,6 +28,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/h2-console/**",
+                    "/swagger-ui/**",
+                    "/swagger-resources/**",
+                    "/autism-map/v1/api-docs/**",
                     "/api/v1/member/signup",
                     "/api/v1/member/login"
                 ).permitAll() // 인증없이 허용
