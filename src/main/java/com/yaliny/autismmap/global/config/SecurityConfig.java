@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,9 +22,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http.csrf(AbstractHttpConfigurer::disable)
+            // H2 Console은 iframe 기반 → 기본 Security 설정에서는 iframe 금지 → 403 발생 → disable() 설정으로 해결
+            .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/member/signup", "/api/v1/member/login").permitAll() // 인증없이 허용
+                .requestMatchers(
+                    "/h2-console/**",
+                    "/api/v1/member/signup",
+                    "/api/v1/member/login"
+                ).permitAll() // 인증없이 허용
                 .anyRequest().authenticated() // 나머지 요청은 인증 필요
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -3,6 +3,8 @@ package com.yaliny.autismmap.member.controller;
 import com.yaliny.autismmap.global.response.BaseResponse;
 import com.yaliny.autismmap.member.dto.LoginRequest;
 import com.yaliny.autismmap.member.dto.LoginResponse;
+import com.yaliny.autismmap.member.dto.SignUpRequest;
+import com.yaliny.autismmap.member.dto.SignUpResponse;
 import com.yaliny.autismmap.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +22,13 @@ public class MemberController {
 
     @PostMapping("/login")
     public ResponseEntity<BaseResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
-        LoginResponse response = memberService.login(request.email(), request.password());
+        LoginResponse response = memberService.login(request);
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<BaseResponse<SignUpResponse>> signup(@RequestBody SignUpRequest request) {
+        SignUpResponse response = memberService.signup(request);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 }
