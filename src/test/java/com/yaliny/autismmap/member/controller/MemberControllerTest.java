@@ -20,8 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,7 +51,7 @@ class MemberControllerTest {
     }
 
     @Test
-    @DisplayName("/api/v1/member/login → JWT 발급 성공 테스트")
+    @DisplayName("JWT 발급 성공 테스트")
     void login_success() throws Exception {
         // given
         // 테스트용 사용자 저장
@@ -72,7 +71,7 @@ class MemberControllerTest {
     }
 
     @Test
-    @DisplayName("/api/v1/member/signup → 이메일 중복 시 MemberAlreadyExistsException 발생 → 409 CONFLICT 응답")
+    @DisplayName("이메일 중복 시 MemberAlreadyExistsException 발생 → 409 CONFLICT 응답")
     void signup_email_duplicate() throws Exception {
         SignUpRequest request = new SignUpRequest("test@test.com", "1234", "테스터");
 
@@ -91,7 +90,7 @@ class MemberControllerTest {
     }
 
     @Test
-    @DisplayName("/api/v1/member/logout → 로그아웃 성공 테스트")
+    @DisplayName("로그아웃 성공 테스트")
     void logout_success() throws Exception {
         // 회원가입 요청
         SignUpRequest request = new SignUpRequest("test1@example.com", "1234", "테스터");
@@ -113,7 +112,8 @@ class MemberControllerTest {
         // BaseResponse<LoginResponse>로 파싱
         BaseResponse<LoginResponse> baseResponse = objectMapper.readValue(
             responseBody,
-            new TypeReference<>() {}
+            new TypeReference<>() {
+            }
         );
 
         token = baseResponse.data().token();
@@ -126,7 +126,7 @@ class MemberControllerTest {
     }
 
     @Test
-    @DisplayName("/api/v1/member → 회원탈퇴 성공 테스트")
+    @DisplayName("회원탈퇴 성공 테스트")
     void withdraw_success() throws Exception {
         // 회원가입 요청
         SignUpRequest request = new SignUpRequest("test2@example.com", "1234", "테스터");
@@ -148,7 +148,8 @@ class MemberControllerTest {
         // BaseResponse<LoginResponse>로 파싱
         BaseResponse<LoginResponse> baseResponse = objectMapper.readValue(
             responseBody,
-            new TypeReference<>() {}
+            new TypeReference<>() {
+            }
         );
 
         token = baseResponse.data().token();
@@ -161,5 +162,42 @@ class MemberControllerTest {
 
         // 회원탈퇴 후 DB에 없는지 검증
         assertThat(memberRepository.findByEmail("test2@example.com")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("회원 정보 조회 성공 테스트")
+    void getMemberInfo_success() throws Exception {
+        // 회원가입 요청
+        SignUpRequest request = new SignUpRequest("test3@example.com", "1234", "테스터3");
+
+        mockMvc.perform(post("/api/v1/member/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk());
+
+        // 로그인 후 JWT 발급 받기
+        LoginRequest loginRequest = new LoginRequest("test3@example.com", "1234");
+
+        String responseBody = mockMvc.perform(post("/api/v1/member/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+
+        // BaseResponse<LoginResponse>로 파싱
+        BaseResponse<LoginResponse> baseResponse = objectMapper.readValue(
+            responseBody,
+            new TypeReference<>() {
+            }
+        );
+
+        token = baseResponse.data().token();
+
+        mockMvc.perform(get("/api/v1/member/{memberId}", jwtUtil.getMemberId(token))
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(200))
+            .andExpect(jsonPath("$.data.email").value("test3@example.com"))
+            .andExpect(jsonPath("$.data.nickname").value("테스터3"));
     }
 }

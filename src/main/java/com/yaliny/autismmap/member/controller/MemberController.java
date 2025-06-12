@@ -2,10 +2,7 @@ package com.yaliny.autismmap.member.controller;
 
 import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.global.response.BaseResponse;
-import com.yaliny.autismmap.member.dto.LoginRequest;
-import com.yaliny.autismmap.member.dto.LoginResponse;
-import com.yaliny.autismmap.member.dto.SignUpRequest;
-import com.yaliny.autismmap.member.dto.SignUpResponse;
+import com.yaliny.autismmap.member.dto.*;
 import com.yaliny.autismmap.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -72,7 +69,16 @@ public class MemberController {
         return ResponseEntity.ok(BaseResponse.success("회원탈퇴 성공"));
     }
 
-    /*@Operation(summary = "회원 정보 조회")
-    @GetMapping
-    public ResponseEntity<BaseResponse<MemberInfoResponse>> info()*/
+    @Operation(summary = "회원 정보 조회")
+    @GetMapping("/{memberId}")
+    public ResponseEntity<BaseResponse<MemberInfoResponse>> getMemberInfo(
+        @PathVariable Long memberId,
+        @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        String token = authorizationHeader.substring(7);
+        Long tokenMemberId = jwtUtil.getMemberId(token);
+
+        MemberInfoResponse response = memberService.getMemberInfo(memberId, tokenMemberId);
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
 }

@@ -5,10 +5,7 @@ import com.yaliny.autismmap.global.exception.MemberAlreadyExistsException;
 import com.yaliny.autismmap.global.exception.MemberNotFoundException;
 import com.yaliny.autismmap.global.exception.NoPermissionException;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
-import com.yaliny.autismmap.member.dto.LoginRequest;
-import com.yaliny.autismmap.member.dto.LoginResponse;
-import com.yaliny.autismmap.member.dto.SignUpRequest;
-import com.yaliny.autismmap.member.dto.SignUpResponse;
+import com.yaliny.autismmap.member.dto.*;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +51,6 @@ public class MemberService {
 
     @Transactional
     public void withdraw(Long memberId, Long tokenMemberId) {
-
         if (!tokenMemberId.equals(memberId)) {
             throw new NoPermissionException();
         }
@@ -63,5 +59,16 @@ public class MemberService {
             .orElseThrow(MemberNotFoundException::new);
 
         memberRepository.delete(member);
+    }
+
+    @Transactional(readOnly = true)
+    public MemberInfoResponse getMemberInfo(Long memberId, Long tokenMemberId) {
+        if (!tokenMemberId.equals(memberId)) {
+            throw new NoPermissionException();
+        }
+
+        Member findMember = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+
+        return new MemberInfoResponse(findMember.getId(), findMember.getEmail(), findMember.getNickname());
     }
 }

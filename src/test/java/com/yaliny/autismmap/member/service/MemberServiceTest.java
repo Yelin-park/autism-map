@@ -5,10 +5,7 @@ import com.yaliny.autismmap.global.exception.MemberAlreadyExistsException;
 import com.yaliny.autismmap.global.exception.MemberNotFoundException;
 import com.yaliny.autismmap.global.exception.NoPermissionException;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
-import com.yaliny.autismmap.member.dto.LoginRequest;
-import com.yaliny.autismmap.member.dto.LoginResponse;
-import com.yaliny.autismmap.member.dto.SignUpRequest;
-import com.yaliny.autismmap.member.dto.SignUpResponse;
+import com.yaliny.autismmap.member.dto.*;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -140,6 +137,38 @@ class MemberServiceTest {
 
         assertThatThrownBy(() -> memberService.withdraw(tokenMemberId, wrongRequestMemberId))
             .isInstanceOf(NoPermissionException.class)
-            .hasMessage("본인만 회원탈퇴를 할 수 있습니다.");
+            .hasMessage("본인 계정이 아닙니다.");
+    }
+
+    @Test
+    @DisplayName("회원 정보 조회 성공")
+    void getMemberInfo_success() {
+        // given
+        SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
+        SignUpResponse response = memberService.signup(signupRequest);
+
+        Long tokenMemberId = jwtUtil.getMemberId(response.token());
+        Long memberId = memberRepository.findByEmail("test@example.com").orElseThrow().getId();
+
+        // when
+        MemberInfoResponse memberInfo = memberService.getMemberInfo(memberId, tokenMemberId);
+
+        // then
+        assertThat(memberInfo.email()).isEqualTo("test@example.com");
+        assertThat(memberInfo.nickname()).isEqualTo("테스터");
+    }
+
+    @Test
+    @DisplayName("회원 정보 조회 실패 - 본인 아님 (권한 없음)")
+    void getMemberInfo_no_permission() {
+        SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
+        SignUpResponse response = memberService.signup(signupRequest);
+
+        Long tokenMemberId = jwtUtil.getMemberId(response.token());
+        Long wrongRequestMemberId = tokenMemberId + 1; // 다른 memberId → 권한 없음 발생
+
+        assertThatThrownBy(() -> memberService.getMemberInfo(tokenMemberId, wrongRequestMemberId))
+            .isInstanceOf(NoPermissionException.class)
+            .hasMessage("본인 계정이 아닙니다.");
     }
 }
