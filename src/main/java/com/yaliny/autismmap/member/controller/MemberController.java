@@ -1,5 +1,6 @@
 package com.yaliny.autismmap.member.controller;
 
+import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.global.response.BaseResponse;
 import com.yaliny.autismmap.member.dto.LoginRequest;
 import com.yaliny.autismmap.member.dto.LoginResponse;
@@ -14,12 +15,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
+
 @Tag(name = "회원 관리 기능")
 @RestController
 @RequestMapping("/api/v1/member")
 @RequiredArgsConstructor
 public class MemberController {
 
+    private final JwtUtil jwtUtil;
     private final MemberService memberService;
 
     @Operation(summary = "로그인",
@@ -56,9 +60,19 @@ public class MemberController {
     }
 
     @Operation(summary = "회원탈퇴")
-    @DeleteMapping
-    public ResponseEntity<BaseResponse<String>> withdraw(Authentication authentication) {
-        memberService.withdraw((String) authentication.getPrincipal());
+    @DeleteMapping("/{memberId}")
+    public ResponseEntity<BaseResponse<String>> withdraw(
+        @PathVariable Long memberId,
+        @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        String token = authorizationHeader.substring(7);
+        Long tokenMemberId = jwtUtil.getMemberId(token);
+
+        memberService.withdraw(memberId, tokenMemberId);
         return ResponseEntity.ok(BaseResponse.success("회원탈퇴 성공"));
     }
+
+    /*@Operation(summary = "회원 정보 조회")
+    @GetMapping
+    public ResponseEntity<BaseResponse<MemberInfoResponse>> info()*/
 }

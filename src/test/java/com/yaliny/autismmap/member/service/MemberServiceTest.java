@@ -3,6 +3,8 @@ package com.yaliny.autismmap.member.service;
 import com.yaliny.autismmap.global.exception.InvalidPasswordException;
 import com.yaliny.autismmap.global.exception.MemberAlreadyExistsException;
 import com.yaliny.autismmap.global.exception.MemberNotFoundException;
+import com.yaliny.autismmap.global.exception.NoPermissionException;
+import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.member.dto.LoginRequest;
 import com.yaliny.autismmap.member.dto.LoginResponse;
 import com.yaliny.autismmap.member.dto.SignUpRequest;
@@ -32,6 +34,9 @@ class MemberServiceTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @BeforeEach
     void setUp() {
@@ -101,10 +106,13 @@ class MemberServiceTest {
     void withdraw_success() {
         // given
         SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
-        memberService.signup(signupRequest);
+        SignUpResponse response = memberService.signup(signupRequest);
+
+        Long tokenMemberId = jwtUtil.getMemberId(response.token());
+        Long memberId = memberRepository.findByEmail("test@example.com").orElseThrow().getId();
 
         // when
-        memberService.withdraw("test@example.com");
+        memberService.withdraw(memberId, tokenMemberId);
 
         // then
         assertThat(memberRepository.findByEmail("test@example.com")).isEmpty();
@@ -113,8 +121,25 @@ class MemberServiceTest {
     @Test
     @DisplayName("회원탈퇴 실패 - 존재하지 않는 계정")
     void withdraw_member_not_found() {
-        assertThatThrownBy(() -> memberService.withdraw("notfound@example.com"))
+        Long dummyTokenMemberId = 10L;
+        Long dummyRequestMemberId = 10L;
+
+        assertThatThrownBy(() -> memberService.withdraw(dummyTokenMemberId, dummyRequestMemberId))
             .isInstanceOf(MemberNotFoundException.class)
             .hasMessage("계정이 존재하지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("회원탈퇴 실패 - 본인 아님 (권한 없음)")
+    void withdraw_no_permission() {
+        SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
+        SignUpResponse response = memberService.signup(signupRequest);
+
+        Long tokenMemberId = jwtUtil.getMemberId(response.token());
+        Long wrongRequestMemberId = tokenMemberId + 1; // 다른 memberId → 권한 없음 발생
+
+        assertThatThrownBy(() -> memberService.withdraw(tokenMemberId, wrongRequestMemberId))
+            .isInstanceOf(NoPermissionException.class)
+            .hasMessage("본인만 회원탈퇴를 할 수 있습니다.");
     }
 }

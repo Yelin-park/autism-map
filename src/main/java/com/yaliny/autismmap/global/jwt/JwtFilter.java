@@ -37,11 +37,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
             if (jwtUtil.validateToken(token)) {
                 Claims claims = jwtUtil.getClaims(token);
-                String email = claims.getSubject();
+                String memberId = claims.getSubject();
+                String email = claims.get("email", String.class);
                 String role = claims.get("role", String.class);
 
                 // 인증 객체 생성
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(memberId, null, Collections.emptyList());
 
                 // SecurityContext에 저장
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

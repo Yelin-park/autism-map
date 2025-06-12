@@ -3,6 +3,7 @@ package com.yaliny.autismmap.member.service;
 import com.yaliny.autismmap.global.exception.InvalidPasswordException;
 import com.yaliny.autismmap.global.exception.MemberAlreadyExistsException;
 import com.yaliny.autismmap.global.exception.MemberNotFoundException;
+import com.yaliny.autismmap.global.exception.NoPermissionException;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.member.dto.LoginRequest;
 import com.yaliny.autismmap.member.dto.LoginResponse;
@@ -15,6 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.nio.file.AccessDeniedException;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +35,7 @@ public class MemberService {
             throw new InvalidPasswordException();
         }
 
-        String token = jwtUtil.generateToken(member.getEmail(), member.getRole().name());
+        String token = jwtUtil.generateToken(member.getId(), member.getEmail(), member.getRole().name());
         return new LoginResponse(token);
     }
 
@@ -45,13 +48,18 @@ public class MemberService {
         Member member = new Member(request.email(), passwordEncoder.encode(request.password()), request.nickname());
         memberRepository.save(member);
 
-        String token = jwtUtil.generateToken(member.getEmail(), member.getRole().name());
+        String token = jwtUtil.generateToken(member.getId(), member.getEmail(), member.getRole().name());
         return new SignUpResponse(token);
     }
 
     @Transactional
-    public void withdraw(String email) {
-        Member member = memberRepository.findByEmail(email)
+    public void withdraw(Long memberId, Long tokenMemberId) {
+
+        if (!tokenMemberId.equals(memberId)) {
+            throw new NoPermissionException();
+        }
+
+        Member member = memberRepository.findById(memberId)
             .orElseThrow(MemberNotFoundException::new);
 
         memberRepository.delete(member);

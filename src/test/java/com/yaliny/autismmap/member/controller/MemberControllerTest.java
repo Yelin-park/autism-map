@@ -153,7 +153,7 @@ class MemberControllerTest {
 
         token = baseResponse.data().token();
 
-        mockMvc.perform(delete("/api/v1/member")
+        mockMvc.perform(delete("/api/v1/member/{memberId}", jwtUtil.getMemberId(token))
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200))
