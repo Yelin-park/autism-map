@@ -25,10 +25,10 @@ public class MemberService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        Member member = memberRepository.findByEmail(request.email()).orElseThrow(() -> new MemberNotFoundException("계정이 존재하지 않습니다."));
+        Member member = memberRepository.findByEmail(request.email()).orElseThrow(MemberNotFoundException::new);
 
         if (!passwordEncoder.matches(request.password(), member.getPassword())) {
-            throw new InvalidPasswordException("비밀번호가 일치하지 않습니다.");
+            throw new InvalidPasswordException();
         }
 
         String token = jwtUtil.generateToken(member.getEmail(), member.getRole().name());
@@ -38,7 +38,7 @@ public class MemberService {
     @Transactional
     public SignUpResponse signup(SignUpRequest request) {
         if (memberRepository.findByEmail(request.email()).isPresent()) {
-            throw new MemberAlreadyExistsException("이미 존재하는 이메일입니다.");
+            throw new MemberAlreadyExistsException();
         }
 
         Member member = new Member(request.email(), passwordEncoder.encode(request.password()), request.nickname());
