@@ -96,4 +96,25 @@ class MemberServiceTest {
             .hasMessage("비밀번호가 일치하지 않습니다.");
     }
 
+    @Test
+    @DisplayName("회원탈퇴 성공")
+    void withdraw_success() {
+        // given
+        SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
+        memberService.signup(signupRequest);
+
+        // when
+        memberService.withdraw("test@example.com");
+
+        // then
+        assertThat(memberRepository.findByEmail("test@example.com")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("회원탈퇴 실패 - 존재하지 않는 계정")
+    void withdraw_member_not_found() {
+        assertThatThrownBy(() -> memberService.withdraw("notfound@example.com"))
+            .isInstanceOf(MemberNotFoundException.class)
+            .hasMessage("계정이 존재하지 않습니다.");
+    }
 }

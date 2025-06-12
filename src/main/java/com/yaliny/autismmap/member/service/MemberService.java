@@ -11,6 +11,7 @@ import com.yaliny.autismmap.member.dto.SignUpResponse;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,5 +47,13 @@ public class MemberService {
 
         String token = jwtUtil.generateToken(member.getEmail(), member.getRole().name());
         return new SignUpResponse(token);
+    }
+
+    @Transactional
+    public void withdraw(String email) {
+        Member member = memberRepository.findByEmail(email)
+            .orElseThrow(MemberNotFoundException::new);
+
+        memberRepository.delete(member);
     }
 }

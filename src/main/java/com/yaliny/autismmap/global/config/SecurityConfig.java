@@ -4,6 +4,7 @@ import com.yaliny.autismmap.global.jwt.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,8 +33,10 @@ public class SecurityConfig {
                     "/swagger-resources/**",
                     "/autism-map/v1/api-docs/**",
                     "/api/v1/member/signup",
-                    "/api/v1/member/login"
+                    "/api/v1/member/login",
+                    "/api/v1/member/logout"
                 ).permitAll() // 인증없이 허용
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/member").authenticated()
                 .anyRequest().authenticated() // 나머지 요청은 인증 필요
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
