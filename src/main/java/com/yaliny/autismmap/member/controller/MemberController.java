@@ -12,8 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
-
 @Tag(name = "회원 관리 기능")
 @RestController
 @RequestMapping("/api/v1/member")
