@@ -36,4 +36,11 @@ public class PlaceController {
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
+    @Operation(summary = "장소 삭제")
+    @DeleteMapping("/{placeId}")
+    public ResponseEntity<BaseResponse<String>> deletePlace(@PathVariable Long placeId) {
+        placeService.deletePlace(placeId);
+        return ResponseEntity.ok(BaseResponse.success("placeId: " + placeId + "장소 삭제 성공"));
+    }
+
 }

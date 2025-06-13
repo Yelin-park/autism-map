@@ -47,4 +47,10 @@ public class PlaceService {
         findPlace.updatePlace(request);
         return PlaceDetailResponse.of(findPlace);
     }
+
+    @Transactional
+    public void deletePlace(Long placeId) {
+        placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
+        placeRepository.deleteById(placeId);
+    }
 }

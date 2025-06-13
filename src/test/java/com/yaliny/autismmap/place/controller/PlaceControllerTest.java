@@ -12,6 +12,7 @@ import com.yaliny.autismmap.place.entity.LightingLevel;
 import com.yaliny.autismmap.place.entity.Place;
 import com.yaliny.autismmap.place.entity.PlaceCategory;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,9 +25,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -291,6 +292,107 @@ class PlaceControllerTest {
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.code").value(404))
+            .andExpect(jsonPath("$.message").value("장소가 존재하지 않습니다."));
+    }
+
+    @Test
+    @DisplayName("장소 삭제 성공 테스트")
+    void deletePlace_success() throws Exception {
+        Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
+        token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
+
+        Place savedPlace = placeRepository.save(new Place(
+            "테스트 장소",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        mockMvc.perform(delete("/api/v1/places/{placeId}", savedPlace.getId())
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(200))
+            .andExpect(jsonPath("$.data").exists());
+
+        assertThat(placeRepository.findById(savedPlace.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("장소 삭제 실패 - 관리자 권한 없음")
+    void deletePlace_fail() throws Exception {
+        Member member = memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
+        token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
+
+        Place savedPlace = placeRepository.save(new Place(
+            "테스트 장소",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        mockMvc.perform(delete("/api/v1/places/{placeId}", savedPlace.getId())
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value(403))
+            .andExpect(jsonPath("$.message").value("권한이 없습니다."));
+    }
+
+    @Test
+    @DisplayName("장소 삭제 실패 - 존재하지 않는 장소")
+    void deletePlace_not_found() throws Exception {
+        Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
+        token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
+
+        Place savedPlace = placeRepository.save(new Place(
+            "테스트 장소",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        mockMvc.perform(delete("/api/v1/places/{placeId}", savedPlace.getId() + 1)
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.code").value(404))
             .andExpect(jsonPath("$.message").value("장소가 존재하지 않습니다."));

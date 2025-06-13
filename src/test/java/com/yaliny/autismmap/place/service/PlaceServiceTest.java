@@ -118,4 +118,31 @@ class PlaceServiceTest {
         assertThat(findPlace.getCategory()).isEqualTo(request.category());
         assertThat(findPlace.getBusinessStartTime()).isEqualTo(request.businessStartTime());
     }
+
+    @Test
+    @DisplayName("장소 삭제 성공")
+    void deletePlace_success() {
+        Place savedPlace = placeRepository.save(new Place(
+            "테스트 장소",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        placeService.deletePlace(savedPlace.getId());
+
+        assertThat(placeRepository.findById(savedPlace.getId())).isEmpty();
+    }
 }
