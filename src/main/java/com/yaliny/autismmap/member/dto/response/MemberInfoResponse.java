@@ -1,4 +1,4 @@
-package com.yaliny.autismmap.member.dto;
+package com.yaliny.autismmap.member.dto.response;
 
 public record MemberInfoResponse(
     Long memberId,

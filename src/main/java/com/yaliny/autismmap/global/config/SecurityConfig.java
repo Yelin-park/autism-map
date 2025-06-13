@@ -45,7 +45,8 @@ public class SecurityConfig {
                     "/api/v1/members/logout"
                 ).permitAll() // 인증없이 허용
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/members").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/v1/places/**").hasRole("ADMIN") // ADMIN 권한만 접근 허용
+                .requestMatchers(HttpMethod.POST, "/api/v1/places").hasRole("ADMIN")            // ADMIN 권한만 접근 허용
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/places/{placeId}").hasRole("ADMIN") // ADMIN 권한만 접근 허용
                 .anyRequest().authenticated() // 나머지 요청은 인증 필요
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

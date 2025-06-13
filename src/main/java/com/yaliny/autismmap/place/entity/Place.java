@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.place.entity;
 
 import com.yaliny.autismmap.global.entity.BaseEntity;
+import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -102,5 +103,25 @@ public class Place extends BaseEntity {
         this.businessStartTime = LocalTime.parse(businessStartTime);
         this.businessClosingTime = LocalTime.parse(businessClosingTime);
         this.dayOff = dayOff;
+    }
+
+    public Place updatePlace(PlaceUpdateRequest request) {
+        this.name = request.name();
+        this.description = request.description();
+        this.category = request.category();
+        this.address = request.address();
+        this.latitude = request.latitude();
+        this.longitude = request.longitude();
+        this.isWheelchairFriendly = request.isWheelchairFriendly();
+        this.isQuiet = request.isQuiet();
+        this.hasParking = request.hasParking();
+        this.hasRestArea = request.hasRestArea();
+        this.hasPrivateRoom = request.hasPrivateRoom();
+        this.lightingLevel = request.lightingLevel();
+        this.crowdLevel = request.crowdLevel();
+        this.businessStartTime = LocalTime.parse(request.businessStartTime());
+        this.businessClosingTime = LocalTime.parse(request.businessClosingTime());
+        this.dayOff = request.dayOff();
+        return this;
     }
 }

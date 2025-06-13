@@ -1,4 +1,4 @@
-package com.yaliny.autismmap.place.dto;
+package com.yaliny.autismmap.place.dto.request;
 
 import com.yaliny.autismmap.place.entity.CrowdLevel;
 import com.yaliny.autismmap.place.entity.LightingLevel;
@@ -12,20 +12,31 @@ public record PlaceCreateRequest(
     String description,
     @Schema(title = "장소 카테고리 구분", example = "RESTAURANT")
     PlaceCategory category,
+    @Schema(title = "상세 주소", example = "경기도 수원시 권선구 금곡로 10번길 29")
     String address,
+    @Schema(title = "위도", example = "38.25")
     Double latitude,
+    @Schema(title = "경도", example = "48.25")
     Double longitude,
+    @Schema(title = "휠체어 친화 여부")
     boolean isWheelchairFriendly,
+    @Schema(title = "조용한 환경 여부")
     boolean isQuiet,
+    @Schema(title = "주차장 유무")
     boolean hasParking,
+    @Schema(title = "쉴 수 있는 공간 여부")
     boolean hasRestArea,
+    @Schema(title = "프라이빗 룸 여부")
     boolean hasPrivateRoom,
+    @Schema(title = "조명 밝기 수준", example = "MODERATE")
     LightingLevel lightingLevel,
+    @Schema(title = "혼잡도 수준", example = "NORMAL")
     CrowdLevel crowdLevel,
     @Schema(title = "영업 시작 시간", description = "24시간 형태로 작성해 주세요.", example = "09:00")
     String businessStartTime,
     @Schema(title = "영업 종료 시간", description = "24시간 형태로 작성해 주세요.", example = "18:30")
     String businessClosingTime,
+    @Schema(title = "휴무일", example = "매주 화요일")
     String dayOff
 ) {
 }
