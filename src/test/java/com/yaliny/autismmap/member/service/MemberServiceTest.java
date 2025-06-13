@@ -137,7 +137,7 @@ class MemberServiceTest {
 
         assertThatThrownBy(() -> memberService.withdraw(tokenMemberId, wrongRequestMemberId))
             .isInstanceOf(NoPermissionException.class)
-            .hasMessage("본인 계정이 아닙니다.");
+            .hasMessage("권한이 없습니다.");
     }
 
     @Test
@@ -169,6 +169,6 @@ class MemberServiceTest {
 
         assertThatThrownBy(() -> memberService.getMemberInfo(tokenMemberId, wrongRequestMemberId))
             .isInstanceOf(NoPermissionException.class)
-            .hasMessage("본인 계정이 아닙니다.");
+            .hasMessage("권한이 없습니다.");
     }
 }

@@ -61,7 +61,7 @@ class MemberControllerTest {
         LoginRequest request = new LoginRequest("test@example.com", "1234");
 
         // when & then
-        mockMvc.perform(post("/api/v1/member/login")
+        mockMvc.perform(post("/api/v1/members/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk())
@@ -75,13 +75,13 @@ class MemberControllerTest {
     void signup_email_duplicate() throws Exception {
         SignUpRequest request = new SignUpRequest("test@test.com", "1234", "테스터");
 
-        mockMvc.perform(post("/api/v1/member/signup")
+        mockMvc.perform(post("/api/v1/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200));
 
-        mockMvc.perform(post("/api/v1/member/signup")
+        mockMvc.perform(post("/api/v1/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isConflict()) // 409 CONFLICT 응답 기대
@@ -95,7 +95,7 @@ class MemberControllerTest {
         // 회원가입 요청
         SignUpRequest request = new SignUpRequest("test1@example.com", "1234", "테스터");
 
-        mockMvc.perform(post("/api/v1/member/signup")
+        mockMvc.perform(post("/api/v1/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk());
@@ -103,7 +103,7 @@ class MemberControllerTest {
         // 로그인 후 JWT 발급 받기
         LoginRequest loginRequest = new LoginRequest("test1@example.com", "1234");
 
-        String responseBody = mockMvc.perform(post("/api/v1/member/login")
+        String responseBody = mockMvc.perform(post("/api/v1/members/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
             .andExpect(status().isOk())
@@ -118,7 +118,7 @@ class MemberControllerTest {
 
         token = baseResponse.data().token();
 
-        mockMvc.perform(post("/api/v1/member/logout")
+        mockMvc.perform(post("/api/v1/members/logout")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200))
@@ -131,7 +131,7 @@ class MemberControllerTest {
         // 회원가입 요청
         SignUpRequest request = new SignUpRequest("test2@example.com", "1234", "테스터");
 
-        mockMvc.perform(post("/api/v1/member/signup")
+        mockMvc.perform(post("/api/v1/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk());
@@ -139,7 +139,7 @@ class MemberControllerTest {
         // 로그인 후 JWT 발급 받기
         LoginRequest loginRequest = new LoginRequest("test2@example.com", "1234");
 
-        String responseBody = mockMvc.perform(post("/api/v1/member/login")
+        String responseBody = mockMvc.perform(post("/api/v1/members/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
             .andExpect(status().isOk())
@@ -154,7 +154,7 @@ class MemberControllerTest {
 
         token = baseResponse.data().token();
 
-        mockMvc.perform(delete("/api/v1/member/{memberId}", jwtUtil.getMemberId(token))
+        mockMvc.perform(delete("/api/v1/members/{memberId}", jwtUtil.getMemberId(token))
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200))
@@ -170,7 +170,7 @@ class MemberControllerTest {
         // 회원가입 요청
         SignUpRequest request = new SignUpRequest("test3@example.com", "1234", "테스터3");
 
-        mockMvc.perform(post("/api/v1/member/signup")
+        mockMvc.perform(post("/api/v1/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk());
@@ -178,7 +178,7 @@ class MemberControllerTest {
         // 로그인 후 JWT 발급 받기
         LoginRequest loginRequest = new LoginRequest("test3@example.com", "1234");
 
-        String responseBody = mockMvc.perform(post("/api/v1/member/login")
+        String responseBody = mockMvc.perform(post("/api/v1/members/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
             .andExpect(status().isOk())
@@ -193,7 +193,7 @@ class MemberControllerTest {
 
         token = baseResponse.data().token();
 
-        mockMvc.perform(get("/api/v1/member/{memberId}", jwtUtil.getMemberId(token))
+        mockMvc.perform(get("/api/v1/members/{memberId}", jwtUtil.getMemberId(token))
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200))

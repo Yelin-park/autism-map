@@ -1,10 +1,14 @@
 package com.yaliny.autismmap.global.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.jwt.JwtFilter;
+import com.yaliny.autismmap.global.response.BaseResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +17,7 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -24,6 +29,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
+            .exceptionHandling(exceptionHandling -> exceptionHandling
+                .accessDeniedHandler(accessDeniedHandler()) // 커스텀 핸들러 사용
+            )
             // H2 Console은 iframe 기반 → 기본 Security 설정에서는 iframe 금지 → 403 발생 → disable() 설정으로 해결
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             .authorizeHttpRequests(auth -> auth
@@ -32,11 +40,12 @@ public class SecurityConfig {
                     "/swagger-ui/**",
                     "/swagger-resources/**",
                     "/autism-map/v1/api-docs/**",
-                    "/api/v1/member/signup",
-                    "/api/v1/member/login",
-                    "/api/v1/member/logout"
+                    "/api/v1/members/signup",
+                    "/api/v1/members/login",
+                    "/api/v1/members/logout"
                 ).permitAll() // 인증없이 허용
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/member").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/members").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/v1/places/**").hasRole("ADMIN") // ADMIN 권한만 접근 허용
                 .anyRequest().authenticated() // 나머지 요청은 인증 필요
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -54,6 +63,22 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.setStatus(HttpStatus.FORBIDDEN.value());
+            response.setContentType("application/json;charset=UTF-8");
+
+            BaseResponse<Void> baseResponse = BaseResponse.error(
+                ErrorCode.ACCESS_DENIED.getStatus().value(),
+                ErrorCode.ACCESS_DENIED.getMessage()
+            );
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            response.getWriter().write(objectMapper.writeValueAsString(baseResponse));
+        };
     }
 
 }
