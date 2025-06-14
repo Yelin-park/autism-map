@@ -1,8 +1,10 @@
 package com.yaliny.autismmap.place.service;
 
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
+import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
 import com.yaliny.autismmap.place.dto.response.PlaceDetailResponse;
+import com.yaliny.autismmap.place.dto.response.PlaceListResponse;
 import com.yaliny.autismmap.place.entity.CrowdLevel;
 import com.yaliny.autismmap.place.entity.LightingLevel;
 import com.yaliny.autismmap.place.entity.Place;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -147,5 +150,79 @@ class PlaceServiceTest {
         placeService.deletePlace(savedPlace.getId());
 
         assertThat(placeRepository.findById(savedPlace.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("장소 목록 조회 성공")
+    void getPlaceList_success() {
+        placeRepository.save(new Place(
+            "테스트 장소1",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            "서울시",
+            "강남구",
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        placeRepository.save(new Place(
+            "테스트 장소2",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            "서울시",
+            "강남구",
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        placeRepository.save(new Place(
+            "테스트 장소3",
+            "설명입니다.",
+            PlaceCategory.RESTAURANT,
+            "서울시",
+            "강남구",
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            false,
+            false,
+            false,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        PlaceListRequest request = new PlaceListRequest("서울시", null, PlaceCategory.RESTAURANT, null, null, null, null, null);
+
+        PlaceListResponse result = placeService.getPlaceList(request, PageRequest.of(0, 10));
+
+        assertThat(result.totalElements()).isEqualTo(1);
+        assertThat(result.totalPages()).isEqualTo(1);
+        assertThat(result.content().size()).isEqualTo(1);
+        assertThat(result.content().get(0).name()).isEqualTo("테스트 장소3");
+        assertThat(result.content().get(0).isQuiet()).isFalse();
     }
 }

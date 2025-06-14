@@ -62,6 +62,6 @@ public class PlaceService {
     @Transactional(readOnly = true)
     public PlaceListResponse getPlaceList(PlaceListRequest request, PageRequest pageRequest) {
         Page<Place> response = placeRepository.searchPlace(request, pageRequest);
-        return new PlaceListResponse(response.getNumber(), response.getSize(), response.getTotalElements(), response.getTotalPages(), response.isLast(), response.getContent());
+        return PlaceListResponse.of(response);
     }
 }

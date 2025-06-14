@@ -49,7 +49,7 @@ public class PlaceController {
     @Operation(summary = "장소 목록 조회")
     @GetMapping
     public ResponseEntity<BaseResponse<PlaceListResponse>> getPlaceList(
-        PlaceListRequest request,
+        @RequestBody PlaceListRequest request,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {

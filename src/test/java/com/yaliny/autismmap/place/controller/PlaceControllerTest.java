@@ -6,6 +6,7 @@ import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.entity.Role;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
+import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
 import com.yaliny.autismmap.place.entity.CrowdLevel;
 import com.yaliny.autismmap.place.entity.LightingLevel;
@@ -407,5 +408,107 @@ class PlaceControllerTest {
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.code").value(404))
             .andExpect(jsonPath("$.message").value("장소가 존재하지 않습니다."));
+    }
+
+    @Test
+    @DisplayName("장소 목록 조회 성공")
+    void getPlaceList_success() throws Exception {
+        Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
+        token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
+
+        placeRepository.save(new Place(
+            "테스트 장소1",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            "경기도",
+            "수원시",
+            "경기도 수원시",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            true,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        placeRepository.save(new Place(
+            "테스트 장소2",
+            "설명입니다.",
+            PlaceCategory.RESTAURANT,
+            "서울시",
+            "강남구",
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            false,
+            false,
+            false,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        placeRepository.save(new Place(
+            "테스트 장소3",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            "서울시",
+            "강남구",
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        placeRepository.save(new Place(
+            "테스트 장소4",
+            "설명입니다.",
+            PlaceCategory.RESTAURANT,
+            "서울시",
+            "강남구",
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        PlaceListRequest request = new PlaceListRequest("서울시", null, PlaceCategory.RESTAURANT, null, null, null, null, null);
+
+        mockMvc.perform(get("/api/v1/places")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .param("page", "0")
+                .param("size", "10")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(200))
+            .andExpect(jsonPath("$.data.totalElements").value("2"))
+            .andExpect(jsonPath("$.data.content[0].region").value("서울시"));
+        ;
     }
 }
