@@ -1,5 +1,7 @@
 package com.yaliny.autismmap.place.service;
 
+import com.yaliny.autismmap.global.exception.MemberAlreadyExistsException;
+import com.yaliny.autismmap.global.exception.PlaceNotFoundException;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
@@ -19,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -153,6 +156,34 @@ class PlaceServiceTest {
     }
 
     @Test
+    @DisplayName("장소 삭제 실패 - 존재하지 않는 장소")
+    void deletePlace_not_found() {
+        Place savedPlace = placeRepository.save(new Place(
+            "테스트 장소",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            "서울시",
+            "강남구",
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        assertThatThrownBy(() -> placeService.deletePlace(savedPlace.getId() + 1))
+            .isInstanceOf(PlaceNotFoundException.class)
+            .hasMessage("장소가 존재하지 않습니다.");
+    }
+
+    @Test
     @DisplayName("장소 목록 조회 성공")
     void getPlaceList_success() {
         placeRepository.save(new Place(
@@ -224,5 +255,65 @@ class PlaceServiceTest {
         assertThat(result.content().size()).isEqualTo(1);
         assertThat(result.content().get(0).name()).isEqualTo("테스트 장소3");
         assertThat(result.content().get(0).isQuiet()).isFalse();
+    }
+
+    @Test
+    @DisplayName("장소 상세 조회 성공")
+    void getPlaceDetail_success() {
+        Place savedPlace = placeRepository.save(new Place(
+            "테스트 장소1",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            "서울시",
+            "강남구",
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        PlaceDetailResponse result = placeService.getPlaceDetail(savedPlace.getId());
+
+        assertThat(result.id()).isEqualTo(savedPlace.getId());
+        assertThat(result.name()).isEqualTo(savedPlace.getName());
+        assertThat(result.category()).isEqualTo(savedPlace.getCategory());
+        assertThat(result.lightingLevel()).isEqualTo(savedPlace.getLightingLevel());
+        assertThat(result.address()).isEqualTo(savedPlace.getAddress());
+    }
+
+    @Test
+    @DisplayName("장소 상세 조회 실패 - 존재하지 않는 장소")
+    void getPlaceDetail_not_found() {
+        Place savedPlace = placeRepository.save(new Place(
+            "테스트 장소1",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            "서울시",
+            "강남구",
+            "서울시 강남구",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        assertThatThrownBy(() -> placeService.getPlaceDetail(savedPlace.getId() + 1))
+            .isInstanceOf(PlaceNotFoundException.class)
+            .hasMessage("장소가 존재하지 않습니다.");
     }
 }

@@ -64,4 +64,10 @@ public class PlaceService {
         Page<Place> response = placeRepository.searchPlace(request, pageRequest);
         return PlaceListResponse.of(response);
     }
+
+    @Transactional(readOnly = true)
+    public PlaceDetailResponse getPlaceDetail(Long placeId) {
+        Place place = placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
+        return PlaceDetailResponse.of(place);
+    }
 }

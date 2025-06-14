@@ -57,4 +57,11 @@ public class PlaceController {
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
+    @Operation(summary = "장소 상세 조회")
+    @GetMapping("/{placeId}")
+    public ResponseEntity<BaseResponse<PlaceDetailResponse>> getPlaceDetail(@PathVariable Long placeId) {
+        PlaceDetailResponse response = placeService.getPlaceDetail(placeId);
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
 }
