@@ -29,6 +29,12 @@ public class Place extends BaseEntity {
     private PlaceCategory category; // 카테고리
 
     @Column(nullable = false)
+    private String region; // 행정구역(도/특별시/광역시)
+
+    @Column(nullable = false)
+    private String city; // 시/군/구
+
+    @Column(nullable = false)
     private String address; // 주소
 
     @Column(nullable = false)
@@ -36,9 +42,6 @@ public class Place extends BaseEntity {
 
     @Column(nullable = false)
     private Double longitude; // 경도
-
-    @Column(nullable = false)
-    private boolean isWheelchairFriendly; // 휠체어 친화 여부
 
     @Column(nullable = false)
     private boolean isQuiet; // 조용한 환경 여부
@@ -73,10 +76,11 @@ public class Place extends BaseEntity {
         String name,
         String description,
         PlaceCategory category,
+        String region,
+        String city,
         String address,
         Double latitude,
         Double longitude,
-        boolean isWheelchairFriendly,
         boolean isQuiet,
         boolean hasParking,
         boolean hasRestArea,
@@ -90,10 +94,11 @@ public class Place extends BaseEntity {
         this.name = name;
         this.description = description;
         this.category = category;
+        this.region = region;
+        this.city = city;
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.isWheelchairFriendly = isWheelchairFriendly;
         this.isQuiet = isQuiet;
         this.hasParking = hasParking;
         this.hasRestArea = hasRestArea;
@@ -105,14 +110,15 @@ public class Place extends BaseEntity {
         this.dayOff = dayOff;
     }
 
-    public Place updatePlace(PlaceUpdateRequest request) {
+    public void updatePlace(PlaceUpdateRequest request) {
         this.name = request.name();
         this.description = request.description();
         this.category = request.category();
+        this.region = request.region();
+        this.city = request.city();
         this.address = request.address();
         this.latitude = request.latitude();
         this.longitude = request.longitude();
-        this.isWheelchairFriendly = request.isWheelchairFriendly();
         this.isQuiet = request.isQuiet();
         this.hasParking = request.hasParking();
         this.hasRestArea = request.hasRestArea();
@@ -122,6 +128,5 @@ public class Place extends BaseEntity {
         this.businessStartTime = LocalTime.parse(request.businessStartTime());
         this.businessClosingTime = LocalTime.parse(request.businessClosingTime());
         this.dayOff = request.dayOff();
-        return this;
     }
 }

@@ -23,8 +23,8 @@ class PlaceRepositoryTest {
     @Test
     void saveAndFindPlace() {
         Place place = new Place("장소명", "설명", PlaceCategory.ATTRACTION,
-            "주소", 1.0, 2.0,
-            false, true, true,
+            "경기도","군포시", "주소", 1.0, 2.0,
+            false, true,
             true, true, LightingLevel.MODERATE,
             CrowdLevel.NORMAL, "09:00", "18:00", "월요일");
 

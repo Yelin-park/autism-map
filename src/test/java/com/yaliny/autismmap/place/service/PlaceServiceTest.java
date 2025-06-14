@@ -39,10 +39,11 @@ class PlaceServiceTest {
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
+            "서울시",
+            "강남구",
             "서울시 강남구",
             37.5665,
             126.9780,
-            true,
             true,
             true,
             true,
@@ -70,10 +71,11 @@ class PlaceServiceTest {
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
+            "서울시",
+            "강남구",
             "서울시 강남구",
             37.5665,
             126.9780,
-            true,
             true,
             true,
             true,
@@ -89,10 +91,11 @@ class PlaceServiceTest {
             "수정된 장소",
             "설명입니다.2",
             PlaceCategory.CAFE,
+            "서울시",
+            "강남구2",
             "서울시 강남구2",
             37.5665,
             126.9780,
-            false,
             false,
             true,
             true,
@@ -110,7 +113,6 @@ class PlaceServiceTest {
         assertThat(findPlace.getName()).isEqualTo(request.name());
         assertThat(findPlace.getDescription()).isEqualTo(request.description());
         assertThat(findPlace.getAddress()).isEqualTo(request.address());
-        assertThat(findPlace.isWheelchairFriendly()).isFalse();
         assertThat(findPlace.isQuiet()).isFalse();
         assertThat(findPlace.isHasParking()).isTrue();
         assertThat(findPlace.isHasRestArea()).isTrue();
@@ -126,10 +128,11 @@ class PlaceServiceTest {
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
+            "서울시",
+            "강남구",
             "서울시 강남구",
             37.5665,
             126.9780,
-            true,
             true,
             true,
             true,

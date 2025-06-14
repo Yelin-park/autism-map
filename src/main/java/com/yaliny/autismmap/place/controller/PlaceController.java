@@ -2,12 +2,15 @@ package com.yaliny.autismmap.place.controller;
 
 import com.yaliny.autismmap.global.response.BaseResponse;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
+import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
 import com.yaliny.autismmap.place.dto.response.PlaceDetailResponse;
+import com.yaliny.autismmap.place.dto.response.PlaceListResponse;
 import com.yaliny.autismmap.place.service.PlaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +44,17 @@ public class PlaceController {
     public ResponseEntity<BaseResponse<String>> deletePlace(@PathVariable Long placeId) {
         placeService.deletePlace(placeId);
         return ResponseEntity.ok(BaseResponse.success("placeId: " + placeId + "장소 삭제 성공"));
+    }
+
+    @Operation(summary = "장소 목록 조회")
+    @GetMapping
+    public ResponseEntity<BaseResponse<PlaceListResponse>> getPlaceList(
+        PlaceListRequest request,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        PlaceListResponse response = placeService.getPlaceList(request, PageRequest.of(page, size));
+        return ResponseEntity.ok(BaseResponse.success(response));
     }
 
 }

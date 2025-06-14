@@ -2,11 +2,15 @@ package com.yaliny.autismmap.place.service;
 
 import com.yaliny.autismmap.global.exception.PlaceNotFoundException;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
+import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
 import com.yaliny.autismmap.place.dto.response.PlaceDetailResponse;
+import com.yaliny.autismmap.place.dto.response.PlaceListResponse;
 import com.yaliny.autismmap.place.entity.Place;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +26,11 @@ public class PlaceService {
             request.name(),
             request.description(),
             request.category(),
+            request.region(),
+            request.city(),
             request.address(),
             request.latitude(),
             request.longitude(),
-            request.isWheelchairFriendly(),
             request.isQuiet(),
             request.hasParking(),
             request.hasRestArea(),
@@ -52,5 +57,11 @@ public class PlaceService {
     public void deletePlace(Long placeId) {
         placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
         placeRepository.deleteById(placeId);
+    }
+
+    @Transactional(readOnly = true)
+    public PlaceListResponse getPlaceList(PlaceListRequest request, PageRequest pageRequest) {
+        Page<Place> response = placeRepository.searchPlace(request, pageRequest);
+        return new PlaceListResponse(response.getNumber(), response.getSize(), response.getTotalElements(), response.getTotalPages(), response.isLast(), response.getContent());
     }
 }

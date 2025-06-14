@@ -12,14 +12,16 @@ public record PlaceUpdateRequest(
     String description,
     @Schema(title = "장소 카테고리 구분", example = "RESTAURANT")
     PlaceCategory category,
+    @Schema(title = "행정 구역(도/특별시/광역시)", example = "경기도")
+    String region,
+    @Schema(title = "시/군/구", example = "수원시")
+    String city,
     @Schema(title = "상세 주소", example = "경기도 수원시 권선구 금곡로 10번길 29")
     String address,
     @Schema(title = "위도", example = "38.25")
     Double latitude,
     @Schema(title = "경도", example = "48.25")
     Double longitude,
-    @Schema(title = "휠체어 친화 여부")
-    boolean isWheelchairFriendly,
     @Schema(title = "조용한 환경 여부")
     boolean isQuiet,
     @Schema(title = "주차장 유무")
