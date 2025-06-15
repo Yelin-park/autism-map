@@ -12,11 +12,11 @@ public record PlaceCreateRequest(
     String description,
     @Schema(title = "장소 카테고리 구분", example = "RESTAURANT")
     PlaceCategory category,
-    @Schema(title = "행정 구역(도/특별시/광역시)", example = "경기도")
-    String region,
-    @Schema(title = "시/군/구", example = "수원시")
-    String city,
-    @Schema(title = "상세 주소", example = "경기도 수원시 권선구 금곡로 10번길 29")
+    @Schema(title = "행정 구역(도/특별시/광역시) ID")
+    Long provinceId,
+    @Schema(title = "시/군/구 ID")
+    Long districtId,
+    @Schema(title = "주소", example = "경기도 수원시 권선구 금곡로 10번길 30")
     String address,
     @Schema(title = "위도", example = "38.25")
     Double latitude,

@@ -18,9 +18,9 @@ public record PlaceDetailResponse(
     @Schema(title = "장소 카테고리 구분", example = "RESTAURANT")
     PlaceCategory category,
     @Schema(title = "행정 구역(도/특별시/광역시)", example = "경기도")
-    String region,
+    String provinceName,
     @Schema(title = "시/군/구", example = "수원시")
-    String city,
+    String districtName,
     @Schema(title = "주소", example = "경기도 수원시 권선구 금곡로 10번길 29")
     String address,
     @Schema(title = "위도", example = "38.25")
@@ -52,8 +52,8 @@ public record PlaceDetailResponse(
             place.getName(),
             place.getDescription(),
             place.getCategory(),
-            place.getRegion(),
-            place.getCity(),
+            place.getProvince().getName(),
+            place.getDistrict().getName(),
             place.getAddress(),
             place.getLatitude(),
             place.getLongitude(),

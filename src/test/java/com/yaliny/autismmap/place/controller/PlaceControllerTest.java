@@ -13,7 +13,10 @@ import com.yaliny.autismmap.place.entity.LightingLevel;
 import com.yaliny.autismmap.place.entity.Place;
 import com.yaliny.autismmap.place.entity.PlaceCategory;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
-import org.assertj.core.api.Assertions;
+import com.yaliny.autismmap.region.entity.District;
+import com.yaliny.autismmap.region.entity.Province;
+import com.yaliny.autismmap.region.repository.DistrictRepository;
+import com.yaliny.autismmap.region.repository.ProvinceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,12 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.parameters.P;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,6 +45,12 @@ class PlaceControllerTest {
     private MemberRepository memberRepository;
 
     @Autowired
+    private ProvinceRepository provinceRepository;
+
+    @Autowired
+    private DistrictRepository districtRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
@@ -57,6 +62,7 @@ class PlaceControllerTest {
     void setUp() {
         placeRepository.deleteAll();
         memberRepository.deleteAll();
+        provinceRepository.deleteAll();
     }
 
     @Test
@@ -65,13 +71,17 @@ class PlaceControllerTest {
         Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         PlaceCreateRequest request = new PlaceCreateRequest(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province.getId(),
+            district1.getId(),
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -107,8 +117,8 @@ class PlaceControllerTest {
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
+            1L,
+            1L,
             "서울시 강남구",
             37.5665,
             126.9780,
@@ -138,13 +148,17 @@ class PlaceControllerTest {
         Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -162,9 +176,9 @@ class PlaceControllerTest {
             "수정된 장소",
             "설명입니다.2",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구2",
-            "서울시 강남구2",
+            province.getId(),
+            district2.getId(),
+            "경기도 안양시",
             37.5665,
             126.9780,
             false,
@@ -192,7 +206,7 @@ class PlaceControllerTest {
         assertThat(findPlace.isHasParking()).isTrue();
         assertThat(findPlace.isQuiet()).isFalse();
         assertThat(findPlace.getDescription()).isEqualTo("설명입니다.2");
-        assertThat(findPlace.getAddress()).isEqualTo("서울시 강남구2");
+        assertThat(findPlace.getAddress()).isEqualTo("경기도 안양시");
         assertThat(findPlace.getDayOff()).isEqualTo("월요일");
     }
 
@@ -202,13 +216,17 @@ class PlaceControllerTest {
         Member member = memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -226,9 +244,9 @@ class PlaceControllerTest {
             "수정된 장소",
             "설명입니다.2",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구2",
-            "서울시 강남구2",
+            province.getId(),
+            district2.getId(),
+            "경기도 안양시",
             37.5665,
             126.9780,
             false,
@@ -257,13 +275,17 @@ class PlaceControllerTest {
         Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -281,9 +303,9 @@ class PlaceControllerTest {
             "수정된 장소",
             "설명입니다.2",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구2",
-            "서울시 강남구2",
+            province.getId(),
+            district2.getId(),
+            "경기도 안양시",
             37.5665,
             126.9780,
             false,
@@ -312,13 +334,17 @@ class PlaceControllerTest {
         Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -348,13 +374,17 @@ class PlaceControllerTest {
         Member member = memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -382,13 +412,17 @@ class PlaceControllerTest {
         Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -416,38 +450,22 @@ class PlaceControllerTest {
         Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         placeRepository.save(new Place(
-            "테스트 장소1",
+            "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "경기도",
-            "수원시",
+            province,
+            district1,
             "경기도 수원시",
             37.5665,
             126.9780,
             true,
             true,
             true,
-            true,
-            LightingLevel.MODERATE,
-            CrowdLevel.NORMAL,
-            "09:00",
-            "19:00",
-            "월요일"
-        ));
-
-        placeRepository.save(new Place(
-            "테스트 장소2",
-            "설명입니다.",
-            PlaceCategory.RESTAURANT,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
-            37.5665,
-            126.9780,
-            false,
-            false,
-            false,
             false,
             LightingLevel.MODERATE,
             CrowdLevel.NORMAL,
@@ -457,12 +475,12 @@ class PlaceControllerTest {
         ));
 
         placeRepository.save(new Place(
-            "테스트 장소3",
+            "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -477,12 +495,12 @@ class PlaceControllerTest {
         ));
 
         placeRepository.save(new Place(
-            "테스트 장소4",
+            "테스트 장소",
             "설명입니다.",
-            PlaceCategory.RESTAURANT,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            PlaceCategory.CAFE,
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -496,7 +514,27 @@ class PlaceControllerTest {
             "월요일"
         ));
 
-        PlaceListRequest request = new PlaceListRequest("서울시", null, PlaceCategory.RESTAURANT, null, null, null, null, null);
+        placeRepository.save(new Place(
+            "테스트 장소",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            province,
+            district2,
+            "경기도 안양시",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        PlaceListRequest request = new PlaceListRequest(province.getId(), null, PlaceCategory.CAFE, null, null, null, null, null);
 
         mockMvc.perform(get("/api/v1/places")
                 .header("Authorization", "Bearer " + token)
@@ -507,8 +545,7 @@ class PlaceControllerTest {
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200))
-            .andExpect(jsonPath("$.data.totalElements").value("2"))
-            .andExpect(jsonPath("$.data.content[0].region").value("서울시"));
+            .andExpect(jsonPath("$.data.totalElements").value("4"));
     }
 
     @Test
@@ -517,13 +554,17 @@ class PlaceControllerTest {
         Member member = memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -551,13 +592,17 @@ class PlaceControllerTest {
         Member member = memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,

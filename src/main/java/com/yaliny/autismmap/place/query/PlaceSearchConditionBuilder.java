@@ -3,7 +3,6 @@ package com.yaliny.autismmap.place.query;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.util.StringUtils;
 
 import static com.yaliny.autismmap.place.entity.QPlace.place;
 
@@ -14,8 +13,8 @@ public class PlaceSearchConditionBuilder {
 
     public BooleanExpression[] build() {
         return new BooleanExpression[]{
-            regionEq(),
-            cityEq(),
+            provinceEq(),
+            districtEq(),
             categoryEq(),
             isQuietEq(),
             hasParkingEq(),
@@ -25,12 +24,12 @@ public class PlaceSearchConditionBuilder {
         };
     }
 
-    private BooleanExpression regionEq() {
-        return StringUtils.hasText(request.region()) ? place.region.eq(request.region()) : null;
+    private BooleanExpression provinceEq() {
+        return request.provinceId() != null ? place.province.id.eq(request.provinceId()) : null;
     }
 
-    private BooleanExpression cityEq() {
-        return StringUtils.hasText(request.city()) ? place.city.eq(request.city()) : null;
+    private BooleanExpression districtEq() {
+        return request.districtId() != null ? place.district.id.eq(request.districtId()) : null;
     }
 
     private BooleanExpression categoryEq() {

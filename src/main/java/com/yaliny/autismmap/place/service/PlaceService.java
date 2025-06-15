@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.place.service;
 
 import com.yaliny.autismmap.global.exception.PlaceNotFoundException;
+import com.yaliny.autismmap.global.exception.RegionNotFoundException;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
@@ -8,6 +9,10 @@ import com.yaliny.autismmap.place.dto.response.PlaceDetailResponse;
 import com.yaliny.autismmap.place.dto.response.PlaceListResponse;
 import com.yaliny.autismmap.place.entity.Place;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
+import com.yaliny.autismmap.region.entity.District;
+import com.yaliny.autismmap.region.entity.Province;
+import com.yaliny.autismmap.region.repository.DistrictRepository;
+import com.yaliny.autismmap.region.repository.ProvinceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,15 +24,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class PlaceService {
 
     private final PlaceRepository placeRepository;
+    private final ProvinceRepository provinceRepository;
+    private final DistrictRepository districtRepository;
 
     @Transactional
     public Long createPlace(PlaceCreateRequest request) {
+
+        Province province = provinceRepository.findById(request.provinceId()).orElseThrow(RegionNotFoundException::new);
+        District district = districtRepository.findById(request.districtId()).orElseThrow(RegionNotFoundException::new);
+
         Place place = new Place(
             request.name(),
             request.description(),
             request.category(),
-            request.region(),
-            request.city(),
+            province,
+            district,
             request.address(),
             request.latitude(),
             request.longitude(),
@@ -49,7 +60,9 @@ public class PlaceService {
     @Transactional
     public PlaceDetailResponse updatePlace(Long placeId, PlaceUpdateRequest request) {
         Place findPlace = placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
-        findPlace.updatePlace(request);
+        Province province = provinceRepository.findById(request.provinceId()).orElseThrow(RegionNotFoundException::new);
+        District district = districtRepository.findById(request.districtId()).orElseThrow(RegionNotFoundException::new);
+        findPlace.updatePlace(request, province, district);
         return PlaceDetailResponse.of(findPlace);
     }
 

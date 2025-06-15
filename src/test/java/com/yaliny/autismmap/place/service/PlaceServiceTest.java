@@ -1,6 +1,5 @@
 package com.yaliny.autismmap.place.service;
 
-import com.yaliny.autismmap.global.exception.MemberAlreadyExistsException;
 import com.yaliny.autismmap.global.exception.PlaceNotFoundException;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
@@ -12,6 +11,9 @@ import com.yaliny.autismmap.place.entity.LightingLevel;
 import com.yaliny.autismmap.place.entity.Place;
 import com.yaliny.autismmap.place.entity.PlaceCategory;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
+import com.yaliny.autismmap.region.entity.District;
+import com.yaliny.autismmap.region.entity.Province;
+import com.yaliny.autismmap.region.repository.ProvinceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,20 +35,28 @@ class PlaceServiceTest {
     @Autowired
     private PlaceRepository placeRepository;
 
+    @Autowired
+    private ProvinceRepository provinceRepository;
+
     @BeforeEach
     void setUp() {
         placeRepository.deleteAll();
+        provinceRepository.deleteAll();
     }
 
     @Test
     @DisplayName("장소 등록 성공")
     void createPlace_success() {
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         PlaceCreateRequest request = new PlaceCreateRequest(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
+            province.getId(),
+            district2.getId(),
             "서울시 강남구",
             37.5665,
             126.9780,
@@ -73,13 +83,17 @@ class PlaceServiceTest {
     @Test
     @DisplayName("장소 수정 성공")
     void updatePlace_success() {
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -97,8 +111,8 @@ class PlaceServiceTest {
             "수정된 장소",
             "설명입니다.2",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구2",
+            province.getId(),
+            district2.getId() ,
             "서울시 강남구2",
             37.5665,
             126.9780,
@@ -130,13 +144,17 @@ class PlaceServiceTest {
     @Test
     @DisplayName("장소 삭제 성공")
     void deletePlace_success() {
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -158,13 +176,17 @@ class PlaceServiceTest {
     @Test
     @DisplayName("장소 삭제 실패 - 존재하지 않는 장소")
     void deletePlace_not_found() {
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -186,13 +208,17 @@ class PlaceServiceTest {
     @Test
     @DisplayName("장소 목록 조회 성공")
     void getPlaceList_success() {
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         placeRepository.save(new Place(
             "테스트 장소1",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -210,9 +236,9 @@ class PlaceServiceTest {
             "테스트 장소2",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -229,15 +255,15 @@ class PlaceServiceTest {
         placeRepository.save(new Place(
             "테스트 장소3",
             "설명입니다.",
-            PlaceCategory.RESTAURANT,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            PlaceCategory.CAFE,
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
-            false,
-            false,
-            false,
+            true,
+            true,
+            true,
             false,
             LightingLevel.MODERATE,
             CrowdLevel.NORMAL,
@@ -246,27 +272,50 @@ class PlaceServiceTest {
             "월요일"
         ));
 
-        PlaceListRequest request = new PlaceListRequest("서울시", null, PlaceCategory.RESTAURANT, null, null, null, null, null);
+        placeRepository.save(new Place(
+            "테스트 장소4",
+            "설명입니다.",
+            PlaceCategory.RESTAURANT,
+            province,
+            district2,
+            "경기도 안양시",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        PlaceListRequest request = new PlaceListRequest(null, district2.getId(), PlaceCategory.RESTAURANT, null, null, null, null, null);
 
         PlaceListResponse result = placeService.getPlaceList(request, PageRequest.of(0, 10));
 
         assertThat(result.totalElements()).isEqualTo(1);
         assertThat(result.totalPages()).isEqualTo(1);
         assertThat(result.content().size()).isEqualTo(1);
-        assertThat(result.content().get(0).name()).isEqualTo("테스트 장소3");
-        assertThat(result.content().get(0).isQuiet()).isFalse();
+        assertThat(result.content().get(0).name()).isEqualTo("테스트 장소4");
     }
 
     @Test
     @DisplayName("장소 상세 조회 성공")
     void getPlaceDetail_success() {
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소1",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,
@@ -292,13 +341,17 @@ class PlaceServiceTest {
     @Test
     @DisplayName("장소 상세 조회 실패 - 존재하지 않는 장소")
     void getPlaceDetail_not_found() {
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+
         Place savedPlace = placeRepository.save(new Place(
             "테스트 장소1",
             "설명입니다.",
             PlaceCategory.CAFE,
-            "서울시",
-            "강남구",
-            "서울시 강남구",
+            province,
+            district1,
+            "경기도 수원시",
             37.5665,
             126.9780,
             true,

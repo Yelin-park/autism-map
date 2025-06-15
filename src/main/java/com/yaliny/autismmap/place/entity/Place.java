@@ -2,6 +2,8 @@ package com.yaliny.autismmap.place.entity;
 
 import com.yaliny.autismmap.global.entity.BaseEntity;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
+import com.yaliny.autismmap.region.entity.District;
+import com.yaliny.autismmap.region.entity.Province;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -28,11 +30,13 @@ public class Place extends BaseEntity {
     @Column(nullable = false)
     private PlaceCategory category; // 카테고리
 
-    @Column(nullable = false)
-    private String region; // 행정구역(도/특별시/광역시)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "province_id", nullable = false)
+    private Province province; // 행정구역(도/특별시/광역시)
 
-    @Column(nullable = false)
-    private String city; // 시/군/구
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "district_id", nullable = false)
+    private District district; // 시/군/구
 
     @Column(nullable = false)
     private String address; // 주소
@@ -76,8 +80,8 @@ public class Place extends BaseEntity {
         String name,
         String description,
         PlaceCategory category,
-        String region,
-        String city,
+        Province province,
+        District district,
         String address,
         Double latitude,
         Double longitude,
@@ -94,8 +98,8 @@ public class Place extends BaseEntity {
         this.name = name;
         this.description = description;
         this.category = category;
-        this.region = region;
-        this.city = city;
+        this.province = province;
+        this.district = district;
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -110,12 +114,12 @@ public class Place extends BaseEntity {
         this.dayOff = dayOff;
     }
 
-    public void updatePlace(PlaceUpdateRequest request) {
+    public void updatePlace(PlaceUpdateRequest request, Province province, District district) {
         this.name = request.name();
         this.description = request.description();
         this.category = request.category();
-        this.region = request.region();
-        this.city = request.city();
+        this.province = province;
+        this.district = district;
         this.address = request.address();
         this.latitude = request.latitude();
         this.longitude = request.longitude();

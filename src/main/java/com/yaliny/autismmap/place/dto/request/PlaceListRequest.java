@@ -4,8 +4,8 @@ import com.yaliny.autismmap.place.entity.LightingLevel;
 import com.yaliny.autismmap.place.entity.PlaceCategory;
 
 public record PlaceListRequest(
-    String region,
-    String city,
+    Long provinceId,
+    Long districtId,
     PlaceCategory category,
     Boolean isQuiet,
     Boolean hasParking,

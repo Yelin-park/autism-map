@@ -13,6 +13,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.yaliny.autismmap.place.entity.QPlace.place;
+import static com.yaliny.autismmap.region.entity.QDistrict.district;
+import static com.yaliny.autismmap.region.entity.QProvince.province;
 
 @Repository
 public class PlaceRepositoryCustomImpl implements PlaceRepositoryCustom {
@@ -30,6 +32,8 @@ public class PlaceRepositoryCustomImpl implements PlaceRepositoryCustom {
 
         List<Place> content = queryFactory
             .selectFrom(place)
+            .join(place.province, province).fetchJoin()
+            .join(place.district, district).fetchJoin()
             .where(conditionBuilder.build())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
