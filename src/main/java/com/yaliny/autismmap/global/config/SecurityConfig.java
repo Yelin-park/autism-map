@@ -45,7 +45,8 @@ public class SecurityConfig {
                     "/autism-map/v1/api-docs/**",
                     "/api/v1/members/signup",
                     "/api/v1/members/login",
-                    "/api/v1/members/logout"
+                    "/api/v1/members/logout",
+                    "/api/v1/regions/**"
                 ).permitAll() // 인증없이 허용
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/members").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/v1/places").hasRole("ADMIN")            // ADMIN 권한만 접근 허용
