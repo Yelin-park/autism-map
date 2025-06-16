@@ -6,12 +6,16 @@ import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
 import com.yaliny.autismmap.place.dto.response.PlaceDetailResponse;
 import com.yaliny.autismmap.place.dto.response.PlaceListResponse;
+import com.yaliny.autismmap.place.entity.LightingLevel;
+import com.yaliny.autismmap.place.entity.PlaceCategory;
 import com.yaliny.autismmap.place.service.PlaceService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "장소 관리 기능")
@@ -49,10 +53,34 @@ public class PlaceController {
     @Operation(summary = "장소 목록 조회")
     @GetMapping
     public ResponseEntity<BaseResponse<PlaceListResponse>> getPlaceList(
-        @RequestBody PlaceListRequest request,
+        @Parameter(description = "행정 구역 ID")
+        @RequestParam(required = false)
+        Long provinceId,
+        @Parameter(description = "시/군/구 ID")
+        @RequestParam(required = false)
+        Long districtId,
+        @Parameter(description = "카테고리 구분")
+        @RequestParam(required = false)
+        PlaceCategory category,
+        @Parameter(description = "조용한 환경 여부")
+        @RequestParam(required = false)
+        Boolean isQuiet,
+        @Parameter(description = "주차장 유무")
+        @RequestParam(required = false)
+        Boolean hasParking,
+        @Parameter(description = "쉴 수 있는 공간 여부")
+        @RequestParam(required = false)
+        Boolean hasRestArea,
+        @Parameter(description = "프라이빗 룸 여부")
+        @RequestParam(required = false)
+        Boolean hasPrivateRoom,
+        @Parameter(description = "밝기 수준")
+        @RequestParam(required = false)
+        LightingLevel lightingLevel,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
+        PlaceListRequest request = PlaceListRequest.of(provinceId, districtId, category, isQuiet, hasParking, hasRestArea, hasPrivateRoom, lightingLevel);
         PlaceListResponse response = placeService.getPlaceList(request, PageRequest.of(page, size));
         return ResponseEntity.ok(BaseResponse.success(response));
     }
