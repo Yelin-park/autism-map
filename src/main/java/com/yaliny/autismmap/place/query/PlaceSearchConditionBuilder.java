@@ -4,12 +4,22 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import lombok.RequiredArgsConstructor;
 
+import java.util.function.Function;
+
 import static com.yaliny.autismmap.place.entity.QPlace.place;
 
+/**
+ * 실제 빌더 패턴 적용하지 않음
+ * 전체 조건을 선택적으로 가져와서 사용하지 않아 현재는 build() 호출로 전체 조건을 체크하는 형태로 생성
+ */
 @RequiredArgsConstructor
 public class PlaceSearchConditionBuilder {
 
     private final PlaceListRequest request;
+
+    private <T> BooleanExpression extractCondition(T value, Function<T, BooleanExpression> expressionFn) {
+        return value != null ? expressionFn.apply(value) : null;
+    }
 
     public BooleanExpression[] build() {
         return new BooleanExpression[]{
@@ -25,34 +35,34 @@ public class PlaceSearchConditionBuilder {
     }
 
     private BooleanExpression provinceEq() {
-        return request.provinceId() != null ? place.province.id.eq(request.provinceId()) : null;
+        return extractCondition(request.provinceId(), place.province.id::eq);
     }
 
     private BooleanExpression districtEq() {
-        return request.districtId() != null ? place.district.id.eq(request.districtId()) : null;
+        return extractCondition(request.districtId(), place.district.id::eq);
     }
 
     private BooleanExpression categoryEq() {
-        return request.category() != null ? place.category.eq(request.category()) : null;
+        return extractCondition(request.category(), place.category::eq);
     }
 
     private BooleanExpression isQuietEq() {
-        return request.isQuiet() != null ? place.isQuiet.eq(request.isQuiet()) : null;
+        return extractCondition(request.isQuiet(), place.isQuiet::eq);
     }
 
     private BooleanExpression hasParkingEq() {
-        return request.hasParking() != null ? place.hasParking.eq(request.hasParking()) : null;
+        return extractCondition(request.hasParking(), place.hasParking::eq);
     }
 
     private BooleanExpression hasRestAreaEq() {
-        return request.hasRestArea() != null ? place.hasRestArea.eq(request.hasRestArea()) : null;
+        return extractCondition(request.hasRestArea(), place.hasRestArea::eq);
     }
 
     private BooleanExpression hasPrivateRoomEq() {
-        return request.hasPrivateRoom() != null ? place.hasPrivateRoom.eq(request.hasPrivateRoom()) : null;
+        return extractCondition(request.hasPrivateRoom(), place.hasPrivateRoom::eq);
     }
 
     private BooleanExpression lightingLevelEq() {
-        return request.lightingLevel() != null ? place.lightingLevel.eq(request.lightingLevel()) : null;
+        return extractCondition(request.lightingLevel(), place.lightingLevel::eq);
     }
 }
