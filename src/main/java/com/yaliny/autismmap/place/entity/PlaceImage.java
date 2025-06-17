@@ -18,6 +18,7 @@ public class PlaceImage extends BaseEntity {
     @Column(name = "place_image_id")
     Long id;
 
+    @Lob
     @Column(nullable = false)
     String url;
 
