@@ -4,6 +4,9 @@ import com.yaliny.autismmap.place.entity.CrowdLevel;
 import com.yaliny.autismmap.place.entity.LightingLevel;
 import com.yaliny.autismmap.place.entity.PlaceCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public record PlaceCreateRequest(
     @Schema(title = "장소명", description = "장소명", example = "아쿠아리움")
@@ -39,6 +42,8 @@ public record PlaceCreateRequest(
     @Schema(title = "영업 종료 시간", description = "24시간 형태로 작성해 주세요.", example = "18:30")
     String businessClosingTime,
     @Schema(title = "휴무일", example = "매주 화요일")
-    String dayOff
-) {
+    String dayOff,
+    @Schema(title = "장소 이미지")
+    List<MultipartFile> images
+) implements PlaceCommonRequest {
 }

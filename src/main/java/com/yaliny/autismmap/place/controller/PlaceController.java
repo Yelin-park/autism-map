@@ -14,26 +14,29 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Tag(name = "장소 관리 기능")
 @RestController
 @RequestMapping("/api/v1/places")
 @RequiredArgsConstructor
 public class PlaceController {
-
     private final PlaceService placeService;
 
     @Operation(summary = "장소 등록")
-    @PostMapping
-    public ResponseEntity<BaseResponse<String>> registerPlace(@RequestBody PlaceCreateRequest request) {
-        Long placeId = placeService.createPlace(request);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<BaseResponse<String>> registerPlace(@ModelAttribute PlaceCreateRequest form) {
+        Long placeId = placeService.createPlace(form);
         return ResponseEntity.ok(BaseResponse.success("placeId: " + placeId + " 장소 등록 성공"));
     }
 
-    @Operation(summary = "장소 수정")
+    @Operation(summary = "장소 수정", description = "이미지 수정 기능 추가 예정")
     @PatchMapping("/{placeId}")
     public ResponseEntity<BaseResponse<PlaceDetailResponse>> updatePlace(
         @PathVariable Long placeId,

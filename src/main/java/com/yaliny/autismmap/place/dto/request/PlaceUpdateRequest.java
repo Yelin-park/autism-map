@@ -40,5 +40,5 @@ public record PlaceUpdateRequest(
     String businessClosingTime,
     @Schema(title = "휴무일", example = "매주 화요일")
     String dayOff
-) {
+) implements PlaceCommonRequest {
 }

@@ -32,7 +32,7 @@ class PlaceRepositoryTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place place = new Place("장소명", "설명", PlaceCategory.ATTRACTION,
+        Place place = Place.createPlace("장소명", "설명", PlaceCategory.ATTRACTION,
             province,district2, "주소", 1.0, 2.0,
             false, true,
             true, true, LightingLevel.MODERATE,

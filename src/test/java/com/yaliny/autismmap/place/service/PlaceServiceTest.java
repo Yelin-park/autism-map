@@ -70,7 +70,8 @@ class PlaceServiceTest {
             CrowdLevel.NORMAL,
             "09:00",
             "19:00",
-            "월요일"
+            "월요일",
+            null
         );
 
         Long placeId = placeService.createPlace(request);
@@ -89,7 +90,7 @@ class PlaceServiceTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -150,7 +151,7 @@ class PlaceServiceTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -182,7 +183,7 @@ class PlaceServiceTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -214,7 +215,7 @@ class PlaceServiceTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        placeRepository.save(new Place(
+        placeRepository.save(Place.createPlace(
             "테스트 장소1",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -234,7 +235,7 @@ class PlaceServiceTest {
             "월요일"
         ));
 
-        placeRepository.save(new Place(
+        placeRepository.save(Place.createPlace(
             "테스트 장소2",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -254,7 +255,7 @@ class PlaceServiceTest {
             "월요일"
         ));
 
-        placeRepository.save(new Place(
+        placeRepository.save(Place.createPlace(
             "테스트 장소3",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -274,7 +275,7 @@ class PlaceServiceTest {
             "월요일"
         ));
 
-        placeRepository.save(new Place(
+        placeRepository.save(Place.createPlace(
             "테스트 장소4",
             "설명입니다.",
             PlaceCategory.RESTAURANT,
@@ -311,7 +312,7 @@ class PlaceServiceTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소1",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -347,7 +348,7 @@ class PlaceServiceTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소1",
             "설명입니다.",
             PlaceCategory.CAFE,

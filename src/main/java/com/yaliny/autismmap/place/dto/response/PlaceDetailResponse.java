@@ -1,12 +1,11 @@
 package com.yaliny.autismmap.place.dto.response;
 
-import com.yaliny.autismmap.place.entity.CrowdLevel;
-import com.yaliny.autismmap.place.entity.LightingLevel;
 import com.yaliny.autismmap.place.entity.Place;
-import com.yaliny.autismmap.place.entity.PlaceCategory;
+import com.yaliny.autismmap.place.entity.PlaceImage;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public record PlaceDetailResponse(
     @Schema(title = "장소 ID")
@@ -44,8 +43,10 @@ public record PlaceDetailResponse(
     @Schema(title = "영업 종료 시간", example = "18:30")
     String businessClosingTime,
     @Schema(title = "휴무일", example = "매주 화요일")
-    String dayOff
-) {
+    String dayOff,
+    @Schema(title = "장소 이미지")
+    List<String> images
+) implements PlaceCommonResponse {
     public static PlaceDetailResponse of(Place place) {
         return new PlaceDetailResponse(
             place.getId(),
@@ -65,7 +66,8 @@ public record PlaceDetailResponse(
             place.getCrowdLevel().getDescription(),
             place.getBusinessStartTime().format(DateTimeFormatter.ofPattern("HH:mm")),
             place.getBusinessClosingTime().format(DateTimeFormatter.ofPattern("HH:mm")),
-            place.getDayOff()
+            place.getDayOff(),
+            place.getImages().stream().map(PlaceImage::getUrl).toList()
         );
     }
 }

@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -77,30 +78,34 @@ class PlaceControllerTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        PlaceCreateRequest request = new PlaceCreateRequest(
-            "테스트 장소",
-            "설명입니다.",
-            PlaceCategory.CAFE,
-            province.getId(),
-            district1.getId(),
-            "경기도 수원시",
-            37.5665,
-            126.9780,
-            true,
-            true,
-            true,
-            false,
-            LightingLevel.MODERATE,
-            CrowdLevel.NORMAL,
-            "09:00",
-            "19:00",
-            "월요일"
+        MockMultipartFile dummyImage = new MockMultipartFile(
+            "images",
+            "test.jpg",
+            MediaType.IMAGE_JPEG_VALUE,
+            "dummy image content".getBytes()
         );
 
-        mockMvc.perform(post("/api/v1/places")
+        mockMvc.perform(multipart("/api/v1/places")
+                .file(dummyImage)
+                .param("name", "테스트 장소")
+                .param("description", "설명입니다.")
+                .param("category", PlaceCategory.CAFE.name())
+                .param("provinceId", String.valueOf(province.getId()))
+                .param("districtId", String.valueOf(district1.getId()))
+                .param("address", "경기도 수원시")
+                .param("latitude", "37.5665")
+                .param("longitude", "126.9780")
+                .param("isQuiet", "true")
+                .param("hasParking", "true")
+                .param("hasRestArea", "true")
+                .param("hasPrivateRoom", "false")
+                .param("lightingLevel", LightingLevel.MODERATE.name())
+                .param("crowdLevel", CrowdLevel.NORMAL.name())
+                .param("businessStartTime", "09:00")
+                .param("businessClosingTime", "19:00")
+                .param("dayOff", "월요일")
                 .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.MULTIPART_FORM_DATA))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200))
             .andExpect(jsonPath("$.data").exists());
@@ -115,30 +120,26 @@ class PlaceControllerTest {
         Member member = memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
-        PlaceCreateRequest request = new PlaceCreateRequest(
-            "테스트 장소",
-            "설명입니다.",
-            PlaceCategory.CAFE,
-            1L,
-            1L,
-            "서울시 강남구",
-            37.5665,
-            126.9780,
-            true,
-            true,
-            true,
-            false,
-            LightingLevel.MODERATE,
-            CrowdLevel.NORMAL,
-            "09:00",
-            "19:00",
-            "월요일"
-        );
-
-        mockMvc.perform(post("/api/v1/places")
+        mockMvc.perform(multipart("/api/v1/places")
+                .param("name", "테스트 장소")
+                .param("description", "설명입니다.")
+                .param("category", PlaceCategory.CAFE.name())
+                .param("provinceId", "1")
+                .param("districtId", "1")
+                .param("address", "서울시 강남구")
+                .param("latitude", "37.5665")
+                .param("longitude", "126.9780")
+                .param("isQuiet", "true")
+                .param("hasParking", "true")
+                .param("hasRestArea", "true")
+                .param("hasPrivateRoom", "false")
+                .param("lightingLevel", LightingLevel.MODERATE.name())
+                .param("crowdLevel", CrowdLevel.NORMAL.name())
+                .param("businessStartTime", "09:00")
+                .param("businessClosingTime", "19:00")
+                .param("dayOff", "월요일")
                 .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.MULTIPART_FORM_DATA))
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.code").value(403))
             .andExpect(jsonPath("$.message").value("권한이 없습니다."));
@@ -154,7 +155,7 @@ class PlaceControllerTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -222,7 +223,7 @@ class PlaceControllerTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -281,7 +282,7 @@ class PlaceControllerTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -340,7 +341,7 @@ class PlaceControllerTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -380,7 +381,7 @@ class PlaceControllerTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -418,7 +419,7 @@ class PlaceControllerTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -456,7 +457,7 @@ class PlaceControllerTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        placeRepository.save(new Place(
+        placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -476,7 +477,7 @@ class PlaceControllerTest {
             "월요일"
         ));
 
-        placeRepository.save(new Place(
+        placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -496,7 +497,7 @@ class PlaceControllerTest {
             "월요일"
         ));
 
-        placeRepository.save(new Place(
+        placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -516,7 +517,7 @@ class PlaceControllerTest {
             "월요일"
         ));
 
-        placeRepository.save(new Place(
+        placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -560,7 +561,7 @@ class PlaceControllerTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,
@@ -598,7 +599,7 @@ class PlaceControllerTest {
         District district2 = District.createDistrict("안양시");
         Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
 
-        Place savedPlace = placeRepository.save(new Place(
+        Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
             "설명입니다.",
             PlaceCategory.CAFE,

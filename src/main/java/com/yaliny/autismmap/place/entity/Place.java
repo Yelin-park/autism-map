@@ -8,9 +8,13 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
+@Setter(AccessLevel.PRIVATE)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
@@ -76,7 +80,17 @@ public class Place extends BaseEntity {
     @Column(nullable = false)
     private String dayOff; // 휴무일
 
-    public Place(
+    @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PlaceImage> images = new ArrayList<>();
+
+    // 연관 관계 편의 메서드
+    public void addImage(PlaceImage image) {
+        this.images.add(image);
+        image.setPlace(this);
+    }
+
+    // 생성 메서드
+    public static Place createPlace(
         String name,
         String description,
         PlaceCategory category,
@@ -93,25 +107,31 @@ public class Place extends BaseEntity {
         CrowdLevel crowdLevel,
         String businessStartTime,
         String businessClosingTime,
-        String dayOff
+        String dayOff,
+        PlaceImage... images
     ) {
-        this.name = name;
-        this.description = description;
-        this.category = category;
-        this.province = province;
-        this.district = district;
-        this.address = address;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.isQuiet = isQuiet;
-        this.hasParking = hasParking;
-        this.hasRestArea = hasRestArea;
-        this.hasPrivateRoom = hasPrivateRoom;
-        this.lightingLevel = lightingLevel;
-        this.crowdLevel = crowdLevel;
-        this.businessStartTime = LocalTime.parse(businessStartTime);
-        this.businessClosingTime = LocalTime.parse(businessClosingTime);
-        this.dayOff = dayOff;
+        Place place = new Place();
+        place.setName(name);
+        place.setDescription(description);
+        place.setCategory(category);
+        place.setProvince(province);
+        place.setDistrict(district);
+        place.setAddress(address);
+        place.setLatitude(latitude);
+        place.setLongitude(longitude);
+        place.setQuiet(isQuiet);
+        place.setHasParking(hasParking);
+        place.setHasRestArea(hasRestArea);
+        place.setHasPrivateRoom(hasPrivateRoom);
+        place.setLightingLevel(lightingLevel);
+        place.setCrowdLevel(crowdLevel);
+        place.setBusinessStartTime(LocalTime.parse(businessStartTime));
+        place.setBusinessClosingTime(LocalTime.parse(businessClosingTime));
+        place.setDayOff(dayOff);
+        for (PlaceImage image : images) {
+            place.addImage(image);
+        }
+        return place;
     }
 
     public void updatePlace(PlaceUpdateRequest request, Province province, District district) {
