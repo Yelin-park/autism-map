@@ -5,7 +5,6 @@ import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.entity.Role;
 import com.yaliny.autismmap.member.repository.MemberRepository;
-import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
 import com.yaliny.autismmap.place.entity.CrowdLevel;
@@ -27,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -36,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class PlaceControllerTest {
 
     @Autowired

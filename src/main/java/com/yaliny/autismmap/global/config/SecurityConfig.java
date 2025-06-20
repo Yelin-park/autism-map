@@ -48,6 +48,8 @@ public class SecurityConfig {
                     "/api/v1/members/logout",
                     "/api/v1/regions/**"
                 ).permitAll() // 인증없이 허용
+                .requestMatchers(HttpMethod.GET, "/api/v1/places").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/places/{placeId}").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/members").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/v1/places").hasRole("ADMIN")            // ADMIN 권한만 접근 허용
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/places/{placeId}").hasRole("ADMIN") // ADMIN 권한만 접근 허용

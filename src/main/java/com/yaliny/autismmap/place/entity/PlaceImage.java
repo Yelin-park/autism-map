@@ -27,11 +27,6 @@ public class PlaceImage extends BaseEntity {
     @JoinColumn(name = "place_id", nullable = false)
     private Place place;
 
-    public PlaceImage(String url, Place place) {
-        this.url = url;
-        this.place = place;
-    }
-
     public static PlaceImage createPlaceImage(String url) {
         PlaceImage placeImage = new PlaceImage();
         placeImage.setUrl(url);

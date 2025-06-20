@@ -1,7 +1,9 @@
 package com.yaliny.autismmap.place.service;
 
+import com.yaliny.autismmap.global.exception.ImageUploadFailedException;
 import com.yaliny.autismmap.global.exception.PlaceNotFoundException;
 import com.yaliny.autismmap.global.exception.RegionNotFoundException;
+import com.yaliny.autismmap.global.external.service.S3Uploader;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +34,7 @@ public class PlaceService {
     private final PlaceRepository placeRepository;
     private final ProvinceRepository provinceRepository;
     private final DistrictRepository districtRepository;
+    private final S3Uploader s3Uploader;
 
     @Transactional
     public Long createPlace(PlaceCreateRequest request) {
@@ -38,19 +42,28 @@ public class PlaceService {
         Province province = provinceRepository.findById(request.provinceId()).orElseThrow(RegionNotFoundException::new);
         District district = districtRepository.findById(request.districtId()).orElseThrow(RegionNotFoundException::new);
 
-        // 현재 S3 미사용: 더미 URL로 PlaceImage 생성. 추후에 AWS 설정하면 S3 설정으로 변경
         List<PlaceImage> placeImages = Optional.ofNullable(request.images())
             .orElse(List.of())
             .stream()
             .filter(file -> !file.isEmpty())
             .map(file -> {
-                // 실제 업로드는 하지 않고 더미 이미지 URL 반환
-                String dummyUrl = "https://via.placeholder.com/400x300.png?text=Dummy+Image";
-                return PlaceImage.createPlaceImage(dummyUrl);
-            })
-            .toList();
+                String uploadedUrl = null;
+                try {
+                    uploadedUrl = s3Uploader.upload(file, "place-images");
+                } catch (IOException e) {
+                    throw new ImageUploadFailedException();
+                }
+                return PlaceImage.createPlaceImage(uploadedUrl);
+            }).toList();
 
-        Place place = Place.createPlace(
+        Place place = createPlace(request, province, district, placeImages);
+
+        Place savedPlace = placeRepository.save(place);
+        return savedPlace.getId();
+    }
+
+    private static Place createPlace(PlaceCreateRequest request, Province province, District district, List<PlaceImage> placeImages) {
+        return Place.createPlace(
             request.name(),
             request.description(),
             request.category(),
@@ -70,9 +83,6 @@ public class PlaceService {
             request.dayOff(),
             placeImages.toArray(new PlaceImage[0])
         );
-
-        Place savedPlace = placeRepository.save(place);
-        return savedPlace.getId();
     }
 
     @Transactional
