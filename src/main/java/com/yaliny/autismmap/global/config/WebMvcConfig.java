@@ -21,7 +21,8 @@ public class WebMvcConfig implements WebMvcConfigurer{
                 registry.addMapping("/**")
                     .allowedOrigins(
                         "http://localhost:5173", // 로컬 프론트엔드 주소
-                        "http://nurean-front.s3-website.ap-northeast-2.amazonaws.com" // S3 배포 프론트 주소
+                        "http://nurean.kro.kr",
+                        "https://nurean.kro.kr"
                         )
                     .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                     .allowedHeaders("*")

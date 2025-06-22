@@ -39,6 +39,7 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
+                    "/",
                     "/h2-console/**",
                     "/swagger-ui/**",
                     "/swagger-resources/**",
