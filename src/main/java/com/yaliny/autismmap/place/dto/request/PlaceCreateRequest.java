@@ -13,37 +13,37 @@ public record PlaceCreateRequest(
     String name,
     @Schema(title = "설명", description = "설명", example = "물고기를 많이 볼 수 있는 장소")
     String description,
-    @Schema(title = "장소 카테고리 구분", example = "RESTAURANT")
+    @Schema(title = "장소 카테고리 구분", description = "장소 카테고리 구분", example = "RESTAURANT")
     PlaceCategory category,
-    @Schema(title = "행정 구역(도/특별시/광역시) ID")
+    @Schema(title = "행정 구역(도/특별시/광역시) ID", description = "행정 구역 ID")
     Long provinceId,
-    @Schema(title = "시/군/구 ID")
+    @Schema(title = "시/군/구 ID", description = "시/군/구 ID")
     Long districtId,
-    @Schema(title = "주소", example = "경기도 수원시 권선구 금곡로 10번길 30")
+    @Schema(title = "주소", description = "주소", example = "경기도 수원시 권선구 금곡로 10번길 30")
     String address,
-    @Schema(title = "위도", example = "38.25")
+    @Schema(title = "위도", description = "위도", example = "38.25")
     Double latitude,
-    @Schema(title = "경도", example = "48.25")
+    @Schema(title = "경도", description = "경도", example = "48.25")
     Double longitude,
-    @Schema(title = "조용한 환경 여부")
+    @Schema(title = "조용한 환경 여부", description = "조용한 환경 여부")
     boolean isQuiet,
-    @Schema(title = "주차장 유무")
+    @Schema(title = "주차장 유무", description = "주차장 유무")
     boolean hasParking,
-    @Schema(title = "쉴 수 있는 공간 여부")
+    @Schema(title = "쉴 수 있는 공간 여부", description = "쉴 수 있는 공간 여부")
     boolean hasRestArea,
-    @Schema(title = "프라이빗 룸 여부")
+    @Schema(title = "프라이빗 룸 여부", description = "프라이빗 룸 여부")
     boolean hasPrivateRoom,
-    @Schema(title = "조명 밝기 수준", example = "MODERATE")
+    @Schema(title = "조명 밝기 수준", description = "조명 밝기 수준", example = "MODERATE")
     LightingLevel lightingLevel,
-    @Schema(title = "혼잡도 수준", example = "NORMAL")
+    @Schema(title = "혼잡도 수준", description = "혼잡도 수준", example = "NORMAL")
     CrowdLevel crowdLevel,
-    @Schema(title = "영업 시작 시간", description = "24시간 형태로 작성해 주세요.", example = "09:00")
+    @Schema(title = "영업 시작 시간", description = "영업 시작 시간(24시간 형태로 작성해 주세요.)", example = "09:00")
     String businessStartTime,
-    @Schema(title = "영업 종료 시간", description = "24시간 형태로 작성해 주세요.", example = "18:30")
+    @Schema(title = "영업 종료 시간", description = "영업 종료 시간(24시간 형태로 작성해 주세요.)", example = "18:30")
     String businessClosingTime,
-    @Schema(title = "휴무일", example = "매주 화요일")
+    @Schema(title = "휴무일", description = "휴무일", example = "매주 화요일")
     String dayOff,
-    @Schema(title = "장소 이미지")
+    @Schema(title = "장소 이미지", description = "장소 이미지")
     List<MultipartFile> images
 ) implements PlaceCommonRequest {
 }

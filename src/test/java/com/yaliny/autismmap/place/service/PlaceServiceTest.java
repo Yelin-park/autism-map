@@ -23,6 +23,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -115,7 +117,7 @@ class PlaceServiceTest {
             "설명입니다.2",
             PlaceCategory.CAFE,
             province.getId(),
-            district2.getId() ,
+            district2.getId(),
             "서울시 강남구2",
             37.5665,
             126.9780,
@@ -127,7 +129,8 @@ class PlaceServiceTest {
             CrowdLevel.NORMAL,
             "09:00",
             "18:00",
-            "월요일"
+            "월요일",
+            new ArrayList<>()
         );
 
         PlaceDetailResponse response = placeService.updatePlace(savedPlace.getId(), request);

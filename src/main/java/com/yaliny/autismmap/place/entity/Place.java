@@ -134,7 +134,7 @@ public class Place extends BaseEntity {
         return place;
     }
 
-    public void updatePlace(PlaceUpdateRequest request, Province province, District district) {
+    public void updatePlace(PlaceUpdateRequest request, Province province, District district, List<PlaceImage> placeImages) {
         this.name = request.name();
         this.description = request.description();
         this.category = request.category();
@@ -152,5 +152,6 @@ public class Place extends BaseEntity {
         this.businessStartTime = LocalTime.parse(request.businessStartTime());
         this.businessClosingTime = LocalTime.parse(request.businessClosingTime());
         this.dayOff = request.dayOff();
+        this.images = placeImages;
     }
 }

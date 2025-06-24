@@ -6,7 +6,6 @@ import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.entity.Role;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
-import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
 import com.yaliny.autismmap.place.entity.CrowdLevel;
 import com.yaliny.autismmap.place.entity.LightingLevel;
 import com.yaliny.autismmap.place.entity.Place;
@@ -176,30 +175,26 @@ class PlaceControllerTest {
             "월요일"
         ));
 
-        PlaceUpdateRequest request = new PlaceUpdateRequest(
-            "수정된 장소",
-            "설명입니다.2",
-            PlaceCategory.CAFE,
-            province.getId(),
-            district2.getId(),
-            "경기도 안양시",
-            37.5665,
-            126.9780,
-            false,
-            true,
-            true,
-            false,
-            LightingLevel.MODERATE,
-            CrowdLevel.NORMAL,
-            "09:00",
-            "18:00",
-            "월요일"
-        );
-
         mockMvc.perform(patch("/api/v1/places/{placeId}", savedPlace.getId())
+                .param("name", "수정된 장소")
+                .param("description", "설명입니다.2")
+                .param("category", PlaceCategory.CAFE.name())
+                .param("provinceId", province.getId().toString())
+                .param("districtId", district1.getId().toString())
+                .param("address", "서울시 강남구")
+                .param("latitude", "37.5665")
+                .param("longitude", "126.9780")
+                .param("isQuiet", "true")
+                .param("hasParking", "true")
+                .param("hasRestArea", "true")
+                .param("hasPrivateRoom", "true")
+                .param("lightingLevel", LightingLevel.MODERATE.name())
+                .param("crowdLevel", CrowdLevel.NORMAL.name())
+                .param("businessStartTime", "09:00")
+                .param("businessClosingTime", "19:00")
+                .param("dayOff", "월요일")
                 .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.MULTIPART_FORM_DATA))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200))
             .andExpect(jsonPath("$.data").exists());
@@ -208,9 +203,9 @@ class PlaceControllerTest {
 
         assertThat(findPlace.getName()).isEqualTo("수정된 장소");
         assertThat(findPlace.isHasParking()).isTrue();
-        assertThat(findPlace.isQuiet()).isFalse();
+        assertThat(findPlace.isQuiet()).isTrue();
         assertThat(findPlace.getDescription()).isEqualTo("설명입니다.2");
-        assertThat(findPlace.getAddress()).isEqualTo("경기도 안양시");
+        assertThat(findPlace.getAddress()).isEqualTo("서울시 강남구");
         assertThat(findPlace.getDayOff()).isEqualTo("월요일");
     }
 
@@ -244,30 +239,26 @@ class PlaceControllerTest {
             "월요일"
         ));
 
-        PlaceUpdateRequest request = new PlaceUpdateRequest(
-            "수정된 장소",
-            "설명입니다.2",
-            PlaceCategory.CAFE,
-            province.getId(),
-            district2.getId(),
-            "경기도 안양시",
-            37.5665,
-            126.9780,
-            false,
-            true,
-            true,
-            false,
-            LightingLevel.MODERATE,
-            CrowdLevel.NORMAL,
-            "09:00",
-            "18:00",
-            "월요일"
-        );
-
         mockMvc.perform(patch("/api/v1/places/{placeId}", savedPlace.getId())
+                .param("name", "테스트 장소")
+                .param("description", "설명입니다.")
+                .param("category", PlaceCategory.CAFE.name())
+                .param("provinceId", "1")
+                .param("districtId", "1")
+                .param("address", "서울시 강남구")
+                .param("latitude", "37.5665")
+                .param("longitude", "126.9780")
+                .param("isQuiet", "true")
+                .param("hasParking", "true")
+                .param("hasRestArea", "true")
+                .param("hasPrivateRoom", "false")
+                .param("lightingLevel", LightingLevel.MODERATE.name())
+                .param("crowdLevel", CrowdLevel.NORMAL.name())
+                .param("businessStartTime", "09:00")
+                .param("businessClosingTime", "19:00")
+                .param("dayOff", "월요일")
                 .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.MULTIPART_FORM_DATA))
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.code").value(403))
             .andExpect(jsonPath("$.message").value("권한이 없습니다."));
@@ -303,30 +294,26 @@ class PlaceControllerTest {
             "월요일"
         ));
 
-        PlaceUpdateRequest request = new PlaceUpdateRequest(
-            "수정된 장소",
-            "설명입니다.2",
-            PlaceCategory.CAFE,
-            province.getId(),
-            district2.getId(),
-            "경기도 안양시",
-            37.5665,
-            126.9780,
-            false,
-            true,
-            true,
-            false,
-            LightingLevel.MODERATE,
-            CrowdLevel.NORMAL,
-            "09:00",
-            "18:00",
-            "월요일"
-        );
-
         mockMvc.perform(patch("/api/v1/places/{placeId}", savedPlace.getId() + 1)
+                .param("name", "테스트 장소")
+                .param("description", "설명입니다.")
+                .param("category", PlaceCategory.CAFE.name())
+                .param("provinceId", "1")
+                .param("districtId", "1")
+                .param("address", "서울시 강남구")
+                .param("latitude", "37.5665")
+                .param("longitude", "126.9780")
+                .param("isQuiet", "true")
+                .param("hasParking", "true")
+                .param("hasRestArea", "true")
+                .param("hasPrivateRoom", "false")
+                .param("lightingLevel", LightingLevel.MODERATE.name())
+                .param("crowdLevel", CrowdLevel.NORMAL.name())
+                .param("businessStartTime", "09:00")
+                .param("businessClosingTime", "19:00")
+                .param("dayOff", "월요일")
                 .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.MULTIPART_FORM_DATA))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.code").value(404))
             .andExpect(jsonPath("$.message").value("장소가 존재하지 않습니다."));

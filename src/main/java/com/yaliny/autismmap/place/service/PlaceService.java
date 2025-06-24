@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -42,24 +43,56 @@ public class PlaceService {
         Province province = provinceRepository.findById(request.provinceId()).orElseThrow(RegionNotFoundException::new);
         District district = districtRepository.findById(request.districtId()).orElseThrow(RegionNotFoundException::new);
 
-        List<PlaceImage> placeImages = Optional.ofNullable(request.images())
+        List<PlaceImage> placeImages = getPlaceImages(request.images(), "place-images");
+
+        Place place = createPlace(request, province, district, placeImages);
+
+        Place savedPlace = placeRepository.save(place);
+        return savedPlace.getId();
+    }
+
+    @Transactional
+    public PlaceDetailResponse updatePlace(Long placeId, PlaceUpdateRequest request) {
+        Place findPlace = placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
+        Province province = provinceRepository.findById(request.provinceId()).orElseThrow(RegionNotFoundException::new);
+        District district = districtRepository.findById(request.districtId()).orElseThrow(RegionNotFoundException::new);
+        List<PlaceImage> placeImages = getPlaceImages(request.images(), "place-images");
+        findPlace.updatePlace(request, province, district, placeImages);
+        return PlaceDetailResponse.of(findPlace);
+    }
+
+    @Transactional
+    public void deletePlace(Long placeId) {
+        placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
+        placeRepository.deleteById(placeId);
+    }
+
+    @Transactional(readOnly = true)
+    public PlaceListResponse getPlaceList(PlaceListRequest request, PageRequest pageRequest) {
+        Page<Place> response = placeRepository.searchPlace(request, pageRequest);
+        return PlaceListResponse.of(response);
+    }
+
+    @Transactional(readOnly = true)
+    public PlaceDetailResponse getPlaceDetail(Long placeId) {
+        Place place = placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
+        return PlaceDetailResponse.of(place);
+    }
+
+    private List<PlaceImage> getPlaceImages(List<MultipartFile> images, String dirName) {
+        return Optional.ofNullable(images)
             .orElse(List.of())
             .stream()
             .filter(file -> !file.isEmpty())
             .map(file -> {
                 String uploadedUrl = null;
                 try {
-                    uploadedUrl = s3Uploader.upload(file, "place-images");
+                    uploadedUrl = s3Uploader.upload(file, dirName);
                 } catch (IOException e) {
                     throw new ImageUploadFailedException();
                 }
                 return PlaceImage.createPlaceImage(uploadedUrl);
             }).toList();
-
-        Place place = createPlace(request, province, district, placeImages);
-
-        Place savedPlace = placeRepository.save(place);
-        return savedPlace.getId();
     }
 
     private static Place createPlace(PlaceCreateRequest request, Province province, District district, List<PlaceImage> placeImages) {
@@ -83,32 +116,5 @@ public class PlaceService {
             request.dayOff(),
             placeImages.toArray(new PlaceImage[0])
         );
-    }
-
-    @Transactional
-    public PlaceDetailResponse updatePlace(Long placeId, PlaceUpdateRequest request) {
-        Place findPlace = placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
-        Province province = provinceRepository.findById(request.provinceId()).orElseThrow(RegionNotFoundException::new);
-        District district = districtRepository.findById(request.districtId()).orElseThrow(RegionNotFoundException::new);
-        findPlace.updatePlace(request, province, district);
-        return PlaceDetailResponse.of(findPlace);
-    }
-
-    @Transactional
-    public void deletePlace(Long placeId) {
-        placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
-        placeRepository.deleteById(placeId);
-    }
-
-    @Transactional(readOnly = true)
-    public PlaceListResponse getPlaceList(PlaceListRequest request, PageRequest pageRequest) {
-        Page<Place> response = placeRepository.searchPlace(request, pageRequest);
-        return PlaceListResponse.of(response);
-    }
-
-    @Transactional(readOnly = true)
-    public PlaceDetailResponse getPlaceDetail(Long placeId) {
-        Place place = placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
-        return PlaceDetailResponse.of(place);
     }
 }

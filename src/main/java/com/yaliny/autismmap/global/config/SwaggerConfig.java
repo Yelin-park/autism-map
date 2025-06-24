@@ -13,8 +13,8 @@ import org.springframework.context.annotation.Configuration;
 
 @OpenAPIDefinition(
     info = @Info(
-        title = "Autism Map API 문서",
-        description = "Autism Map 서비스의 API 명세서입니다.",
+        title = "Nurean(누리안) API 문서",
+        description = "Nurean(누리안) 서비스의 API 명세서입니다.",
         version = "v1.0",
         contact = @Contact(
             name = "Yaliny 개발",
