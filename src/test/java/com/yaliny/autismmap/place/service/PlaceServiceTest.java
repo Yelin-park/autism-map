@@ -13,6 +13,7 @@ import com.yaliny.autismmap.place.entity.PlaceCategory;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
 import com.yaliny.autismmap.region.entity.District;
 import com.yaliny.autismmap.region.entity.Province;
+import com.yaliny.autismmap.region.repository.DistrictRepository;
 import com.yaliny.autismmap.region.repository.ProvinceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,10 +43,14 @@ class PlaceServiceTest {
     @Autowired
     private ProvinceRepository provinceRepository;
 
+    @Autowired
+    private DistrictRepository districtRepository;
+
     @BeforeEach
     void setUp() {
         placeRepository.deleteAll();
         provinceRepository.deleteAll();
+        districtRepository.deleteAll();
     }
 
     @Test
@@ -130,6 +135,7 @@ class PlaceServiceTest {
             "09:00",
             "18:00",
             "월요일",
+            new ArrayList<>(),
             new ArrayList<>()
         );
 

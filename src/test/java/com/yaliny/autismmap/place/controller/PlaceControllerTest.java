@@ -66,6 +66,7 @@ class PlaceControllerTest {
         placeRepository.deleteAll();
         memberRepository.deleteAll();
         provinceRepository.deleteAll();
+        districtRepository.deleteAll();
     }
 
     @Test

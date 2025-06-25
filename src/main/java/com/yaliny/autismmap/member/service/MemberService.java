@@ -28,20 +28,14 @@ public class MemberService {
     @Transactional
     public LoginResponse login(LoginRequest request) {
         Member member = memberRepository.findByEmail(request.email()).orElseThrow(MemberNotFoundException::new);
-
-        if (!passwordEncoder.matches(request.password(), member.getPassword())) {
-            throw new InvalidPasswordException();
-        }
-
+        if (!passwordEncoder.matches(request.password(), member.getPassword())) throw new InvalidPasswordException();
         String token = jwtUtil.generateToken(member.getId(), member.getEmail(), member.getRole().name());
         return new LoginResponse(token);
     }
 
     @Transactional
     public SignUpResponse signup(SignUpRequest request) {
-        if (memberRepository.findByEmail(request.email()).isPresent()) {
-            throw new MemberAlreadyExistsException();
-        }
+        if (memberRepository.findByEmail(request.email()).isPresent()) throw new MemberAlreadyExistsException();
 
         Member member = new Member(request.email(), passwordEncoder.encode(request.password()), request.nickname());
         memberRepository.save(member);
@@ -52,9 +46,7 @@ public class MemberService {
 
     @Transactional
     public void withdraw(Long memberId, Long tokenMemberId) {
-        if (!tokenMemberId.equals(memberId)) {
-            throw new NoPermissionException();
-        }
+        if (!tokenMemberId.equals(memberId)) throw new NoPermissionException();
 
         Member member = memberRepository.findById(memberId)
             .orElseThrow(MemberNotFoundException::new);
@@ -64,12 +56,8 @@ public class MemberService {
 
     @Transactional(readOnly = true)
     public MemberInfoResponse getMemberInfo(Long memberId, Long tokenMemberId) {
-        if (!tokenMemberId.equals(memberId)) {
-            throw new NoPermissionException();
-        }
-
+        if (!tokenMemberId.equals(memberId)) throw new NoPermissionException();
         Member findMember = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
-
-        return new MemberInfoResponse(findMember.getId(), findMember.getEmail(), findMember.getNickname());
+        return MemberInfoResponse.of(findMember);
     }
 }
