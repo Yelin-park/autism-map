@@ -17,6 +17,7 @@ import com.yaliny.autismmap.region.entity.Province;
 import com.yaliny.autismmap.region.repository.DistrictRepository;
 import com.yaliny.autismmap.region.repository.ProvinceRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PlaceService {
@@ -53,12 +55,22 @@ public class PlaceService {
 
     @Transactional
     public PlaceDetailResponse updatePlace(Long placeId, PlaceUpdateRequest request) {
-        Place findPlace = placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
+        Place place = placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
         Province province = provinceRepository.findById(request.provinceId()).orElseThrow(RegionNotFoundException::new);
         District district = districtRepository.findById(request.districtId()).orElseThrow(RegionNotFoundException::new);
-        List<PlaceImage> placeImages = getPlaceImages(request.images(), "place-images");
-        findPlace.updatePlace(request, province, district, placeImages);
-        return PlaceDetailResponse.of(findPlace);
+
+        List<Long> preserveIds = Optional.ofNullable(request.preserveImageIds())
+            .orElse(Collections.emptyList());
+
+        List<PlaceImage> toPreserve = place.getImages().stream().filter(image -> preserveIds.contains(image.getId())).toList();
+        if (toPreserve.size() != preserveIds.size()) {
+            log.warn("일부 이미지 ID가 존재하지 않습니다: 요청 preserve IDs={}, 실제 존재={}, 장소 ID={}",
+                preserveIds, toPreserve.stream().map(PlaceImage::getId).toList(), placeId);
+        }
+
+        List<PlaceImage> newImages = getPlaceImages(request.images(), "place-images");
+        place.updatePlace(request, province, district, newImages, toPreserve);
+        return PlaceDetailResponse.of(place);
     }
 
     @Transactional

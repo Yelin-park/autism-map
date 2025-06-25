@@ -43,7 +43,9 @@ public record PlaceUpdateRequest(
     String businessClosingTime,
     @Schema(title = "휴무일", description = "휴무일", example = "매주 화요일")
     String dayOff,
-    @Schema(title = "장소 이미지", description = "장소 이미지")
+    @Schema(title = "유지할 이미지", description = "유지할 이미지")
+    List<Long> preserveImageIds,
+    @Schema(title = "추가 장소 이미지", description = "장소 이미지")
     List<MultipartFile> images
 ) implements PlaceCommonRequest {
 }
