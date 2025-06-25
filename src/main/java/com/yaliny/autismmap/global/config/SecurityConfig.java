@@ -43,7 +43,7 @@ public class SecurityConfig {
                     "/h2-console/**",
                     "/swagger-ui/**",
                     "/swagger-resources/**",
-                    "/autism-map/v1/api-docs/**",
+                    "/nurean/v1/api-docs/**",
                     "/api/v1/members/signup",
                     "/api/v1/members/login",
                     "/api/v1/members/logout",
