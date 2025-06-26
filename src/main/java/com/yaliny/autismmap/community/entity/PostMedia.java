@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter(AccessLevel.PRIVATE)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
@@ -27,6 +29,13 @@ public class PostMedia extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
+
+    public static PostMedia createPostMedia(MediaType mediaType, String url) {
+        PostMedia postMedia = new PostMedia();
+        postMedia.setMediaType(mediaType);
+        postMedia.setUrl(url);
+        return postMedia;
+    }
 
     // 연관 관계 편의 메서드
     public void setPost(Post post) {

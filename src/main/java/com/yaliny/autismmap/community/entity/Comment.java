@@ -42,12 +42,17 @@ public class Comment extends BaseEntity {
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> childComments = new ArrayList<>();
 
-    public static Comment createComment(String content, Post post, Member member, Comment parentComment) {
+    public static Comment createComment(String content, Post post, Member member) {
         Comment comment = new Comment();
         comment.setContent(content);
         comment.setPost(post);
         comment.setMember(member);
-        if (parentComment != null) comment.setParentComment(parentComment);
+        return comment;
+    }
+
+    public static Comment createComment(String content, Post post, Member member, Comment parentComment) {
+        Comment comment = createComment(content, post, member);
+        comment.setParentComment(parentComment);
         return comment;
     }
 

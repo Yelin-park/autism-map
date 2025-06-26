@@ -39,11 +39,16 @@ public class Post extends BaseEntity {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
-    public static Post createPost(String title, String content, Member member, PostMedia... medias) {
+    public static Post createPost(String title, String content, Member member) {
         Post post = new Post();
         post.setTitle(title);
         post.setContent(content);
         post.setMember(member);
+        return post;
+    }
+
+    public static Post createPost(String title, String content, Member member, List<PostMedia> medias) {
+        Post post = createPost(title, content, member);
         for (PostMedia media : medias) {
             post.addMedia(media);
         }
