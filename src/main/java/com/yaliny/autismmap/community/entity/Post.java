@@ -3,10 +3,17 @@ package com.yaliny.autismmap.community.entity;
 import com.yaliny.autismmap.global.entity.BaseEntity;
 import com.yaliny.autismmap.member.entity.Member;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter(AccessLevel.PRIVATE)
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class Post extends BaseEntity {
 
@@ -31,5 +38,27 @@ public class Post extends BaseEntity {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
+
+    public static Post createPost(String title, String content, Member member, PostMedia... medias) {
+        Post post = new Post();
+        post.setTitle(title);
+        post.setContent(content);
+        post.setMember(member);
+        for (PostMedia media : medias) {
+            post.addMedia(media);
+        }
+        return post;
+    }
+
+    // 연관 관계 편의 메서드
+    public void setMember(Member member) {
+        this.member = member;
+        member.getPosts().add(this);
+    }
+
+    public void addMedia(PostMedia media) {
+        this.mediaList.add(media);
+        media.setPost(this);
+    }
 
 }
