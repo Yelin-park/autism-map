@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.community.service;
 
-import com.yaliny.autismmap.community.dto.PostCreateRequest;
+import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
+import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.entity.PostMedia;
 import com.yaliny.autismmap.community.repository.PostRepository;
@@ -47,5 +48,10 @@ public class CommunityService {
                 }
                 return PostMedia.createPostMedia(media.mediaType(), uploadedUrl);
             }).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PostListResponse getPostList() {
+        return null;
     }
 }

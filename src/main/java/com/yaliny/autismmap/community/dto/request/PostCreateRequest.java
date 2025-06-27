@@ -1,4 +1,4 @@
-package com.yaliny.autismmap.community.dto;
+package com.yaliny.autismmap.community.dto.request;
 
 import com.yaliny.autismmap.community.entity.MediaType;
 import io.swagger.v3.oas.annotations.media.Schema;

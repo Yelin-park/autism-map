@@ -78,8 +78,6 @@ public record PlaceDetailResponse(
             place.getBusinessClosingTime().format(DateTimeFormatter.ofPattern("HH:mm")),
             place.getDayOff(),
             place.getImages().stream().map(PlaceImages::of).toList()
-
-            // place.getImages().stream().map(PlaceImage::getUrl).toList()
         );
     }
 }

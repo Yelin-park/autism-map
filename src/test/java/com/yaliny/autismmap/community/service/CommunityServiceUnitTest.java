@@ -1,6 +1,6 @@
 package com.yaliny.autismmap.community.service;
 
-import com.yaliny.autismmap.community.dto.PostCreateRequest;
+import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
 import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.repository.PostRepository;
