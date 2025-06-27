@@ -53,12 +53,16 @@ class PlaceServiceTest {
         districtRepository.deleteAll();
     }
 
+    private Province createSampleProvince(District... districts) {
+        return provinceRepository.save(Province.createProvince("경기도", districts));
+    }
+
     @Test
     @DisplayName("장소 등록 성공")
-    void createPlace_success() {
+    void registerPlace_success() {
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createSampleProvince(district1, district2);
 
         PlaceCreateRequest request = new PlaceCreateRequest(
             "테스트 장소",
@@ -81,7 +85,7 @@ class PlaceServiceTest {
             null
         );
 
-        Long placeId = placeService.createPlace(request);
+        Long placeId = placeService.registerPlace(request);
 
         Place findPlace = placeRepository.findById(placeId).orElseThrow();
         assertThat(findPlace.getName()).isEqualTo(request.name());
@@ -95,7 +99,7 @@ class PlaceServiceTest {
     void updatePlace_success() {
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createSampleProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
@@ -158,7 +162,7 @@ class PlaceServiceTest {
     void deletePlace_success() {
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createSampleProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
@@ -190,7 +194,7 @@ class PlaceServiceTest {
     void deletePlace_not_found() {
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createSampleProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
@@ -222,7 +226,7 @@ class PlaceServiceTest {
     void getPlaceList_success() {
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createSampleProvince(district1, district2);
 
         placeRepository.save(Place.createPlace(
             "테스트 장소1",
@@ -319,7 +323,7 @@ class PlaceServiceTest {
     void getPlaceDetail_success() {
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createSampleProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소1",
@@ -355,7 +359,7 @@ class PlaceServiceTest {
     void getPlaceDetail_not_found() {
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createSampleProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소1",

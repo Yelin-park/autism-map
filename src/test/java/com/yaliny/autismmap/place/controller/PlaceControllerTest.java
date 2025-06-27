@@ -69,22 +69,38 @@ class PlaceControllerTest {
         districtRepository.deleteAll();
     }
 
-    @Test
-    @DisplayName("장소 등록 성공 테스트")
-    void createPlace_success() throws Exception {
-        Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
-        token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
+    private Member getAdmin() {
+        return memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
+    }
 
-        District district1 = District.createDistrict("수원시");
-        District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+    private Member getUser() {
+        return memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
+    }
 
-        MockMultipartFile dummyImage = new MockMultipartFile(
+    private Province createProvince(District district1, District district2) {
+        return provinceRepository.save(Province.createProvince("경기도", district1, district2));
+    }
+
+    private static MockMultipartFile getDummyImage() {
+        return new MockMultipartFile(
             "images",
             "test.jpg",
             MediaType.IMAGE_JPEG_VALUE,
             "dummy image content".getBytes()
         );
+    }
+
+    @Test
+    @DisplayName("장소 등록 성공 테스트")
+    void createPlace_success() throws Exception {
+        Member member = getAdmin();
+        token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
+
+        District district1 = District.createDistrict("수원시");
+        District district2 = District.createDistrict("안양시");
+        Province province = createProvince(district1, district2);
+
+        MockMultipartFile dummyImage = getDummyImage();
 
         mockMvc.perform(multipart("/api/v1/places")
                 .file(dummyImage)
@@ -118,7 +134,7 @@ class PlaceControllerTest {
     @Test
     @DisplayName("장소 등록 실패 - 관리자 권한 없음")
     void createPlace_fail() throws Exception {
-        Member member = memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
+        Member member = getUser();
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
         mockMvc.perform(multipart("/api/v1/places")
@@ -149,12 +165,12 @@ class PlaceControllerTest {
     @Test
     @DisplayName("장소 수정 성공 테스트")
     void updatePlace_success() throws Exception {
-        Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
+        Member member = getAdmin();
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
@@ -213,12 +229,12 @@ class PlaceControllerTest {
     @Test
     @DisplayName("장소 수정 실패 - 관리자 권한 없음")
     void updatePlace_fail() throws Exception {
-        Member member = memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
+        Member member = getUser();
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
@@ -268,12 +284,12 @@ class PlaceControllerTest {
     @Test
     @DisplayName("장소 수정 실패 - 존재하지 않는 장소")
     void updatePlace_not_found() throws Exception {
-        Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
+        Member member = getAdmin();
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
@@ -323,12 +339,12 @@ class PlaceControllerTest {
     @Test
     @DisplayName("장소 삭제 성공 테스트")
     void deletePlace_success() throws Exception {
-        Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
+        Member member = getAdmin();
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
@@ -363,12 +379,12 @@ class PlaceControllerTest {
     @Test
     @DisplayName("장소 삭제 실패 - 관리자 권한 없음")
     void deletePlace_fail() throws Exception {
-        Member member = memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
+        Member member = getUser();
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
@@ -401,12 +417,12 @@ class PlaceControllerTest {
     @Test
     @DisplayName("장소 삭제 실패 - 존재하지 않는 장소")
     void deletePlace_not_found() throws Exception {
-        Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
+        Member member = getAdmin();
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
@@ -439,12 +455,12 @@ class PlaceControllerTest {
     @Test
     @DisplayName("장소 목록 조회 성공")
     void getPlaceList_success() throws Exception {
-        Member member = memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
+        Member member = getAdmin();
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createProvince(district1, district2);
 
         placeRepository.save(Place.createPlace(
             "테스트 장소",
@@ -543,12 +559,12 @@ class PlaceControllerTest {
     @Test
     @DisplayName("장소 상세 조회 성공")
     void getPlaceDetail_success() throws Exception {
-        Member member = memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
+        Member member = getUser();
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
@@ -581,12 +597,12 @@ class PlaceControllerTest {
     @Test
     @DisplayName("장소 상세 조회 실패 - 존재하지 않는 장소")
     void getPlaceDetail_not_found() throws Exception {
-        Member member = memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
+        Member member = getUser();
         token = jwtUtil.generateToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
 
         District district1 = District.createDistrict("수원시");
         District district2 = District.createDistrict("안양시");
-        Province province = provinceRepository.save(Province.createProvince("경기도", district1, district2));
+        Province province = createProvince(district1, district2);
 
         Place savedPlace = placeRepository.save(Place.createPlace(
             "테스트 장소",
