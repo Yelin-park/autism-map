@@ -28,7 +28,7 @@ public class PlaceController {
     @Operation(summary = "장소 등록", description = "위도, 경도 변환: https://deveapp.com/map.php")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BaseResponse<String>> registerPlace(@ModelAttribute PlaceCreateRequest form) {
-        Long placeId = placeService.createPlace(form);
+        Long placeId = placeService.registerPlace(form);
         return ResponseEntity.ok(BaseResponse.success("placeId: " + placeId + " 장소 등록 성공"));
     }
 

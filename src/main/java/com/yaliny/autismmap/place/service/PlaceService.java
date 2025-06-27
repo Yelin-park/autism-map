@@ -1,6 +1,6 @@
 package com.yaliny.autismmap.place.service;
 
-import com.yaliny.autismmap.global.exception.ImageUploadFailedException;
+import com.yaliny.autismmap.global.exception.S3FileUploadFailedException;
 import com.yaliny.autismmap.global.exception.PlaceNotFoundException;
 import com.yaliny.autismmap.global.exception.RegionNotFoundException;
 import com.yaliny.autismmap.global.external.service.S3Uploader;
@@ -40,12 +40,12 @@ public class PlaceService {
     private final S3Uploader s3Uploader;
 
     @Transactional
-    public Long createPlace(PlaceCreateRequest request) {
+    public Long registerPlace(PlaceCreateRequest request) {
 
         Province province = provinceRepository.findById(request.provinceId()).orElseThrow(RegionNotFoundException::new);
         District district = districtRepository.findById(request.districtId()).orElseThrow(RegionNotFoundException::new);
 
-        List<PlaceImage> placeImages = getPlaceImages(request.images(), "place-images");
+        List<PlaceImage> placeImages = uploadPlaceImages(request.images(), "place-images");
 
         Place place = createPlace(request, province, district, placeImages);
 
@@ -68,7 +68,7 @@ public class PlaceService {
                 preserveIds, toPreserve.stream().map(PlaceImage::getId).toList(), placeId);
         }
 
-        List<PlaceImage> newImages = getPlaceImages(request.images(), "place-images");
+        List<PlaceImage> newImages = uploadPlaceImages(request.images(), "place-images");
         place.updatePlace(request, province, district, newImages, toPreserve);
         return PlaceDetailResponse.of(place);
     }
@@ -91,17 +91,17 @@ public class PlaceService {
         return PlaceDetailResponse.of(place);
     }
 
-    private List<PlaceImage> getPlaceImages(List<MultipartFile> images, String dirName) {
+    private List<PlaceImage> uploadPlaceImages(List<MultipartFile> images, String dirName) {
         return Optional.ofNullable(images)
             .orElse(List.of())
             .stream()
             .filter(file -> !file.isEmpty())
             .map(file -> {
-                String uploadedUrl = null;
+                String uploadedUrl;
                 try {
                     uploadedUrl = s3Uploader.upload(file, dirName);
                 } catch (IOException e) {
-                    throw new ImageUploadFailedException();
+                    throw new S3FileUploadFailedException();
                 }
                 return PlaceImage.createPlaceImage(uploadedUrl);
             }).toList();
