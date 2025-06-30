@@ -11,6 +11,8 @@ import com.yaliny.autismmap.global.external.service.S3Uploader;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,7 +53,9 @@ public class CommunityService {
     }
 
     @Transactional(readOnly = true)
-    public PostListResponse getPostList() {
-        return null;
+    public PostListResponse getPostList(String searchText, PageRequest pageRequest) {
+        searchText = searchText != null ? searchText : "";
+        Page<Post> response = postRepository.searchPost(searchText, pageRequest);
+        return PostListResponse.of(response);
     }
 }

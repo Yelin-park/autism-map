@@ -17,6 +17,8 @@ public record PostDetailResponse(
     String content,
     @Schema(title = "게시글 미디어 리스트", description = "게시글 미디어 리스트")
     List<Media> mediaList,
+    @Schema(title = "등록자 닉네임", description = "등록자 닉네임")
+    String nickName,
     @Schema(title = "등록 일시", description = "등록 일시")
     String regDateTime,
     @Schema(title = "수정 일시", description = "수정 일시")
@@ -37,6 +39,7 @@ public record PostDetailResponse(
             post.getTitle(),
             post.getContent(),
             post.getMediaList().stream().map(Media::of).toList(),
+            post.getMember().getNickname(),
             post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
             post.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         );

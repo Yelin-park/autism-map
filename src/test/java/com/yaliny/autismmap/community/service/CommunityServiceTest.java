@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.community.service;
 
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
+import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.repository.PostMediaRepository;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,11 +48,16 @@ class CommunityServiceTest {
         memberRepository.deleteAll();
     }
 
+    private Member getMember() {
+        Member member = new Member("test@test.com", "test1234", "닉네임");
+        memberRepository.save(member);
+        return member;
+    }
+
     @Test
     @DisplayName("게시글 등록 성공")
     void registerPost_success() {
-        Member member = new Member("test@test.com", "test1234", "닉네임");
-        memberRepository.save(member);
+        Member member = getMember();
 
         String title = "제목입니다.";
         String content = "내용입니다.";
@@ -118,4 +125,30 @@ class CommunityServiceTest {
             .hasMessage("계정이 존재하지 않습니다.");
     }
 
+    @Test
+    @DisplayName("게시글 목록 조회 성공")
+    void getPost_success() {
+        createDummyPost();
+
+        PostListResponse result = communityService.getPostList(null, PageRequest.of(0, 10));
+
+        assertThat(result.content().size()).isEqualTo(1);
+        assertThat(result.content().get(0).nickName()).isEqualTo("닉네임");
+        assertThat(result.content().get(0).title()).isEqualTo("제목입니다.");
+    }
+
+    private void createDummyPost() {
+        Member member = getMember();
+        String title = "제목입니다.";
+        String content = "내용입니다.";
+
+        PostCreateRequest request = new PostCreateRequest(
+            member.getId(),
+            title,
+            content,
+            null
+        );
+
+        communityService.registerPost(request);
+    }
 }
