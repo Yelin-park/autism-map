@@ -6,6 +6,7 @@ import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.repository.PostRepository;
 import com.yaliny.autismmap.global.exception.MemberNotFoundException;
+import com.yaliny.autismmap.global.exception.PostNotFoundException;
 import com.yaliny.autismmap.global.external.service.S3Uploader;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
@@ -115,6 +116,31 @@ public class CommunityServiceUnitTest {
         assertThat(response.totalPages()).isEqualTo(1);
         assertThat(response.last()).isTrue();
         assertThat(response.content().get(0).title()).isEqualTo("제목");
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 성공")
+    void getPostDetail_success() {
+        when(postRepository.findById(10L)).thenReturn(Optional.of(post));
+        when(post.getTitle()).thenReturn("제목");
+        when(post.getContent()).thenReturn("내용");
+        when(post.getMember()).thenReturn(member);
+        when(post.getMediaList()).thenReturn(List.of());
+        when(post.getCreatedAt()).thenReturn(LocalDateTime.now());
+        when(post.getUpdatedAt()).thenReturn(LocalDateTime.now());
+
+        communityService.getPostDetail(10L);
+
+        verify(postRepository).findById(10L);
+    }
+    
+    @Test
+    @DisplayName("게시글 상세 조회 실패 - 존재하지 않는 게시글")
+    void getPostDetail_fail_not_found() {
+        when(postRepository.findById(100L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> communityService.getPostDetail(100L))
+            .isInstanceOf(PostNotFoundException.class);
     }
 
 }

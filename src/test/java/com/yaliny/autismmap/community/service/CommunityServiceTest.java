@@ -1,12 +1,14 @@
 package com.yaliny.autismmap.community.service;
 
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
+import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.repository.PostMediaRepository;
 import com.yaliny.autismmap.community.repository.PostRepository;
 import com.yaliny.autismmap.global.exception.MemberNotFoundException;
+import com.yaliny.autismmap.global.exception.PostNotFoundException;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +54,21 @@ class CommunityServiceTest {
         Member member = new Member("test@test.com", "test1234", "닉네임");
         memberRepository.save(member);
         return member;
+    }
+
+    private long createDummyPost() {
+        Member member = getMember();
+        String title = "제목입니다.";
+        String content = "내용입니다.";
+
+        PostCreateRequest request = new PostCreateRequest(
+            member.getId(),
+            title,
+            content,
+            null
+        );
+
+        return communityService.registerPost(request);
     }
 
     @Test
@@ -137,18 +154,24 @@ class CommunityServiceTest {
         assertThat(result.content().get(0).title()).isEqualTo("제목입니다.");
     }
 
-    private void createDummyPost() {
-        Member member = getMember();
-        String title = "제목입니다.";
-        String content = "내용입니다.";
+    @Test
+    @DisplayName("게시글 상세 조회 성공")
+    void getPostDetail_success() {
+        long dummyPostId = createDummyPost();
 
-        PostCreateRequest request = new PostCreateRequest(
-            member.getId(),
-            title,
-            content,
-            null
-        );
+        PostDetailResponse result = communityService.getPostDetail(dummyPostId);
 
-        communityService.registerPost(request);
+        assertThat(result.title()).isEqualTo("제목입니다.");
+        assertThat(result.content()).isEqualTo("내용입니다.");
+        assertThat(result.nickName()).isEqualTo("닉네임");
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 실패 - 존재하지 않는 게시글")
+    void getPostDetail_fail_post_not_found() {
+        long dummyPostId = createDummyPost();
+
+        assertThatThrownBy(() -> communityService.getPostDetail(dummyPostId+1))
+            .isInstanceOf(PostNotFoundException.class);
     }
 }

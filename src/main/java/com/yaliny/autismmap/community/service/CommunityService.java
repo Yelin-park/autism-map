@@ -1,11 +1,13 @@
 package com.yaliny.autismmap.community.service;
 
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
+import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.entity.PostMedia;
 import com.yaliny.autismmap.community.repository.PostRepository;
 import com.yaliny.autismmap.global.exception.MemberNotFoundException;
+import com.yaliny.autismmap.global.exception.PostNotFoundException;
 import com.yaliny.autismmap.global.exception.S3FileUploadFailedException;
 import com.yaliny.autismmap.global.external.service.S3Uploader;
 import com.yaliny.autismmap.member.entity.Member;
@@ -57,5 +59,11 @@ public class CommunityService {
         searchText = searchText != null ? searchText : "";
         Page<Post> response = postRepository.searchPost(searchText, pageRequest);
         return PostListResponse.of(response);
+    }
+
+    @Transactional(readOnly = true)
+    public PostDetailResponse getPostDetail(long postId) {
+        Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
+        return PostDetailResponse.of(post);
     }
 }

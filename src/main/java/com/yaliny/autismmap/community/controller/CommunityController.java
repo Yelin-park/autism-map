@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.community.controller;
 
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
+import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.service.CommunityService;
 import com.yaliny.autismmap.global.response.BaseResponse;
@@ -40,6 +41,15 @@ public class CommunityController {
         @RequestParam(defaultValue = "10") int size
     ) {
         PostListResponse response = communityService.getPostList(searchText, PageRequest.of(page, size));
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
+    @Operation(summary = "게시글 상세 조회")
+    @GetMapping(value = "/posts/{postId}")
+    public ResponseEntity<BaseResponse<PostDetailResponse>> getPostDetail(
+        @PathVariable Long postId
+    ) {
+        PostDetailResponse response = communityService.getPostDetail(postId);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 }
