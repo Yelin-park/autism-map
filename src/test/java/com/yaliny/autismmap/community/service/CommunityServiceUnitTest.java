@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.community.service;
 
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
+import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.repository.PostRepository;
@@ -15,10 +16,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,11 +46,16 @@ public class CommunityServiceUnitTest {
     private CommunityService communityService;
 
     private Member member;
+    private Post post;
+    private PostListResponse postListResponse;
 
     @BeforeEach
     void setUp() {
         member = new Member("test@test.com", "1234", "닉네임");
         ReflectionTestUtils.setField(member, "id", 1L);
+
+        post = mock(Post.class);
+        ReflectionTestUtils.setField(post, "id", 10L);
     }
 
     @Test
@@ -81,4 +91,30 @@ public class CommunityServiceUnitTest {
         assertThatThrownBy(() -> communityService.registerPost(request))
             .isInstanceOf(MemberNotFoundException.class);
     }
+
+    @Test
+    @DisplayName("게시글 목록 조회 성공")
+    void getPostList_success() {
+        when(post.getTitle()).thenReturn("제목");
+        when(post.getContent()).thenReturn("내용");
+        when(post.getMember()).thenReturn(member);
+        when(post.getMediaList()).thenReturn(List.of());
+        when(post.getCreatedAt()).thenReturn(LocalDateTime.now());
+        when(post.getUpdatedAt()).thenReturn(LocalDateTime.now());
+
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        Page<Post> page = new PageImpl<>(List.of(post), pageRequest, 1);
+
+        when(postRepository.searchPost("", pageRequest)).thenReturn(page);
+
+        PostListResponse response = communityService.getPostList(null, pageRequest);
+
+        assertThat(response.page()).isEqualTo(0);
+        assertThat(response.totalElements()).isEqualTo(1);
+        assertThat(response.totalPages()).isEqualTo(1);
+        assertThat(response.last()).isTrue();
+        assertThat(response.content().get(0).title()).isEqualTo("제목");
+    }
+
 }
