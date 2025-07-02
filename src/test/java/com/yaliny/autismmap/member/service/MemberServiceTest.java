@@ -1,9 +1,6 @@
 package com.yaliny.autismmap.member.service;
 
-import com.yaliny.autismmap.global.exception.InvalidPasswordException;
-import com.yaliny.autismmap.global.exception.MemberAlreadyExistsException;
-import com.yaliny.autismmap.global.exception.MemberNotFoundException;
-import com.yaliny.autismmap.global.exception.NoPermissionException;
+import com.yaliny.autismmap.global.exception.*;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.member.dto.request.LoginRequest;
 import com.yaliny.autismmap.member.dto.request.SignUpRequest;
@@ -67,7 +64,7 @@ class MemberServiceTest {
         memberService.signup(request);
 
         assertThatThrownBy(() -> memberService.signup(request))
-            .isInstanceOf(MemberAlreadyExistsException.class)
+            .isInstanceOf(CustomException.class)
             .hasMessage("이미 존재하는 이메일입니다.");
     }
 
@@ -88,7 +85,7 @@ class MemberServiceTest {
         LoginRequest request = new LoginRequest("not@test.com", "1234");
 
         assertThatThrownBy(() -> memberService.login(request))
-            .isInstanceOf(MemberNotFoundException.class)
+            .isInstanceOf(CustomException.class)
             .hasMessage("계정이 존재하지 않습니다.");
     }
 
@@ -100,7 +97,7 @@ class MemberServiceTest {
         LoginRequest request = new LoginRequest("test@test.com", "12345");
 
         assertThatThrownBy(() -> memberService.login(request))
-            .isInstanceOf(InvalidPasswordException.class)
+            .isInstanceOf(CustomException.class)
             .hasMessage("비밀번호가 일치하지 않습니다.");
     }
 
@@ -128,7 +125,7 @@ class MemberServiceTest {
         Long dummyRequestMemberId = 10L;
 
         assertThatThrownBy(() -> memberService.withdraw(dummyTokenMemberId, dummyRequestMemberId))
-            .isInstanceOf(MemberNotFoundException.class)
+            .isInstanceOf(CustomException.class)
             .hasMessage("계정이 존재하지 않습니다.");
     }
 
@@ -142,7 +139,7 @@ class MemberServiceTest {
         Long wrongRequestMemberId = tokenMemberId + 1; // 다른 memberId → 권한 없음 발생
 
         assertThatThrownBy(() -> memberService.withdraw(tokenMemberId, wrongRequestMemberId))
-            .isInstanceOf(NoPermissionException.class)
+            .isInstanceOf(CustomException.class)
             .hasMessage("권한이 없습니다.");
     }
 
@@ -174,7 +171,7 @@ class MemberServiceTest {
         Long wrongRequestMemberId = tokenMemberId + 1; // 다른 memberId → 권한 없음 발생
 
         assertThatThrownBy(() -> memberService.getMemberInfo(tokenMemberId, wrongRequestMemberId))
-            .isInstanceOf(NoPermissionException.class)
+            .isInstanceOf(CustomException.class)
             .hasMessage("권한이 없습니다.");
     }
 }

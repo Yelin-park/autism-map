@@ -5,8 +5,8 @@ import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.repository.PostRepository;
-import com.yaliny.autismmap.global.exception.MemberNotFoundException;
-import com.yaliny.autismmap.global.exception.PostNotFoundException;
+import com.yaliny.autismmap.global.exception.CustomException;
+import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.external.service.S3Uploader;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
@@ -90,7 +90,8 @@ public class CommunityServiceUnitTest {
         when(memberRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> communityService.registerPost(request))
-            .isInstanceOf(MemberNotFoundException.class);
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
 
     @Test
@@ -140,7 +141,8 @@ public class CommunityServiceUnitTest {
         when(postRepository.findById(100L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> communityService.getPostDetail(100L))
-            .isInstanceOf(PostNotFoundException.class);
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }
 
 }

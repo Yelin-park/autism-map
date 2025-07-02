@@ -1,8 +1,6 @@
 package com.yaliny.autismmap.place.service;
 
-import com.yaliny.autismmap.global.exception.S3FileUploadFailedException;
-import com.yaliny.autismmap.global.exception.PlaceNotFoundException;
-import com.yaliny.autismmap.global.exception.RegionNotFoundException;
+import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.external.service.S3Uploader;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
@@ -29,6 +27,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static com.yaliny.autismmap.global.exception.ErrorCode.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -42,8 +42,8 @@ public class PlaceService {
     @Transactional
     public Long registerPlace(PlaceCreateRequest request) {
 
-        Province province = provinceRepository.findById(request.provinceId()).orElseThrow(RegionNotFoundException::new);
-        District district = districtRepository.findById(request.districtId()).orElseThrow(RegionNotFoundException::new);
+        Province province = provinceRepository.findById(request.provinceId()).orElseThrow(() -> new CustomException(REGION_NOT_FOUND));
+        District district = districtRepository.findById(request.districtId()).orElseThrow(() -> new CustomException(REGION_NOT_FOUND));
 
         List<PlaceImage> placeImages = uploadPlaceImages(request.images(), "place-images");
 
@@ -55,9 +55,9 @@ public class PlaceService {
 
     @Transactional
     public PlaceDetailResponse updatePlace(Long placeId, PlaceUpdateRequest request) {
-        Place place = placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
-        Province province = provinceRepository.findById(request.provinceId()).orElseThrow(RegionNotFoundException::new);
-        District district = districtRepository.findById(request.districtId()).orElseThrow(RegionNotFoundException::new);
+        Place place = placeRepository.findById(placeId).orElseThrow(() -> new CustomException(PLACE_NOT_FOUND));
+        Province province = provinceRepository.findById(request.provinceId()).orElseThrow(() -> new CustomException(REGION_NOT_FOUND));
+        District district = districtRepository.findById(request.districtId()).orElseThrow(() -> new CustomException(REGION_NOT_FOUND));
 
         List<Long> preserveIds = Optional.ofNullable(request.preserveImageIds())
             .orElse(Collections.emptyList());
@@ -75,7 +75,7 @@ public class PlaceService {
 
     @Transactional
     public void deletePlace(Long placeId) {
-        placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
+        placeRepository.findById(placeId).orElseThrow(() -> new CustomException(PLACE_NOT_FOUND));
         placeRepository.deleteById(placeId);
     }
 
@@ -87,7 +87,7 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public PlaceDetailResponse getPlaceDetail(Long placeId) {
-        Place place = placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
+        Place place = placeRepository.findById(placeId).orElseThrow(() -> new CustomException(PLACE_NOT_FOUND));
         return PlaceDetailResponse.of(place);
     }
 
@@ -101,7 +101,7 @@ public class PlaceService {
                 try {
                     uploadedUrl = s3Uploader.upload(file, dirName);
                 } catch (IOException e) {
-                    throw new S3FileUploadFailedException();
+                    throw new CustomException(S3_UPLOAD_FAIL);
                 }
                 return PlaceImage.createPlaceImage(uploadedUrl);
             }).toList();

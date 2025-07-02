@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.place.service;
 
-import com.yaliny.autismmap.global.exception.PlaceNotFoundException;
+import com.yaliny.autismmap.global.exception.CustomException;
+import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
@@ -217,8 +218,8 @@ class PlaceServiceTest {
         ));
 
         assertThatThrownBy(() -> placeService.deletePlace(savedPlace.getId() + 1))
-            .isInstanceOf(PlaceNotFoundException.class)
-            .hasMessage("장소가 존재하지 않습니다.");
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.PLACE_NOT_FOUND.getMessage());
     }
 
     @Test
@@ -382,7 +383,7 @@ class PlaceServiceTest {
         ));
 
         assertThatThrownBy(() -> placeService.getPlaceDetail(savedPlace.getId() + 1))
-            .isInstanceOf(PlaceNotFoundException.class)
-            .hasMessage("장소가 존재하지 않습니다.");
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.PLACE_NOT_FOUND.getMessage());
     }
 }

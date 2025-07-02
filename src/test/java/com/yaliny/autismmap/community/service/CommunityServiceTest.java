@@ -7,8 +7,8 @@ import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.repository.PostMediaRepository;
 import com.yaliny.autismmap.community.repository.PostRepository;
-import com.yaliny.autismmap.global.exception.MemberNotFoundException;
-import com.yaliny.autismmap.global.exception.PostNotFoundException;
+import com.yaliny.autismmap.global.exception.CustomException;
+import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -138,8 +138,8 @@ class CommunityServiceTest {
         );
 
         assertThatThrownBy(() -> communityService.registerPost(request))
-            .isInstanceOf(MemberNotFoundException.class)
-            .hasMessage("계정이 존재하지 않습니다.");
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
 
     @Test
@@ -172,6 +172,7 @@ class CommunityServiceTest {
         long dummyPostId = createDummyPost();
 
         assertThatThrownBy(() -> communityService.getPostDetail(dummyPostId+1))
-            .isInstanceOf(PostNotFoundException.class);
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }
 }

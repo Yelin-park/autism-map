@@ -1,7 +1,7 @@
 package com.yaliny.autismmap.place.service;
 
-import com.yaliny.autismmap.global.exception.PlaceNotFoundException;
-import com.yaliny.autismmap.global.exception.RegionNotFoundException;
+import com.yaliny.autismmap.global.exception.CustomException;
+import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.external.service.S3Uploader;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
@@ -114,7 +114,8 @@ public class PlaceServiceUnitTest {
         when(provinceRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> placeService.registerPlace(request))
-            .isInstanceOf(RegionNotFoundException.class);
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.REGION_NOT_FOUND.getMessage());
     }
 
     @Test
@@ -134,7 +135,8 @@ public class PlaceServiceUnitTest {
         when(placeRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> placeService.deletePlace(999L))
-            .isInstanceOf(PlaceNotFoundException.class);
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.PLACE_NOT_FOUND.getMessage());
     }
 
     @Test
@@ -185,7 +187,8 @@ public class PlaceServiceUnitTest {
         PlaceUpdateRequest request = mock(PlaceUpdateRequest.class);
 
         assertThatThrownBy(() -> placeService.updatePlace(99L, request))
-            .isInstanceOf(PlaceNotFoundException.class);
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.PLACE_NOT_FOUND.getMessage());
     }
 
     @Test
@@ -222,6 +225,7 @@ public class PlaceServiceUnitTest {
         when(placeRepository.findById(100L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> placeService.getPlaceDetail(100L))
-            .isInstanceOf(PlaceNotFoundException.class);
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.PLACE_NOT_FOUND.getMessage());
     }
 }

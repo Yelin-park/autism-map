@@ -6,9 +6,7 @@ import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.entity.PostMedia;
 import com.yaliny.autismmap.community.repository.PostRepository;
-import com.yaliny.autismmap.global.exception.MemberNotFoundException;
-import com.yaliny.autismmap.global.exception.PostNotFoundException;
-import com.yaliny.autismmap.global.exception.S3FileUploadFailedException;
+import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.external.service.S3Uploader;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
@@ -22,6 +20,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import static com.yaliny.autismmap.global.exception.ErrorCode.*;
+
 @Service
 @RequiredArgsConstructor
 public class CommunityService {
@@ -31,7 +31,7 @@ public class CommunityService {
 
     @Transactional
     public Long registerPost(PostCreateRequest request) {
-        Member member = memberRepository.findById(request.memberId()).orElseThrow(MemberNotFoundException::new);
+        Member member = memberRepository.findById(request.memberId()).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         List<PostMedia> postMediaList = uploadPostMedias(request.mediaList(), "post-medias");
         Post post = Post.createPost(request.title(), request.content(), member, postMediaList);
         Post savedPost = postRepository.save(post);
@@ -48,7 +48,7 @@ public class CommunityService {
                 try {
                     uploadedUrl = s3Uploader.upload(media.multipartFile(), dirName);
                 } catch (IOException e) {
-                    throw new S3FileUploadFailedException();
+                    throw new CustomException(S3_UPLOAD_FAIL);
                 }
                 return PostMedia.createPostMedia(media.mediaType(), uploadedUrl);
             }).toList();
@@ -63,7 +63,7 @@ public class CommunityService {
 
     @Transactional(readOnly = true)
     public PostDetailResponse getPostDetail(long postId) {
-        Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
         return PostDetailResponse.of(post);
     }
 }
