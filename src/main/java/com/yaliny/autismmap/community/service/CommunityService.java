@@ -66,4 +66,10 @@ public class CommunityService {
         Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
         return PostDetailResponse.of(post);
     }
+
+    @Transactional
+    public void deletePost(long postId) {
+        postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
+        postRepository.deleteById(postId);
+    }
 }

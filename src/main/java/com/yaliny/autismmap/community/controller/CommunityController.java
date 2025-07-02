@@ -58,8 +58,7 @@ public class CommunityController {
     public ResponseEntity<BaseResponse<String>> deletePost(
         @PathVariable long postId
     ) {
-        /*long id = communityService.deletePost(postId);
-        return ResponseEntity.ok(BaseResponse.success("postId: " + postId + " 게시글 삭제 성공"));*/
-        return null;
+        communityService.deletePost(postId);
+        return ResponseEntity.ok(BaseResponse.success("postId: " + postId + " 게시글 삭제 성공"));
     }
 }

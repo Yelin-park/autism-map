@@ -48,7 +48,6 @@ public class CommunityServiceUnitTest {
 
     private Member member;
     private Post post;
-    private PostListResponse postListResponse;
 
     @BeforeEach
     void setUp() {
@@ -134,7 +133,7 @@ public class CommunityServiceUnitTest {
 
         verify(postRepository).findById(10L);
     }
-    
+
     @Test
     @DisplayName("게시글 상세 조회 실패 - 존재하지 않는 게시글")
     void getPostDetail_fail_not_found() {
@@ -145,4 +144,24 @@ public class CommunityServiceUnitTest {
             .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }
 
+    @Test
+    @DisplayName("게시글 삭제 성공")
+    void deletePost_success() {
+        Post post = mock(Post.class);
+        when(postRepository.findById(10L)).thenReturn(Optional.of(post));
+
+        communityService.deletePost(10L);
+
+        verify(postRepository).deleteById(10L);
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 실패 - 존재하지 않음")
+    void deletePost_fail_not_found() {
+        when(postRepository.findById(100L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> communityService.deletePost(100L))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
+    }
 }

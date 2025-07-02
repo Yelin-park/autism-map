@@ -5,6 +5,7 @@ import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
+import com.yaliny.autismmap.community.entity.PostMedia;
 import com.yaliny.autismmap.community.repository.PostMediaRepository;
 import com.yaliny.autismmap.community.repository.PostRepository;
 import com.yaliny.autismmap.global.exception.CustomException;
@@ -22,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -171,7 +173,33 @@ class CommunityServiceTest {
     void getPostDetail_fail_post_not_found() {
         long dummyPostId = createDummyPost();
 
-        assertThatThrownBy(() -> communityService.getPostDetail(dummyPostId+1))
+        assertThatThrownBy(() -> communityService.getPostDetail(dummyPostId + 1))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 성공")
+    void deletePost_success() {
+        long dummyPostId = createDummyPost();
+
+        communityService.deletePost(dummyPostId);
+
+        List<Post> all = postRepository.findAll();
+        assertThat(all.size()).isEqualTo(0);
+        assertThat(all.stream().noneMatch(post -> post.getId() == dummyPostId)).isTrue();
+
+        List<PostMedia> mediaList = postMediaRepository.findAll();
+        assertThat(mediaList.size()).isEqualTo(0);
+        assertThat(mediaList.stream().noneMatch(postMedia -> postMedia.getPost().getId() == dummyPostId)).isTrue();
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 실패 - 존재하지 않는 게시글")
+    void deletePost_fail_post_not_found() {
+        long dummyPostId = createDummyPost();
+
+        assertThatThrownBy(() -> communityService.deletePost(dummyPostId + 1))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }
