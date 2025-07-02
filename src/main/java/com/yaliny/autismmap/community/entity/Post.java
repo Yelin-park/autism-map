@@ -1,5 +1,6 @@
 package com.yaliny.autismmap.community.entity;
 
+import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
 import com.yaliny.autismmap.global.entity.BaseEntity;
 import com.yaliny.autismmap.member.entity.Member;
 import jakarta.persistence.*;
@@ -66,4 +67,16 @@ public class Post extends BaseEntity {
         media.setPost(this);
     }
 
+    public void updatePost(PostUpdateRequest request, List<PostMedia> newMedias, List<PostMedia> toPreserve) {
+        this.title = request.title();
+        this.content = request.content();
+        this.mediaList.clear();
+        for (PostMedia media : toPreserve) {
+            this.addMedia(media);
+        }
+
+        for (PostMedia media : newMedias) {
+            this.addMedia(media);
+        }
+    }
 }

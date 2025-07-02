@@ -1,6 +1,8 @@
 package com.yaliny.autismmap.community.service;
 
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
+import com.yaliny.autismmap.community.dto.request.PostMediaRequest;
+import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
@@ -65,7 +67,7 @@ public class CommunityServiceUnitTest {
         when(mockFile.isEmpty()).thenReturn(false);
         when(s3Uploader.upload(mockFile, "post-medias")).thenReturn("https://s3.aws.com/post.jpg");
 
-        PostCreateRequest.Media media = new PostCreateRequest.Media(MediaType.IMAGE, mockFile);
+        PostMediaRequest media = new PostMediaRequest(MediaType.IMAGE, mockFile);
         PostCreateRequest request = new PostCreateRequest(1L, "제목", "내용", List.of(media));
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
@@ -161,6 +163,46 @@ public class CommunityServiceUnitTest {
         when(postRepository.findById(100L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> communityService.deletePost(100L))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("게시글 수정 성공")
+    void updatePost_success() throws IOException {
+        MultipartFile multipartFile = mock(MultipartFile.class);
+        when(multipartFile.isEmpty()).thenReturn(false);
+
+        PostMediaRequest mediaRequest = mock(PostMediaRequest.class);
+        when(mediaRequest.multipartFile()).thenReturn(multipartFile);
+
+        when(s3Uploader.upload(multipartFile, "post-medias")).thenReturn("https://s3.aws.com/post.jpg");
+
+        PostUpdateRequest request = mock(PostUpdateRequest.class);
+        when(request.preserveMediaIds()).thenReturn(List.of());
+        when(request.mediaList()).thenReturn(List.of(mediaRequest));
+
+        when(postRepository.findById(10L)).thenReturn(Optional.of(post));
+        when(post.getTitle()).thenReturn("제목");
+        when(post.getContent()).thenReturn("내용");
+        when(post.getMember()).thenReturn(member);
+        when(post.getMediaList()).thenReturn(List.of());
+        when(post.getCreatedAt()).thenReturn(LocalDateTime.now());
+        when(post.getUpdatedAt()).thenReturn(LocalDateTime.now());
+
+        communityService.updatePost(10L, request);
+
+        verify(post).updatePost(eq(request), anyList(), eq(List.of()));
+    }
+
+    @Test
+    @DisplayName("게시글 수정 실패 - 존재하지 않음")
+    void updatePost_fail_not_found() {
+        when(postRepository.findById(100L)).thenReturn(Optional.empty());
+
+        PostUpdateRequest request = mock(PostUpdateRequest.class);
+
+        assertThatThrownBy(() -> communityService.updatePost(100L, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }

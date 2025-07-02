@@ -1,6 +1,8 @@
 package com.yaliny.autismmap.community.service;
 
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
+import com.yaliny.autismmap.community.dto.request.PostMediaRequest;
+import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
 import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.entity.MediaType;
@@ -73,6 +75,26 @@ class CommunityServiceTest {
         return communityService.registerPost(request);
     }
 
+    private static MockMultipartFile getMockMultipartFileImage() {
+        MockMultipartFile mockImage = new MockMultipartFile(
+            "file",
+            "test-image.jpg",
+            "image/jpeg",
+            "dummy image content".getBytes()
+        );
+        return mockImage;
+    }
+
+    private static MockMultipartFile getMockMultipartFileVideo() {
+        MockMultipartFile mockVideo = new MockMultipartFile(
+            "file",
+            "test-video.mp4",
+            "video/mp4",
+            "dummy video content".getBytes()
+        );
+        return mockVideo;
+    }
+
     @Test
     @DisplayName("게시글 등록 성공")
     void registerPost_success() {
@@ -81,31 +103,20 @@ class CommunityServiceTest {
         String title = "제목입니다.";
         String content = "내용입니다.";
 
-        MockMultipartFile mockImage = new MockMultipartFile(
-            "file",
-            "test-image.jpg",
-            "image/jpeg",
-            "dummy image content".getBytes()
-        );
+        MockMultipartFile mockImage = getMockMultipartFileImage();
+        MockMultipartFile mockVideo = getMockMultipartFileVideo();
 
-        MockMultipartFile mockVideo = new MockMultipartFile(
-            "file",
-            "test-video.mp4",
-            "video/mp4",
-            "dummy video content".getBytes()
-        );
-
-        PostCreateRequest.Media image = new PostCreateRequest.Media(
+        PostMediaRequest image = new PostMediaRequest(
             MediaType.IMAGE,
             mockImage
         );
 
-        PostCreateRequest.Media video = new PostCreateRequest.Media(
+        PostMediaRequest video = new PostMediaRequest(
             MediaType.VIDEO,
             mockVideo
         );
 
-        ArrayList<PostCreateRequest.Media> list = new ArrayList<>();
+        ArrayList<PostMediaRequest> list = new ArrayList<>();
         list.add(image);
         list.add(video);
 
@@ -200,6 +211,34 @@ class CommunityServiceTest {
         long dummyPostId = createDummyPost();
 
         assertThatThrownBy(() -> communityService.deletePost(dummyPostId + 1))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("게시글 수정 성공")
+    void updatePost_success() {
+        long dummyPostId = createDummyPost();
+        MockMultipartFile mockImage = getMockMultipartFileImage();
+        PostMediaRequest postMediaRequest = new PostMediaRequest(MediaType.IMAGE, mockImage);
+        PostUpdateRequest request = new PostUpdateRequest("수정제목", "수정내용", null, List.of(postMediaRequest));
+
+        communityService.updatePost(dummyPostId, request);
+
+        Post post = postRepository.findById(dummyPostId).get();
+        assertThat(post.getTitle()).isEqualTo("수정제목");
+        assertThat(post.getContent()).isEqualTo("수정내용");
+        assertThat(post.getMediaList().size()).isEqualTo(1);
+        assertThat(post.getMediaList().get(0).getMediaType()).isEqualTo(MediaType.IMAGE);
+    }
+
+    @Test
+    @DisplayName("게시글 수정 실패 - 존재하지 않는 게시글")
+    void updatePost_fail_post_not_found() {
+        long dummyPostId = createDummyPost();
+        PostUpdateRequest request = new PostUpdateRequest("수정제목", "수정내용", null, List.of());
+
+        assertThatThrownBy(() -> communityService.updatePost(dummyPostId + 1, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }

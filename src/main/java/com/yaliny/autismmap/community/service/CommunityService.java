@@ -1,6 +1,8 @@
 package com.yaliny.autismmap.community.service;
 
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
+import com.yaliny.autismmap.community.dto.request.PostMediaRequest;
+import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
 import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.entity.Post;
@@ -11,17 +13,20 @@ import com.yaliny.autismmap.global.external.service.S3Uploader;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static com.yaliny.autismmap.global.exception.ErrorCode.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CommunityService {
@@ -36,22 +41,6 @@ public class CommunityService {
         Post post = Post.createPost(request.title(), request.content(), member, postMediaList);
         Post savedPost = postRepository.save(post);
         return savedPost.getId();
-    }
-
-    private List<PostMedia> uploadPostMedias(List<PostCreateRequest.Media> mediaList, String dirName) {
-        return Optional.ofNullable(mediaList)
-            .orElse(List.of())
-            .stream()
-            .filter(media -> !media.multipartFile().isEmpty())
-            .map(media -> {
-                String uploadedUrl;
-                try {
-                    uploadedUrl = s3Uploader.upload(media.multipartFile(), dirName);
-                } catch (IOException e) {
-                    throw new CustomException(S3_UPLOAD_FAIL);
-                }
-                return PostMedia.createPostMedia(media.mediaType(), uploadedUrl);
-            }).toList();
     }
 
     @Transactional(readOnly = true)
@@ -71,5 +60,38 @@ public class CommunityService {
     public void deletePost(long postId) {
         postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
         postRepository.deleteById(postId);
+    }
+
+    @Transactional
+    public PostDetailResponse updatePost(long postId, PostUpdateRequest request) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
+        List<Long> preserveIds = Optional.ofNullable(request.preserveMediaIds()).orElse(Collections.emptyList());
+        List<PostMedia> toPreserve = post.getMediaList().stream().filter(postMedia -> preserveIds.contains(postMedia.getId())).toList();
+
+        if (toPreserve.size() != preserveIds.size()) {
+            log.warn("일부 미디어 ID가 존재하지 않습니다: 요청 preserve IDs={}, 실제 존재={}, 장소 ID={}",
+                preserveIds, toPreserve.stream().map(PostMedia::getId).toList(), postId);
+        }
+
+        List<PostMedia> newMedias = uploadPostMedias(request.mediaList(), "post-medias");
+        post.updatePost(request, newMedias, toPreserve);
+
+        return PostDetailResponse.of(post);
+    }
+
+    private List<PostMedia> uploadPostMedias(List<PostMediaRequest> mediaList, String dirName) {
+        return Optional.ofNullable(mediaList)
+            .orElse(List.of())
+            .stream()
+            .filter(media -> !media.multipartFile().isEmpty())
+            .map(media -> {
+                String uploadedUrl;
+                try {
+                    uploadedUrl = s3Uploader.upload(media.multipartFile(), dirName);
+                } catch (IOException e) {
+                    throw new CustomException(S3_UPLOAD_FAIL);
+                }
+                return PostMedia.createPostMedia(media.mediaType(), uploadedUrl);
+            }).toList();
     }
 }
