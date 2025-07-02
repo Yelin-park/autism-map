@@ -49,11 +49,11 @@ public class MemberController {
     @Operation(summary = "회원탈퇴")
     @DeleteMapping("/{memberId}")
     public ResponseEntity<BaseResponse<String>> withdraw(
-        @PathVariable Long memberId,
+        @PathVariable long memberId,
         @RequestHeader("Authorization") String authorizationHeader
     ) {
         String token = authorizationHeader.substring(7);
-        Long tokenMemberId = jwtUtil.getMemberId(token);
+        long tokenMemberId = jwtUtil.getMemberId(token);
 
         memberService.withdraw(memberId, tokenMemberId);
         return ResponseEntity.ok(BaseResponse.success("회원탈퇴 성공"));
@@ -62,11 +62,11 @@ public class MemberController {
     @Operation(summary = "회원 정보 조회")
     @GetMapping("/{memberId}")
     public ResponseEntity<BaseResponse<MemberInfoResponse>> getMemberInfo(
-        @PathVariable Long memberId,
+        @PathVariable long memberId,
         @RequestHeader("Authorization") String authorizationHeader
     ) {
         String token = authorizationHeader.substring(7);
-        Long tokenMemberId = jwtUtil.getMemberId(token);
+        long tokenMemberId = jwtUtil.getMemberId(token);
 
         MemberInfoResponse response = memberService.getMemberInfo(memberId, tokenMemberId);
         return ResponseEntity.ok(BaseResponse.success(response));

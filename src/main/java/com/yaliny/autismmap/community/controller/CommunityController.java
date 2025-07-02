@@ -26,7 +26,7 @@ public class CommunityController {
     @PostMapping(value = "/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BaseResponse<String>> registerPost(
         @ModelAttribute PostCreateRequest request) {
-        Long postId = communityService.registerPost(request);
+        long postId = communityService.registerPost(request);
         return ResponseEntity.ok(BaseResponse.success("postId: " + postId + " 게시글 등록 성공"));
     }
 
@@ -47,9 +47,19 @@ public class CommunityController {
     @Operation(summary = "게시글 상세 조회")
     @GetMapping(value = "/posts/{postId}")
     public ResponseEntity<BaseResponse<PostDetailResponse>> getPostDetail(
-        @PathVariable Long postId
+        @PathVariable long postId
     ) {
         PostDetailResponse response = communityService.getPostDetail(postId);
         return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
+    @Operation(summary = "게시글 삭제")
+    @DeleteMapping(value = "/posts/{postId}")
+    public ResponseEntity<BaseResponse<String>> deletePost(
+        @PathVariable long postId
+    ) {
+        /*long id = communityService.deletePost(postId);
+        return ResponseEntity.ok(BaseResponse.success("postId: " + postId + " 게시글 삭제 성공"));*/
+        return null;
     }
 }

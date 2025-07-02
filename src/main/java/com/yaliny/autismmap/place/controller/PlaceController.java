@@ -28,14 +28,14 @@ public class PlaceController {
     @Operation(summary = "장소 등록", description = "위도, 경도 변환: https://deveapp.com/map.php")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BaseResponse<String>> registerPlace(@ModelAttribute PlaceCreateRequest form) {
-        Long placeId = placeService.registerPlace(form);
+        long placeId = placeService.registerPlace(form);
         return ResponseEntity.ok(BaseResponse.success("placeId: " + placeId + " 장소 등록 성공"));
     }
 
     @Operation(summary = "장소 수정", description = "위도, 경도 변환: https://deveapp.com/map.php")
     @PatchMapping(path = "/{placeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BaseResponse<PlaceDetailResponse>> updatePlace(
-        @PathVariable Long placeId,
+        @PathVariable long placeId,
         @ModelAttribute PlaceUpdateRequest form
     ) {
         PlaceDetailResponse response = placeService.updatePlace(placeId, form);
@@ -44,7 +44,7 @@ public class PlaceController {
 
     @Operation(summary = "장소 삭제")
     @DeleteMapping("/{placeId}")
-    public ResponseEntity<BaseResponse<String>> deletePlace(@PathVariable Long placeId) {
+    public ResponseEntity<BaseResponse<String>> deletePlace(@PathVariable long placeId) {
         placeService.deletePlace(placeId);
         return ResponseEntity.ok(BaseResponse.success("placeId: " + placeId + "장소 삭제 성공"));
     }
@@ -86,7 +86,7 @@ public class PlaceController {
 
     @Operation(summary = "장소 상세 조회")
     @GetMapping("/{placeId}")
-    public ResponseEntity<BaseResponse<PlaceDetailResponse>> getPlaceDetail(@PathVariable Long placeId) {
+    public ResponseEntity<BaseResponse<PlaceDetailResponse>> getPlaceDetail(@PathVariable long placeId) {
         PlaceDetailResponse response = placeService.getPlaceDetail(placeId);
         return ResponseEntity.ok(BaseResponse.success(response));
     }

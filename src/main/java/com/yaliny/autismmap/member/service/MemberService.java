@@ -45,8 +45,8 @@ public class MemberService {
     }
 
     @Transactional
-    public void withdraw(Long memberId, Long tokenMemberId) {
-        if (!tokenMemberId.equals(memberId)) throw new CustomException(ACCESS_DENIED);
+    public void withdraw(long memberId, long tokenMemberId) {
+        if (tokenMemberId != memberId) throw new CustomException(ACCESS_DENIED);
 
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
@@ -55,8 +55,8 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public MemberInfoResponse getMemberInfo(Long memberId, Long tokenMemberId) {
-        if (!tokenMemberId.equals(memberId)) throw new CustomException(ACCESS_DENIED);
+    public MemberInfoResponse getMemberInfo(long memberId, long tokenMemberId) {
+        if (tokenMemberId != memberId) throw new CustomException(ACCESS_DENIED);
         Member findMember = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         return MemberInfoResponse.of(findMember);
     }

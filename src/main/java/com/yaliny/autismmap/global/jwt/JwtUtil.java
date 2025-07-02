@@ -35,7 +35,7 @@ public class JwtUtil {
     /**
      * 토큰 생성
      */
-    public String generateToken(Long memberId, String email, String role) {
+    public String generateToken(long memberId, String email, String role) {
         return Jwts.builder()
             .setSubject(String.valueOf(memberId))
             .claim("email", email) // email 정보 추가
