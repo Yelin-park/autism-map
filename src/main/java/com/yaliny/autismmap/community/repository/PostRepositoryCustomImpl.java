@@ -3,7 +3,7 @@ package com.yaliny.autismmap.community.repository;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.yaliny.autismmap.community.entity.Post;
-import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -14,14 +14,11 @@ import java.util.List;
 import static com.yaliny.autismmap.community.entity.QPost.post;
 import static com.yaliny.autismmap.member.entity.QMember.member;
 
+@RequiredArgsConstructor
 @Repository
 public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
-
-    public PostRepositoryCustomImpl(EntityManager entityManager) {
-        this.queryFactory = new JPAQueryFactory(entityManager);
-    }
 
     @Override
     public Page<Post> searchPost(String searchText, Pageable pageable) {

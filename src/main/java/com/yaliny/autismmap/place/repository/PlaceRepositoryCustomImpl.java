@@ -4,7 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.entity.Place;
 import com.yaliny.autismmap.place.query.PlaceSearchConditionBuilder;
-import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -16,14 +16,11 @@ import static com.yaliny.autismmap.place.entity.QPlace.place;
 import static com.yaliny.autismmap.region.entity.QDistrict.district;
 import static com.yaliny.autismmap.region.entity.QProvince.province;
 
+@RequiredArgsConstructor
 @Repository
 public class PlaceRepositoryCustomImpl implements PlaceRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
-
-    public PlaceRepositoryCustomImpl(EntityManager entityManager) {
-        this.queryFactory = new JPAQueryFactory(entityManager);
-    }
 
     @Override
     public Page<Place> searchPlace(
