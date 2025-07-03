@@ -3,10 +3,13 @@ package com.yaliny.autismmap.community.service;
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
 import com.yaliny.autismmap.community.dto.request.PostMediaRequest;
 import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
+import com.yaliny.autismmap.community.dto.response.PostCommentResponse;
 import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
+import com.yaliny.autismmap.community.entity.Comment;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.entity.PostMedia;
+import com.yaliny.autismmap.community.repository.CommentRepository;
 import com.yaliny.autismmap.community.repository.PostRepository;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.external.service.S3Uploader;
@@ -30,9 +33,11 @@ import static com.yaliny.autismmap.global.exception.ErrorCode.*;
 @Service
 @RequiredArgsConstructor
 public class CommunityService {
+
     private final MemberRepository memberRepository;
     private final PostRepository postRepository;
     private final S3Uploader s3Uploader;
+    private final CommentRepository commentRepository;
 
     @Transactional
     public Long registerPost(PostCreateRequest request) {
@@ -77,6 +82,12 @@ public class CommunityService {
         post.updatePost(request, newMedias, toPreserve);
 
         return PostDetailResponse.of(post);
+    }
+
+    @Transactional(readOnly = true)
+    public PostCommentResponse getPostComments(long postId, PageRequest pageRequest) {
+        Page<Comment> parentPage = commentRepository.findAllByPostIdAndParentCommentIsNull(postId, pageRequest);
+        return PostCommentResponse.of(parentPage);
     }
 
     private List<PostMedia> uploadPostMedias(List<PostMediaRequest> mediaList, String dirName) {

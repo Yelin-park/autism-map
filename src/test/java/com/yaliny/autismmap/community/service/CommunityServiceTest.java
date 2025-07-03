@@ -3,11 +3,14 @@ package com.yaliny.autismmap.community.service;
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
 import com.yaliny.autismmap.community.dto.request.PostMediaRequest;
 import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
+import com.yaliny.autismmap.community.dto.response.PostCommentResponse;
 import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
+import com.yaliny.autismmap.community.entity.Comment;
 import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.entity.PostMedia;
+import com.yaliny.autismmap.community.repository.CommentRepository;
 import com.yaliny.autismmap.community.repository.PostMediaRepository;
 import com.yaliny.autismmap.community.repository.PostRepository;
 import com.yaliny.autismmap.global.exception.CustomException;
@@ -29,6 +32,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -46,6 +50,8 @@ class CommunityServiceTest {
 
     @Autowired
     private MemberRepository memberRepository;
+    @Autowired
+    private CommentRepository commentRepository;
 
     @BeforeEach
     void setUp() {
@@ -73,6 +79,29 @@ class CommunityServiceTest {
         );
 
         return communityService.registerPost(request);
+    }
+
+    private long createDummyComment() {
+        Member member = getMember();
+        String title = "제목입니다.";
+        String content = "내용입니다.";
+
+        PostCreateRequest request = new PostCreateRequest(
+            member.getId(),
+            title,
+            content,
+            null
+        );
+
+        Long id = communityService.registerPost(request);
+        Post post = postRepository.findById(id).get();
+
+        Comment parentComment = Comment.createComment("부모 댓글", post, member);
+        Comment childComment = Comment.createComment("자식 댓글", post, member, parentComment);
+        commentRepository.save(parentComment);
+        commentRepository.save(childComment);
+
+        return id;
     }
 
     private static MockMultipartFile getMockMultipartFileImage() {
@@ -241,5 +270,22 @@ class CommunityServiceTest {
         assertThatThrownBy(() -> communityService.updatePost(dummyPostId + 1, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 성공")
+    void getPostComment_success() {
+        long postId = createDummyComment();
+
+        PostCommentResponse response = communityService.getPostComments(postId, PageRequest.of(0, 10));
+
+        assertThat(response).isNotNull();
+        assertThat(response.commentList()).hasSize(1);
+        assertThat(response.page()).isEqualTo(0);
+        assertThat(response.totalElements()).isEqualTo(1);
+        assertThat(response.totalPages()).isEqualTo(1);
+        assertThat(response.last()).isTrue();
+        assertThat(response.commentList().get(0).content()).isEqualTo("부모 댓글");
+        assertThat(response.commentList().get(0).childCommentList().get(0).content()).isEqualTo("자식 댓글");
     }
 }

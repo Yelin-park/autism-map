@@ -3,9 +3,12 @@ package com.yaliny.autismmap.community.service;
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
 import com.yaliny.autismmap.community.dto.request.PostMediaRequest;
 import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
+import com.yaliny.autismmap.community.dto.response.PostCommentResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
+import com.yaliny.autismmap.community.entity.Comment;
 import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
+import com.yaliny.autismmap.community.repository.CommentRepository;
 import com.yaliny.autismmap.community.repository.PostRepository;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.exception.ErrorCode;
@@ -44,12 +47,15 @@ public class CommunityServiceUnitTest {
     private PostRepository postRepository;
     @Mock
     private S3Uploader s3Uploader;
+    @Mock
+    private CommentRepository commentRepository;
 
     @InjectMocks
     private CommunityService communityService;
 
     private Member member;
     private Post post;
+    private Comment comment;
 
     @BeforeEach
     void setUp() {
@@ -58,6 +64,7 @@ public class CommunityServiceUnitTest {
 
         post = mock(Post.class);
         ReflectionTestUtils.setField(post, "id", 10L);
+
     }
 
     @Test
@@ -205,5 +212,61 @@ public class CommunityServiceUnitTest {
         assertThatThrownBy(() -> communityService.updatePost(100L, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 성공")
+    void getPostComment_success() {
+        Comment parentComment = Comment.createComment("부모 댓글", post, member);
+        ReflectionTestUtils.setField(parentComment, "id", 10L);
+        ReflectionTestUtils.setField(parentComment, "createdAt", LocalDateTime.now());
+        ReflectionTestUtils.setField(parentComment, "updatedAt", LocalDateTime.now());
+
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        PageImpl<Comment> commentPage = new PageImpl<>(List.of(parentComment), pageRequest, 1);
+
+        when(commentRepository.findAllByPostIdAndParentCommentIsNull(10L, pageRequest)).thenReturn(commentPage);
+
+        PostCommentResponse response = communityService.getPostComments(10L, pageRequest);
+
+        assertThat(response).isNotNull();
+        assertThat(response.commentList()).hasSize(1);
+        assertThat(response.page()).isEqualTo(0);
+        assertThat(response.totalElements()).isEqualTo(1);
+        assertThat(response.totalPages()).isEqualTo(1);
+        assertThat(response.last()).isTrue();
+        assertThat(response.commentList().get(0).content()).isEqualTo("부모 댓글");
+        verify(commentRepository).findAllByPostIdAndParentCommentIsNull(10L, pageRequest);
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 성공 - 대댓글 포함")
+    void getPostCommentWithChildren_success() {
+        Comment parentComment = Comment.createComment("부모 댓글", post, member);
+        ReflectionTestUtils.setField(parentComment, "id", 10L);
+        ReflectionTestUtils.setField(parentComment, "createdAt", LocalDateTime.now());
+        ReflectionTestUtils.setField(parentComment, "updatedAt", LocalDateTime.now());
+
+        Comment childComment = Comment.createComment("자식 댓글", post, member, parentComment);
+        ReflectionTestUtils.setField(childComment, "id", 11L);
+        ReflectionTestUtils.setField(childComment, "createdAt", LocalDateTime.now());
+        ReflectionTestUtils.setField(childComment, "updatedAt", LocalDateTime.now());
+
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        PageImpl<Comment> commentPage = new PageImpl<>(List.of(parentComment), pageRequest, 1);
+
+        when(commentRepository.findAllByPostIdAndParentCommentIsNull(10L, pageRequest)).thenReturn(commentPage);
+
+        PostCommentResponse response = communityService.getPostComments(10L, pageRequest);
+
+        assertThat(response).isNotNull();
+        assertThat(response.commentList()).hasSize(1);
+        assertThat(response.page()).isEqualTo(0);
+        assertThat(response.totalElements()).isEqualTo(1);
+        assertThat(response.totalPages()).isEqualTo(1);
+        assertThat(response.last()).isTrue();
+        assertThat(response.commentList().get(0).content()).isEqualTo("부모 댓글");
+        assertThat(response.commentList().get(0).childCommentList().get(0).content()).isEqualTo("자식 댓글");
+        verify(commentRepository).findAllByPostIdAndParentCommentIsNull(10L, pageRequest);
     }
 }
