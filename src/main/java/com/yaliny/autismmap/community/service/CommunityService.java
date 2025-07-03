@@ -1,5 +1,6 @@
 package com.yaliny.autismmap.community.service;
 
+import com.yaliny.autismmap.community.dto.request.PostCommentCreateRequest;
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
 import com.yaliny.autismmap.community.dto.request.PostMediaRequest;
 import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
@@ -104,5 +105,20 @@ public class CommunityService {
                 }
                 return PostMedia.createPostMedia(media.mediaType(), uploadedUrl);
             }).toList();
+    }
+
+    @Transactional
+    public long registerPostComment(long postId, PostCommentCreateRequest request) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
+        Member member = memberRepository.findById(request.memberId()).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+        Comment parentComment = null;
+
+        if (request.parentCommentId() != null) {
+            parentComment = commentRepository.findById(request.parentCommentId()).orElseThrow(() -> new CustomException(COMMENT_NOT_FOUND));
+        }
+
+        Comment comment = Comment.createComment(request.content(), post, member, parentComment);
+        commentRepository.save(comment);
+        return comment.getId();
     }
 }

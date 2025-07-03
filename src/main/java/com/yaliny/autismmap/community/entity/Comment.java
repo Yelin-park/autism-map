@@ -52,7 +52,7 @@ public class Comment extends BaseEntity {
 
     public static Comment createComment(String content, Post post, Member member, Comment parentComment) {
         Comment comment = createComment(content, post, member);
-        comment.setParentComment(parentComment);
+        if (parentComment != null) comment.setParentComment(parentComment);
         return comment;
     }
 

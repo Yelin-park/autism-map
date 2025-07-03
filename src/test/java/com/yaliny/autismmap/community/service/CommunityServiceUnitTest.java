@@ -1,5 +1,6 @@
 package com.yaliny.autismmap.community.service;
 
+import com.yaliny.autismmap.community.dto.request.PostCommentCreateRequest;
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
 import com.yaliny.autismmap.community.dto.request.PostMediaRequest;
 import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
@@ -65,6 +66,8 @@ public class CommunityServiceUnitTest {
         post = mock(Post.class);
         ReflectionTestUtils.setField(post, "id", 10L);
 
+        comment = mock(Comment.class);
+        ReflectionTestUtils.setField(comment, "id", 10L);
     }
 
     @Test
@@ -269,4 +272,61 @@ public class CommunityServiceUnitTest {
         assertThat(response.commentList().get(0).childCommentList().get(0).content()).isEqualTo("자식 댓글");
         verify(commentRepository).findAllByPostIdAndParentCommentIsNull(10L, pageRequest);
     }
+
+    @Test
+    @DisplayName("댓글 등록 성공")
+    void registerPostComment_success() {
+        PostCommentCreateRequest request = new PostCommentCreateRequest(10L, "댓글댓글", null);
+
+        when(postRepository.findById(10L)).thenReturn(Optional.of(post));
+        when(memberRepository.findById(10L)).thenReturn(Optional.of(member));
+
+        Comment.createComment(request.content(), post, member);
+        when(commentRepository.save(any(Comment.class))).thenAnswer(invocation -> {
+            Comment comment = invocation.getArgument(0, Comment.class);
+            ReflectionTestUtils.setField(comment, "id", 100L);
+            return comment;
+        });
+
+        long commentId = communityService.registerPostComment(10L, request);
+
+        assertThat(commentId).isEqualTo(100L);
+    }
+
+    @Test
+    @DisplayName("댓글 등록 실패 - 존재하지 않는 게시글")
+    void registerPostComment_fail_post_not_found() {
+        PostCommentCreateRequest request = new PostCommentCreateRequest(10L, "댓글댓글", null);
+
+        assertThatThrownBy(() -> communityService.registerPostComment(101L, request))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("댓글 등록 실패 - 존재하지 않는 사용자")
+    void registerPostComment_fail_member_not_found() {
+        PostCommentCreateRequest request = new PostCommentCreateRequest(101L, "댓글댓글", null);
+
+        when(postRepository.findById(10L)).thenReturn(Optional.of(post));
+        when(memberRepository.findById(101L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> communityService.registerPostComment(10L, request))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("댓글 등록 실패 - 존재하지 않는 댓글")
+    void registerPostComment_fail_comment_not_found() {
+        PostCommentCreateRequest request = new PostCommentCreateRequest(101L, "댓글댓글", 101L);
+
+        when(postRepository.findById(100L)).thenReturn(Optional.of(post));
+        when(memberRepository.findById(101L)).thenReturn(Optional.of(member));
+
+        assertThatThrownBy(() -> communityService.registerPostComment(100L, request))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.yaliny.autismmap.community.service;
 
+import com.yaliny.autismmap.community.dto.request.PostCommentCreateRequest;
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
 import com.yaliny.autismmap.community.dto.request.PostMediaRequest;
 import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
@@ -30,9 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.yaliny.autismmap.community.entity.Comment.createComment;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -66,7 +67,7 @@ class CommunityServiceTest {
         return member;
     }
 
-    private long createDummyPost() {
+    private Post createDummyPost() {
         Member member = getMember();
         String title = "제목입니다.";
         String content = "내용입니다.";
@@ -78,7 +79,9 @@ class CommunityServiceTest {
             null
         );
 
-        return communityService.registerPost(request);
+        Long postId = communityService.registerPost(request);
+
+        return postRepository.findById(postId).get();
     }
 
     private long createDummyComment() {
@@ -96,8 +99,8 @@ class CommunityServiceTest {
         Long id = communityService.registerPost(request);
         Post post = postRepository.findById(id).get();
 
-        Comment parentComment = Comment.createComment("부모 댓글", post, member);
-        Comment childComment = Comment.createComment("자식 댓글", post, member, parentComment);
+        Comment parentComment = createComment("부모 댓글", post, member);
+        Comment childComment = createComment("자식 댓글", post, member, parentComment);
         commentRepository.save(parentComment);
         commentRepository.save(childComment);
 
@@ -199,7 +202,7 @@ class CommunityServiceTest {
     @Test
     @DisplayName("게시글 상세 조회 성공")
     void getPostDetail_success() {
-        long dummyPostId = createDummyPost();
+        long dummyPostId = createDummyPost().getId();
 
         PostDetailResponse result = communityService.getPostDetail(dummyPostId);
 
@@ -211,7 +214,7 @@ class CommunityServiceTest {
     @Test
     @DisplayName("게시글 상세 조회 실패 - 존재하지 않는 게시글")
     void getPostDetail_fail_post_not_found() {
-        long dummyPostId = createDummyPost();
+        long dummyPostId = createDummyPost().getId();
 
         assertThatThrownBy(() -> communityService.getPostDetail(dummyPostId + 1))
             .isInstanceOf(CustomException.class)
@@ -221,7 +224,7 @@ class CommunityServiceTest {
     @Test
     @DisplayName("게시글 삭제 성공")
     void deletePost_success() {
-        long dummyPostId = createDummyPost();
+        long dummyPostId = createDummyPost().getId();
 
         communityService.deletePost(dummyPostId);
 
@@ -237,7 +240,7 @@ class CommunityServiceTest {
     @Test
     @DisplayName("게시글 삭제 실패 - 존재하지 않는 게시글")
     void deletePost_fail_post_not_found() {
-        long dummyPostId = createDummyPost();
+        long dummyPostId = createDummyPost().getId();
 
         assertThatThrownBy(() -> communityService.deletePost(dummyPostId + 1))
             .isInstanceOf(CustomException.class)
@@ -247,7 +250,7 @@ class CommunityServiceTest {
     @Test
     @DisplayName("게시글 수정 성공")
     void updatePost_success() {
-        long dummyPostId = createDummyPost();
+        long dummyPostId = createDummyPost().getId();
         MockMultipartFile mockImage = getMockMultipartFileImage();
         PostMediaRequest postMediaRequest = new PostMediaRequest(MediaType.IMAGE, mockImage);
         PostUpdateRequest request = new PostUpdateRequest("수정제목", "수정내용", null, List.of(postMediaRequest));
@@ -264,7 +267,7 @@ class CommunityServiceTest {
     @Test
     @DisplayName("게시글 수정 실패 - 존재하지 않는 게시글")
     void updatePost_fail_post_not_found() {
-        long dummyPostId = createDummyPost();
+        long dummyPostId = createDummyPost().getId();
         PostUpdateRequest request = new PostUpdateRequest("수정제목", "수정내용", null, List.of());
 
         assertThatThrownBy(() -> communityService.updatePost(dummyPostId + 1, request))
@@ -287,5 +290,75 @@ class CommunityServiceTest {
         assertThat(response.last()).isTrue();
         assertThat(response.commentList().get(0).content()).isEqualTo("부모 댓글");
         assertThat(response.commentList().get(0).childCommentList().get(0).content()).isEqualTo("자식 댓글");
+    }
+
+    @Test
+    @DisplayName("댓글 등록 성공")
+    void registerPostComment_success() {
+        Member member = getMember();
+        Post post = createDummyPost();
+
+        String content = "댓글 내용";
+        Long parentCommentId = null;
+
+        PostCommentCreateRequest request = new PostCommentCreateRequest(member.getId(), content, parentCommentId);
+
+        long commentId = communityService.registerPostComment(post.getId(), request);
+
+        Comment comment = commentRepository.findById(commentId).get();
+
+        assertThat(comment).isNotNull();
+        assertThat(comment.getContent()).isEqualTo(content);
+        assertThat(comment.getPost().getId()).isEqualTo(post.getId());
+        assertThat(comment.getMember().getId()).isEqualTo(member.getId());
+        assertThat(comment.getParentComment()).isNull();
+    }
+
+    @Test
+    @DisplayName("댓글 등록 실패 - 존재하지 않는 게시글")
+    void registerPostComment_fail_post_not_found() {
+        Member member = getMember();
+        Post post = createDummyPost();
+
+        String content = "댓글 내용";
+        Long parentCommentId = null;
+
+        PostCommentCreateRequest request = new PostCommentCreateRequest(member.getId(), content, parentCommentId);
+
+        assertThatThrownBy(() -> communityService.registerPostComment(post.getId() + 1, request))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("댓글 등록 실패 - 존재하지 않는 사용자")
+    void registerPostComment_fail_member_not_found() {
+        Member member = getMember();
+        Post post = createDummyPost();
+
+        String content = "댓글 내용";
+        Long parentCommentId = null;
+
+        PostCommentCreateRequest request = new PostCommentCreateRequest(member.getId() + 10, content, parentCommentId);
+
+        assertThatThrownBy(() -> communityService.registerPostComment(post.getId(), request))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("댓글 등록 실패 - 존재하지 않는 댓글")
+    void registerPostComment_fail_comment_not_found() {
+        Member member = getMember();
+        Post post = createDummyPost();
+
+        String content = "댓글 내용";
+        Long parentCommentId = 1L;
+
+        PostCommentCreateRequest request = new PostCommentCreateRequest(member.getId() + 1, content, parentCommentId);
+
+        assertThatThrownBy(() -> communityService.registerPostComment(post.getId(), request))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
     }
 }
