@@ -1,5 +1,6 @@
 package com.yaliny.autismmap.global.jwt;
 
+import com.yaliny.autismmap.global.security.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -42,10 +42,16 @@ public class JwtFilter extends OncePerRequestFilter {
                 String email = claims.get("email", String.class);
                 String role = claims.get("role", String.class);
 
+                CustomUserDetails userDetails = new CustomUserDetails(
+                    Long.parseLong(memberId),
+                    email,
+                    role,
+                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                );
+
                 // 인증 객체 생성
                 UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(memberId, null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
                 // SecurityContext에 저장
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
