@@ -39,7 +39,10 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "parent_id")
     private Comment parentComment;
 
-    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(nullable = false)
+    private boolean deleted = false;
+
+    @OneToMany(mappedBy = "parentComment")
     private List<Comment> childComments = new ArrayList<>();
 
     public static Comment createComment(String content, Post post, Member member) {
@@ -72,6 +75,10 @@ public class Comment extends BaseEntity {
         if (!parentComment.getChildComments().contains(this)) {
             parentComment.getChildComments().add(this);
         }
+    }
+
+    public void deleteComment() {
+        this.deleted = true;
     }
 
 }

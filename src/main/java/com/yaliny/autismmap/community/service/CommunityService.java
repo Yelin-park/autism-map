@@ -121,4 +121,11 @@ public class CommunityService {
         commentRepository.save(comment);
         return comment.getId();
     }
+
+    @Transactional
+    public void deletePostComment(long commentId, long memberId) {
+        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CustomException(COMMENT_NOT_FOUND));
+        if (comment.getMember().getId() != memberId) throw new CustomException(ACCESS_DENIED);
+        comment.deleteComment();
+    }
 }

@@ -84,29 +84,6 @@ class CommunityServiceTest {
         return postRepository.findById(postId).get();
     }
 
-    private long createDummyComment() {
-        Member member = getMember();
-        String title = "제목입니다.";
-        String content = "내용입니다.";
-
-        PostCreateRequest request = new PostCreateRequest(
-            member.getId(),
-            title,
-            content,
-            null
-        );
-
-        Long id = communityService.registerPost(request);
-        Post post = postRepository.findById(id).get();
-
-        Comment parentComment = createComment("부모 댓글", post, member);
-        Comment childComment = createComment("자식 댓글", post, member, parentComment);
-        commentRepository.save(parentComment);
-        commentRepository.save(childComment);
-
-        return id;
-    }
-
     private static MockMultipartFile getMockMultipartFileImage() {
         MockMultipartFile mockImage = new MockMultipartFile(
             "file",
@@ -278,9 +255,26 @@ class CommunityServiceTest {
     @Test
     @DisplayName("댓글 목록 조회 성공")
     void getPostComment_success() {
-        long postId = createDummyComment();
+        Member member = getMember();
+        String title = "제목입니다.";
+        String content = "내용입니다.";
 
-        PostCommentResponse response = communityService.getPostComments(postId, PageRequest.of(0, 10));
+        PostCreateRequest request = new PostCreateRequest(
+            member.getId(),
+            title,
+            content,
+            null
+        );
+
+        Long postId = communityService.registerPost(request);
+        Post post = postRepository.findById(postId).get();
+
+        Comment parentComment = createComment("부모 댓글", post, member);
+        Comment childComment = createComment("자식 댓글", post, member, parentComment);
+        commentRepository.save(parentComment);
+        commentRepository.save(childComment);
+
+        PostCommentResponse response = communityService.getPostComments(post.getId(), PageRequest.of(0, 10));
 
         assertThat(response).isNotNull();
         assertThat(response.commentList()).hasSize(1);
@@ -360,5 +354,56 @@ class CommunityServiceTest {
         assertThatThrownBy(() -> communityService.registerPostComment(post.getId(), request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 성공")
+    void deletePostComment_success() {
+        Member member = getMember();
+        Post post = createDummyPost();
+        Comment parentComment = createComment("부모 댓글", post, member);
+        Comment childComment = createComment("자식 댓글", post, member, parentComment);
+        commentRepository.save(parentComment);
+        commentRepository.save(childComment);
+
+        communityService.deletePostComment(parentComment.getId(), member.getId());
+
+        Comment parentResult = commentRepository.findById(parentComment.getId()).orElse(null);
+        assertThat(parentResult).isNotNull();
+        assertThat(parentResult.isDeleted()).isTrue();
+
+        Comment childResult = commentRepository.findById(childComment.getId()).orElse(null);
+        assertThat(childResult).isNotNull();
+        assertThat(childResult.isDeleted()).isFalse();
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 실패 - 존재하지 않는 댓글")
+    void deletePostComment_fail_comment_not_found() {
+        Member member = getMember();
+        Post post = createDummyPost();
+        Comment parentComment = createComment("부모 댓글", post, member);
+        Comment childComment = createComment("자식 댓글", post, member, parentComment);
+        commentRepository.save(parentComment);
+        commentRepository.save(childComment);
+
+        assertThatThrownBy(() -> communityService.deletePostComment(parentComment.getId() + 100, member.getId()))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 실패 - 권한 없음")
+    void deletePostComment_fail_access_denied() {
+        Member member = getMember();
+        Post post = createDummyPost();
+        Comment parentComment = createComment("부모 댓글", post, member);
+        Comment childComment = createComment("자식 댓글", post, member, parentComment);
+        commentRepository.save(parentComment);
+        commentRepository.save(childComment);
+
+        assertThatThrownBy(() -> communityService.deletePostComment(parentComment.getId(), member.getId() + 100))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
     }
 }

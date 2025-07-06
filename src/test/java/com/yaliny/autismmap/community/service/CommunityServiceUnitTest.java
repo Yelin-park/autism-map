@@ -329,4 +329,36 @@ public class CommunityServiceUnitTest {
             .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
     }
 
+    @Test
+    @DisplayName("댓글 삭제 성공")
+    void deletePostComment_success() {
+        when(comment.getMember()).thenReturn(member);
+        when(commentRepository.findById(10L)).thenReturn(Optional.of(comment));
+
+        communityService.deletePostComment(10L, 1L);
+
+        verify(comment).deleteComment(); // soft delete 메서드가 호출되었는지 확인
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 실패 - 본인이 작성한 댓글이 아님")
+    void deletePostComment_fail_access_denied() {
+        when(comment.getMember()).thenReturn(member);
+        when(commentRepository.findById(10L)).thenReturn(Optional.of(comment));
+
+        assertThatThrownBy(() -> communityService.deletePostComment(10L, 2L))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 실패 - 댓글 존재하지 않음")
+    void deletePostComment_fail_comment_not_found() {
+        when(commentRepository.findById(10L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> communityService.deletePostComment(10L, 2L))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
+    }
+
 }

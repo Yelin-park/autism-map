@@ -14,7 +14,8 @@ public enum ErrorCode {
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다."),
     MEMBER_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 이메일입니다."),
     S3_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "S3에 파일 업로드를 실패했습니다."),
-    ACCESS_DENIED(HttpStatus.FORBIDDEN, "권한이 없습니다.");
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "권한이 없습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "권한이 없습니다.");
 
     private final HttpStatus status;
     private final String message;
