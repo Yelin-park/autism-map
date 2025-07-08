@@ -2,6 +2,7 @@ package com.yaliny.autismmap.member.service;
 
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
+import com.yaliny.autismmap.global.utils.SecurityUtil;
 import com.yaliny.autismmap.member.dto.request.LoginRequest;
 import com.yaliny.autismmap.member.dto.request.SignUpRequest;
 import com.yaliny.autismmap.member.dto.response.LoginResponse;
@@ -45,17 +46,19 @@ public class MemberService {
     }
 
     @Transactional
-    public void withdraw(long memberId, long tokenMemberId) {
-        if (tokenMemberId != memberId) throw new CustomException(ACCESS_DENIED);
-
+    public void withdraw(long memberId) {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+
+        Long tokenMemberId = SecurityUtil.getCurrentMemberId();
+        if (tokenMemberId != memberId) throw new CustomException(ACCESS_DENIED);
 
         memberRepository.delete(member);
     }
 
     @Transactional(readOnly = true)
-    public MemberInfoResponse getMemberInfo(long memberId, long tokenMemberId) {
+    public MemberInfoResponse getMemberInfo(long memberId) {
+        Long tokenMemberId = SecurityUtil.getCurrentMemberId();
         if (tokenMemberId != memberId) throw new CustomException(ACCESS_DENIED);
         Member findMember = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         return MemberInfoResponse.of(findMember);

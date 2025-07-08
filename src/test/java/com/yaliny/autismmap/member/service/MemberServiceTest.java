@@ -2,6 +2,7 @@ package com.yaliny.autismmap.member.service;
 
 import com.yaliny.autismmap.global.exception.*;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
+import com.yaliny.autismmap.global.security.CustomUserDetails;
 import com.yaliny.autismmap.member.dto.request.LoginRequest;
 import com.yaliny.autismmap.member.dto.request.SignUpRequest;
 import com.yaliny.autismmap.member.dto.response.LoginResponse;
@@ -14,9 +15,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -41,6 +47,22 @@ class MemberServiceTest {
     @BeforeEach
     void setUp() {
         memberRepository.deleteAll();
+    }
+
+    private void setAuthentication(Member member) {
+        CustomUserDetails userDetails = new CustomUserDetails(
+            member.getId(),
+            member.getEmail(),
+            member.getRole().name(),
+            List.of(new SimpleGrantedAuthority("ROLE_" + member.getRole().name()))
+        );
+        UsernamePasswordAuthenticationToken authentication =
+            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private void clearAuthentication() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -108,11 +130,11 @@ class MemberServiceTest {
         SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
         SignUpResponse response = memberService.signup(signupRequest);
 
-        Long tokenMemberId = jwtUtil.getMemberId(response.token());
-        Long memberId = memberRepository.findByEmail("test@example.com").orElseThrow().getId();
+        Member member = memberRepository.findByEmail("test@example.com").get();
+        setAuthentication(member);
 
         // when
-        memberService.withdraw(memberId, tokenMemberId);
+        memberService.withdraw(member.getId());
 
         // then
         assertThat(memberRepository.findByEmail("test@example.com")).isEmpty();
@@ -121,10 +143,9 @@ class MemberServiceTest {
     @Test
     @DisplayName("회원탈퇴 실패 - 존재하지 않는 계정")
     void withdraw_member_not_found() {
-        Long dummyTokenMemberId = 10L;
         Long dummyRequestMemberId = 10L;
 
-        assertThatThrownBy(() -> memberService.withdraw(dummyTokenMemberId, dummyRequestMemberId))
+        assertThatThrownBy(() -> memberService.withdraw(dummyRequestMemberId))
             .isInstanceOf(CustomException.class)
             .hasMessage("계정이 존재하지 않습니다.");
     }
@@ -133,12 +154,12 @@ class MemberServiceTest {
     @DisplayName("회원탈퇴 실패 - 본인 아님 (권한 없음)")
     void withdraw_no_permission() {
         SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
-        SignUpResponse response = memberService.signup(signupRequest);
+        memberService.signup(signupRequest);
 
-        Long tokenMemberId = jwtUtil.getMemberId(response.token());
-        Long wrongRequestMemberId = tokenMemberId + 1; // 다른 memberId → 권한 없음 발생
+        Member member = memberRepository.findByEmail("test@example.com").get();
+        clearAuthentication();
 
-        assertThatThrownBy(() -> memberService.withdraw(tokenMemberId, wrongRequestMemberId))
+        assertThatThrownBy(() -> memberService.withdraw(member.getId()))
             .isInstanceOf(CustomException.class)
             .hasMessage("권한이 없습니다.");
     }
@@ -148,13 +169,13 @@ class MemberServiceTest {
     void getMemberInfo_success() {
         // given
         SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
-        SignUpResponse response = memberService.signup(signupRequest);
+        memberService.signup(signupRequest);
 
-        Long tokenMemberId = jwtUtil.getMemberId(response.token());
-        Long memberId = memberRepository.findByEmail("test@example.com").orElseThrow().getId();
+        Member member = memberRepository.findByEmail("test@example.com").get();
+        setAuthentication(member);
 
         // when
-        MemberInfoResponse memberInfo = memberService.getMemberInfo(memberId, tokenMemberId);
+        MemberInfoResponse memberInfo = memberService.getMemberInfo(member.getId());
 
         // then
         assertThat(memberInfo.email()).isEqualTo("test@example.com");
@@ -165,12 +186,12 @@ class MemberServiceTest {
     @DisplayName("회원 정보 조회 실패 - 본인 아님 (권한 없음)")
     void getMemberInfo_no_permission() {
         SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
-        SignUpResponse response = memberService.signup(signupRequest);
+        memberService.signup(signupRequest);
 
-        Long tokenMemberId = jwtUtil.getMemberId(response.token());
-        Long wrongRequestMemberId = tokenMemberId + 1; // 다른 memberId → 권한 없음 발생
+        Member member = memberRepository.findByEmail("test@example.com").get();
+        clearAuthentication();
 
-        assertThatThrownBy(() -> memberService.getMemberInfo(tokenMemberId, wrongRequestMemberId))
+        assertThatThrownBy(() -> memberService.getMemberInfo(member.getId()))
             .isInstanceOf(CustomException.class)
             .hasMessage("권한이 없습니다.");
     }

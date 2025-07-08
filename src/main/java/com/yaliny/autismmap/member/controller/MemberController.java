@@ -1,6 +1,5 @@
 package com.yaliny.autismmap.member.controller;
 
-import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.global.response.BaseResponse;
 import com.yaliny.autismmap.member.dto.request.LoginRequest;
 import com.yaliny.autismmap.member.dto.request.SignUpRequest;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class MemberController {
 
-    private final JwtUtil jwtUtil;
     private final MemberService memberService;
 
     @Operation(summary = "로그인")
@@ -49,26 +47,18 @@ public class MemberController {
     @Operation(summary = "회원탈퇴")
     @DeleteMapping("/{memberId}")
     public ResponseEntity<BaseResponse<String>> withdraw(
-        @PathVariable long memberId,
-        @RequestHeader("Authorization") String authorizationHeader
+        @PathVariable long memberId
     ) {
-        String token = authorizationHeader.substring(7);
-        long tokenMemberId = jwtUtil.getMemberId(token);
-
-        memberService.withdraw(memberId, tokenMemberId);
+        memberService.withdraw(memberId);
         return ResponseEntity.ok(BaseResponse.success("회원탈퇴 성공"));
     }
 
     @Operation(summary = "회원 정보 조회")
     @GetMapping("/{memberId}")
     public ResponseEntity<BaseResponse<MemberInfoResponse>> getMemberInfo(
-        @PathVariable long memberId,
-        @RequestHeader("Authorization") String authorizationHeader
+        @PathVariable long memberId
     ) {
-        String token = authorizationHeader.substring(7);
-        long tokenMemberId = jwtUtil.getMemberId(token);
-
-        MemberInfoResponse response = memberService.getMemberInfo(memberId, tokenMemberId);
+        MemberInfoResponse response = memberService.getMemberInfo(memberId);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 }
