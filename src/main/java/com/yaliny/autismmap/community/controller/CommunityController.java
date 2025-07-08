@@ -103,10 +103,9 @@ public class CommunityController {
     @Operation(summary = "댓글 삭제")
     @DeleteMapping(value = "/comments/{commentId}")
     public ResponseEntity<BaseResponse<String>> registerPostComment(
-        @PathVariable long commentId,
-        @RequestParam long memberId
+        @PathVariable long commentId
     ) {
-        communityService.deletePostComment(commentId, memberId);
+        communityService.deletePostComment(commentId);
         return ResponseEntity.ok(BaseResponse.success("commentId: " + commentId + " 댓글 삭제 성공"));
     }
 
