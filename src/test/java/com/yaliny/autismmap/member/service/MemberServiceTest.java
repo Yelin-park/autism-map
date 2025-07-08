@@ -1,6 +1,6 @@
 package com.yaliny.autismmap.member.service;
 
-import com.yaliny.autismmap.global.exception.*;
+import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.global.security.CustomUserDetails;
 import com.yaliny.autismmap.member.dto.request.LoginRequest;

@@ -47,12 +47,9 @@ public class MemberService {
 
     @Transactional
     public void withdraw(long memberId) {
-        Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
-
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         Long tokenMemberId = SecurityUtil.getCurrentMemberId();
         if (tokenMemberId != memberId) throw new CustomException(ACCESS_DENIED);
-
         memberRepository.delete(member);
     }
 
