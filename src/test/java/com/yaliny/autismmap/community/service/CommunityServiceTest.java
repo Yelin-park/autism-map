@@ -1,9 +1,6 @@
 package com.yaliny.autismmap.community.service;
 
-import com.yaliny.autismmap.community.dto.request.PostCommentCreateRequest;
-import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
-import com.yaliny.autismmap.community.dto.request.PostMediaRequest;
-import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
+import com.yaliny.autismmap.community.dto.request.*;
 import com.yaliny.autismmap.community.dto.response.PostCommentResponse;
 import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
@@ -16,6 +13,7 @@ import com.yaliny.autismmap.community.repository.PostMediaRepository;
 import com.yaliny.autismmap.community.repository.PostRepository;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.exception.ErrorCode;
+import com.yaliny.autismmap.global.security.CustomUserDetails;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,6 +103,22 @@ class CommunityServiceTest {
             "dummy video content".getBytes()
         );
         return mockVideo;
+    }
+
+    private void setAuthentication(Member member) {
+        CustomUserDetails userDetails = new CustomUserDetails(
+            member.getId(),
+            member.getEmail(),
+            member.getRole().name(),
+            List.of(new SimpleGrantedAuthority("ROLE_" + member.getRole().name()))
+        );
+        UsernamePasswordAuthenticationToken authentication =
+            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private void clearAuthentication() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -403,6 +420,43 @@ class CommunityServiceTest {
         commentRepository.save(childComment);
 
         assertThatThrownBy(() -> communityService.deletePostComment(parentComment.getId(), member.getId() + 100))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
+    }
+
+    @Test
+    @DisplayName("댓글 수정 성공")
+    void updatePostComment_success() {
+        Member member = getMember();
+        setAuthentication(member);
+
+        Post post = createDummyPost();
+        Comment comment = createComment("기존 댓글", post, member);
+        commentRepository.save(comment);
+
+        PostCommentUpdateRequest request = new PostCommentUpdateRequest("수정 댓글");
+        communityService.updatePostComment(comment.getId(), request);
+
+        Comment result = commentRepository.findById(comment.getId()).orElse(null);
+
+        assertThat(result).isNotNull();
+        assertThat(result.isDeleted()).isFalse();
+        assertThat(result.getContent()).isEqualTo("수정 댓글");
+
+        clearAuthentication();
+    }
+
+    @Test
+    @DisplayName("댓글 수정 실패 - 수정 권한 없음")
+    void updatePostComment_fail_access_denied() {
+        Member member = getMember();
+        Post post = createDummyPost();
+        Comment comment = createComment("기존 댓글", post, member);
+        commentRepository.save(comment);
+
+        PostCommentUpdateRequest request = new PostCommentUpdateRequest("수정 댓글");
+
+        assertThatThrownBy(() -> communityService.updatePostComment(comment.getId(), request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
     }

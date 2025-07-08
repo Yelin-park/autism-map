@@ -1,9 +1,6 @@
 package com.yaliny.autismmap.community.service;
 
-import com.yaliny.autismmap.community.dto.request.PostCommentCreateRequest;
-import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
-import com.yaliny.autismmap.community.dto.request.PostMediaRequest;
-import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
+import com.yaliny.autismmap.community.dto.request.*;
 import com.yaliny.autismmap.community.dto.response.PostCommentResponse;
 import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
@@ -14,6 +11,7 @@ import com.yaliny.autismmap.community.repository.CommentRepository;
 import com.yaliny.autismmap.community.repository.PostRepository;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.external.service.S3Uploader;
+import com.yaliny.autismmap.global.utils.SecurityUtil;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.yaliny.autismmap.global.exception.ErrorCode.*;
@@ -127,5 +126,14 @@ public class CommunityService {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CustomException(COMMENT_NOT_FOUND));
         if (comment.getMember().getId() != memberId) throw new CustomException(ACCESS_DENIED);
         comment.deleteComment();
+    }
+
+    @Transactional
+    public String updatePostComment(long commentId, PostCommentUpdateRequest request) {
+        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CustomException(COMMENT_NOT_FOUND));
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        if (!Objects.equals(comment.getMember().getId(), memberId)) throw new CustomException(ACCESS_DENIED);
+        comment.updateComment(request.content());
+        return request.content();
     }
 }

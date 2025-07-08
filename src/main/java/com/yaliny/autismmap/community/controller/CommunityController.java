@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.community.controller;
 
 import com.yaliny.autismmap.community.dto.request.PostCommentCreateRequest;
+import com.yaliny.autismmap.community.dto.request.PostCommentUpdateRequest;
 import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
 import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
 import com.yaliny.autismmap.community.dto.response.PostCommentResponse;
@@ -107,5 +108,15 @@ public class CommunityController {
     ) {
         communityService.deletePostComment(commentId, memberId);
         return ResponseEntity.ok(BaseResponse.success("commentId: " + commentId + " 댓글 삭제 성공"));
+    }
+
+    @Operation(summary = "댓글 수정")
+    @PatchMapping(value = "/comments/{commentId}")
+    public ResponseEntity<BaseResponse<String>> updatePostComment(
+        @PathVariable long commentId,
+        @RequestBody PostCommentUpdateRequest request
+    ) {
+        String response = communityService.updatePostComment(commentId, request);
+        return ResponseEntity.ok(BaseResponse.success(response));
     }
 }

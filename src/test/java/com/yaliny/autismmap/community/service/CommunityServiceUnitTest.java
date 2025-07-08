@@ -1,9 +1,6 @@
 package com.yaliny.autismmap.community.service;
 
-import com.yaliny.autismmap.community.dto.request.PostCommentCreateRequest;
-import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
-import com.yaliny.autismmap.community.dto.request.PostMediaRequest;
-import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
+import com.yaliny.autismmap.community.dto.request.*;
 import com.yaliny.autismmap.community.dto.response.PostCommentResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.entity.Comment;
@@ -14,6 +11,7 @@ import com.yaliny.autismmap.community.repository.PostRepository;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.external.service.S3Uploader;
+import com.yaliny.autismmap.global.security.CustomUserDetails;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +24,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -57,6 +58,22 @@ public class CommunityServiceUnitTest {
     private Member member;
     private Post post;
     private Comment comment;
+
+    private void setAuthentication(Member member) {
+        CustomUserDetails userDetails = new CustomUserDetails(
+            member.getId(),
+            member.getEmail(),
+            member.getRole().name(),
+            List.of(new SimpleGrantedAuthority("ROLE_" + member.getRole().name()))
+        );
+        UsernamePasswordAuthenticationToken authentication =
+            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private void clearAuthentication() {
+        SecurityContextHolder.clearContext();
+    }
 
     @BeforeEach
     void setUp() {
@@ -359,6 +376,31 @@ public class CommunityServiceUnitTest {
         assertThatThrownBy(() -> communityService.deletePostComment(10L, 2L))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("댓글 수정 성공")
+    void updatePostComment_success() {
+        when(comment.getMember()).thenReturn(member);
+        setAuthentication(member);
+        when(commentRepository.findById(10L)).thenReturn(Optional.of(comment));
+        PostCommentUpdateRequest request = mock(PostCommentUpdateRequest.class);
+
+        communityService.updatePostComment(10L, request);
+
+        verify(comment).updateComment(request.content());
+    }
+
+    @Test
+    @DisplayName("댓글 수정 실패 - 수정 권한 없음")
+    void updatePostComment_fail_access_denied() {
+        clearAuthentication();
+        when(commentRepository.findById(10L)).thenReturn(Optional.of(comment));
+        PostCommentUpdateRequest request = mock(PostCommentUpdateRequest.class);
+
+        assertThatThrownBy(() -> communityService.updatePostComment(10L, request))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
     }
 
 }
