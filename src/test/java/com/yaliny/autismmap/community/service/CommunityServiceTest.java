@@ -218,8 +218,9 @@ class CommunityServiceTest {
     @Test
     @DisplayName("게시글 삭제 성공")
     void deletePost_success() {
-        long dummyPostId = createDummyPost().getId();
-
+        Post dummyPost = createDummyPost();
+        long dummyPostId = dummyPost.getId();
+        setAuthentication(dummyPost.getMember());
         communityService.deletePost(dummyPostId);
 
         List<Post> all = postRepository.findAll();
@@ -234,7 +235,9 @@ class CommunityServiceTest {
     @Test
     @DisplayName("게시글 삭제 실패 - 존재하지 않는 게시글")
     void deletePost_fail_post_not_found() {
-        long dummyPostId = createDummyPost().getId();
+        Post dummyPost = createDummyPost();
+        long dummyPostId = dummyPost.getId();
+        setAuthentication(dummyPost.getMember());
 
         assertThatThrownBy(() -> communityService.deletePost(dummyPostId + 1))
             .isInstanceOf(CustomException.class)
@@ -244,7 +247,9 @@ class CommunityServiceTest {
     @Test
     @DisplayName("게시글 수정 성공")
     void updatePost_success() {
-        long dummyPostId = createDummyPost().getId();
+        Post dummyPost = createDummyPost();
+        long dummyPostId = dummyPost.getId();
+        setAuthentication(dummyPost.getMember());
         MockMultipartFile mockImage = getMockMultipartFileImage();
         PostMediaRequest postMediaRequest = new PostMediaRequest(MediaType.IMAGE, mockImage);
         PostUpdateRequest request = new PostUpdateRequest("수정제목", "수정내용", null, List.of(postMediaRequest));
@@ -261,7 +266,9 @@ class CommunityServiceTest {
     @Test
     @DisplayName("게시글 수정 실패 - 존재하지 않는 게시글")
     void updatePost_fail_post_not_found() {
-        long dummyPostId = createDummyPost().getId();
+        Post dummyPost = createDummyPost();
+        long dummyPostId = dummyPost.getId();
+        setAuthentication(dummyPost.getMember());
         PostUpdateRequest request = new PostUpdateRequest("수정제목", "수정내용", null, List.of());
 
         assertThatThrownBy(() -> communityService.updatePost(dummyPostId + 1, request))
@@ -377,13 +384,14 @@ class CommunityServiceTest {
     @DisplayName("댓글 삭제 성공")
     void deletePostComment_success() {
         Member member = getMember();
+        setAuthentication(member);
         Post post = createDummyPost();
         Comment parentComment = createComment("부모 댓글", post, member);
         Comment childComment = createComment("자식 댓글", post, member, parentComment);
         commentRepository.save(parentComment);
         commentRepository.save(childComment);
 
-        communityService.deletePostComment(parentComment.getId(), member.getId());
+        communityService.deletePostComment(parentComment.getId());
 
         Comment parentResult = commentRepository.findById(parentComment.getId()).orElse(null);
         assertThat(parentResult).isNotNull();
@@ -398,13 +406,14 @@ class CommunityServiceTest {
     @DisplayName("댓글 삭제 실패 - 존재하지 않는 댓글")
     void deletePostComment_fail_comment_not_found() {
         Member member = getMember();
+        setAuthentication(member);
         Post post = createDummyPost();
         Comment parentComment = createComment("부모 댓글", post, member);
         Comment childComment = createComment("자식 댓글", post, member, parentComment);
         commentRepository.save(parentComment);
         commentRepository.save(childComment);
 
-        assertThatThrownBy(() -> communityService.deletePostComment(parentComment.getId() + 100, member.getId()))
+        assertThatThrownBy(() -> communityService.deletePostComment(parentComment.getId() + 100))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
     }
@@ -419,7 +428,7 @@ class CommunityServiceTest {
         commentRepository.save(parentComment);
         commentRepository.save(childComment);
 
-        assertThatThrownBy(() -> communityService.deletePostComment(parentComment.getId(), member.getId() + 100))
+        assertThatThrownBy(() -> communityService.deletePostComment(parentComment.getId()))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
     }

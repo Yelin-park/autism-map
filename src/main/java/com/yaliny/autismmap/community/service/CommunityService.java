@@ -63,13 +63,17 @@ public class CommunityService {
 
     @Transactional
     public void deletePost(long postId) {
-        postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        if (!Objects.equals(post.getMember().getId(), memberId)) throw new CustomException(ACCESS_DENIED);
         postRepository.deleteById(postId);
     }
 
     @Transactional
     public PostDetailResponse updatePost(long postId, PostUpdateRequest request) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        if (!Objects.equals(post.getMember().getId(), memberId)) throw new CustomException(ACCESS_DENIED);
         List<Long> preserveIds = Optional.ofNullable(request.preserveMediaIds()).orElse(Collections.emptyList());
         List<PostMedia> toPreserve = post.getMediaList().stream().filter(postMedia -> preserveIds.contains(postMedia.getId())).toList();
 
@@ -122,9 +126,10 @@ public class CommunityService {
     }
 
     @Transactional
-    public void deletePostComment(long commentId, long memberId) {
+    public void deletePostComment(long commentId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CustomException(COMMENT_NOT_FOUND));
-        if (comment.getMember().getId() != memberId) throw new CustomException(ACCESS_DENIED);
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        if (!Objects.equals(comment.getMember().getId(), memberId)) throw new CustomException(ACCESS_DENIED);
         comment.deleteComment();
     }
 
