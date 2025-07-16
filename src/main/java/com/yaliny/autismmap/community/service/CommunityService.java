@@ -4,6 +4,7 @@ import com.yaliny.autismmap.community.dto.request.*;
 import com.yaliny.autismmap.community.dto.response.PostCommentResponse;
 import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
+import com.yaliny.autismmap.community.dto.response.UploadFileResponse;
 import com.yaliny.autismmap.community.entity.Comment;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.entity.PostMedia;
@@ -20,12 +21,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static com.yaliny.autismmap.global.exception.ErrorCode.*;
 
@@ -40,9 +39,14 @@ public class CommunityService {
     private final CommentRepository commentRepository;
 
     @Transactional
+    public  List<UploadFileResponse> uploadFile(UploadFileRequest request) {
+        return uploadPostMedias(request, "post-medias");
+    }
+
+    @Transactional
     public Long registerPost(PostCreateRequest request) {
         Member member = memberRepository.findById(request.getMemberId()).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
-        List<PostMedia> postMediaList = uploadPostMedias(request.getMediaList(), "post-medias");
+        List<PostMedia> postMediaList = getPostMedias(request.getMediaList());
         Post post = Post.createPost(request.getTitle(), request.getContent(), member, postMediaList);
         Post savedPost = postRepository.save(post);
         return savedPost.getId();
@@ -82,7 +86,7 @@ public class CommunityService {
                 preserveIds, toPreserve.stream().map(PostMedia::getId).toList(), postId);
         }
 
-        List<PostMedia> newMedias = uploadPostMedias(request.mediaList(), "post-medias");
+        List<PostMedia> newMedias = getPostMedias(request.mediaList());
         post.updatePost(request, newMedias, toPreserve);
 
         return PostDetailResponse.of(post);
@@ -92,22 +96,6 @@ public class CommunityService {
     public PostCommentResponse getPostComments(long postId, PageRequest pageRequest) {
         Page<Comment> parentPage = commentRepository.findAllByPostIdAndParentCommentIsNull(postId, pageRequest);
         return PostCommentResponse.of(parentPage);
-    }
-
-    private List<PostMedia> uploadPostMedias(List<PostMediaRequest> mediaList, String dirName) {
-        return Optional.ofNullable(mediaList)
-            .orElse(List.of())
-            .stream()
-            .filter(media -> !media.getMultipartFile().isEmpty())
-            .map(media -> {
-                String uploadedUrl;
-                try {
-                    uploadedUrl = s3Uploader.upload(media.getMultipartFile(), dirName);
-                } catch (IOException e) {
-                    throw new CustomException(S3_UPLOAD_FAIL);
-                }
-                return PostMedia.createPostMedia(media.getMediaType(), uploadedUrl);
-            }).toList();
     }
 
     @Transactional
@@ -140,5 +128,36 @@ public class CommunityService {
         if (!Objects.equals(comment.getMember().getId(), memberId)) throw new CustomException(ACCESS_DENIED);
         comment.updateComment(request.content());
         return request.content();
+    }
+
+    private List<PostMedia> getPostMedias(List<PostMediaRequest> mediaList) {
+        return Optional.ofNullable(mediaList)
+            .orElse(List.of())
+            .stream()
+            .filter(media -> !media.getUrl().isEmpty())
+            .map(media -> {
+                return PostMedia.createPostMedia(media.getMediaType(), media.getUrl());
+            }).toList();
+    }
+
+    private List<UploadFileResponse> uploadPostMedias(UploadFileRequest request, String dirName) {
+        List<UploadFileResponse> result = new ArrayList<>();
+
+        List<UploadFileRequest.UploadFile> mediaList = Optional.ofNullable(request.getFiles())
+            .orElse(List.of());
+
+        for (UploadFileRequest.UploadFile media : mediaList) {
+            MultipartFile file = media.getMultipartFile();
+            if (file != null && !file.isEmpty()) {
+                try {
+                    String uploadedUrl = s3Uploader.upload(file, dirName);
+                    result.add(new UploadFileResponse(media.getMediaType(), uploadedUrl));
+                } catch (IOException e) {
+                    throw new CustomException(S3_UPLOAD_FAIL);
+                }
+            }
+        }
+
+        return result;
     }
 }

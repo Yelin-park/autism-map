@@ -129,18 +129,14 @@ class CommunityServiceTest {
         String title = "제목입니다.";
         String content = "내용입니다.";
 
-        MockMultipartFile mockImage = getMockMultipartFileImage();
-        MockMultipartFile mockVideo = getMockMultipartFileVideo();
-
-
         PostMediaRequest image = new PostMediaRequest(
             MediaType.IMAGE,
-            mockImage
+            "s3.image.url"
         );
 
         PostMediaRequest video = new PostMediaRequest(
             MediaType.VIDEO,
-            mockVideo
+            "s3.video.url"
         );
 
         ArrayList<PostMediaRequest> list = new ArrayList<>();
@@ -251,7 +247,7 @@ class CommunityServiceTest {
         Post dummyPost = createDummyPost();
         long dummyPostId = dummyPost.getId();
         setAuthentication(dummyPost.getMember());
-        MockMultipartFile mockImage = getMockMultipartFileImage();
+        String mockImage = "imageUrl";
         PostMediaRequest postMediaRequest = new PostMediaRequest(MediaType.IMAGE, mockImage);
         PostUpdateRequest request = new PostUpdateRequest("수정제목", "수정내용", null, List.of(postMediaRequest));
 

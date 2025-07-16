@@ -28,7 +28,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -90,11 +89,7 @@ public class CommunityServiceUnitTest {
     @Test
     @DisplayName("게시글 등록 성공")
     void registerPost_success() throws IOException {
-        MultipartFile mockFile = mock(MultipartFile.class);
-        when(mockFile.isEmpty()).thenReturn(false);
-        when(s3Uploader.upload(mockFile, "post-medias")).thenReturn("https://s3.aws.com/post.jpg");
-
-        PostMediaRequest media = new PostMediaRequest(MediaType.IMAGE, mockFile);
+        PostMediaRequest media = new PostMediaRequest(MediaType.IMAGE, "https://s3.aws.com/post.jpg");
         PostCreateRequest request = new PostCreateRequest(1L, "제목", "내용", List.of(media));
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
@@ -108,7 +103,6 @@ public class CommunityServiceUnitTest {
 
         assertThat(savedPostId).isEqualTo(100L);
         verify(postRepository).save(any(Post.class));
-        verify(s3Uploader).upload(mockFile, "post-medias");
     }
 
     @Test
@@ -200,13 +194,8 @@ public class CommunityServiceUnitTest {
     @Test
     @DisplayName("게시글 수정 성공")
     void updatePost_success() throws IOException {
-        MultipartFile multipartFile = mock(MultipartFile.class);
-        when(multipartFile.isEmpty()).thenReturn(false);
-
         PostMediaRequest mediaRequest = mock(PostMediaRequest.class);
-        when(mediaRequest.getMultipartFile()).thenReturn(multipartFile);
-
-        when(s3Uploader.upload(multipartFile, "post-medias")).thenReturn("https://s3.aws.com/post.jpg");
+        when(mediaRequest.getUrl()).thenReturn("https://s3.aws.com/post.jpg");
 
         PostUpdateRequest request = mock(PostUpdateRequest.class);
         when(request.preserveMediaIds()).thenReturn(List.of());

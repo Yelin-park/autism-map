@@ -1,12 +1,10 @@
 package com.yaliny.autismmap.community.controller;
 
-import com.yaliny.autismmap.community.dto.request.PostCommentCreateRequest;
-import com.yaliny.autismmap.community.dto.request.PostCommentUpdateRequest;
-import com.yaliny.autismmap.community.dto.request.PostCreateRequest;
-import com.yaliny.autismmap.community.dto.request.PostUpdateRequest;
+import com.yaliny.autismmap.community.dto.request.*;
 import com.yaliny.autismmap.community.dto.response.PostCommentResponse;
 import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
+import com.yaliny.autismmap.community.dto.response.UploadFileResponse;
 import com.yaliny.autismmap.community.service.CommunityService;
 import com.yaliny.autismmap.global.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +16,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "커뮤니티 관리 기능")
 @RequestMapping("/api/v1/community")
 @RestController
@@ -26,10 +26,17 @@ public class CommunityController {
 
     private final CommunityService communityService;
 
+    @Operation(summary = "미디어 파일 등록", description = "이미지, 동영상 업로드 API")
+    @PostMapping(value = "/posts/file")
+    public ResponseEntity<BaseResponse<List<UploadFileResponse>>> uploadFile(@ModelAttribute UploadFileRequest request) {
+        List<UploadFileResponse> response = communityService.uploadFile(request);
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
     @Operation(summary = "게시글 등록")
-    @PostMapping(value = "/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/posts")
     public ResponseEntity<BaseResponse<String>> registerPost(
-        @ModelAttribute PostCreateRequest request
+        @RequestBody PostCreateRequest request
     ) {
         long postId = communityService.registerPost(request);
         return ResponseEntity.ok(BaseResponse.success("postId: " + postId + " 게시글 등록 성공"));
