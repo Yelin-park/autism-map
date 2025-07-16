@@ -204,7 +204,7 @@ public class CommunityServiceUnitTest {
         when(multipartFile.isEmpty()).thenReturn(false);
 
         PostMediaRequest mediaRequest = mock(PostMediaRequest.class);
-        when(mediaRequest.multipartFile()).thenReturn(multipartFile);
+        when(mediaRequest.getMultipartFile()).thenReturn(multipartFile);
 
         when(s3Uploader.upload(multipartFile, "post-medias")).thenReturn("https://s3.aws.com/post.jpg");
 

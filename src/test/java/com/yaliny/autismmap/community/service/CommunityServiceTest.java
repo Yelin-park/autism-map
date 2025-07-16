@@ -132,6 +132,7 @@ class CommunityServiceTest {
         MockMultipartFile mockImage = getMockMultipartFileImage();
         MockMultipartFile mockVideo = getMockMultipartFileVideo();
 
+
         PostMediaRequest image = new PostMediaRequest(
             MediaType.IMAGE,
             mockImage

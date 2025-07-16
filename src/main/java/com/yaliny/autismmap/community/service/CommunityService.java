@@ -41,9 +41,9 @@ public class CommunityService {
 
     @Transactional
     public Long registerPost(PostCreateRequest request) {
-        Member member = memberRepository.findById(request.memberId()).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
-        List<PostMedia> postMediaList = uploadPostMedias(request.mediaList(), "post-medias");
-        Post post = Post.createPost(request.title(), request.content(), member, postMediaList);
+        Member member = memberRepository.findById(request.getMemberId()).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+        List<PostMedia> postMediaList = uploadPostMedias(request.getMediaList(), "post-medias");
+        Post post = Post.createPost(request.getTitle(), request.getContent(), member, postMediaList);
         Post savedPost = postRepository.save(post);
         return savedPost.getId();
     }
@@ -98,15 +98,15 @@ public class CommunityService {
         return Optional.ofNullable(mediaList)
             .orElse(List.of())
             .stream()
-            .filter(media -> !media.multipartFile().isEmpty())
+            .filter(media -> !media.getMultipartFile().isEmpty())
             .map(media -> {
                 String uploadedUrl;
                 try {
-                    uploadedUrl = s3Uploader.upload(media.multipartFile(), dirName);
+                    uploadedUrl = s3Uploader.upload(media.getMultipartFile(), dirName);
                 } catch (IOException e) {
                     throw new CustomException(S3_UPLOAD_FAIL);
                 }
-                return PostMedia.createPostMedia(media.mediaType(), uploadedUrl);
+                return PostMedia.createPostMedia(media.getMediaType(), uploadedUrl);
             }).toList();
     }
 
