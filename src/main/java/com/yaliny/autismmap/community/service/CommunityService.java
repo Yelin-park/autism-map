@@ -15,6 +15,7 @@ import com.yaliny.autismmap.global.external.service.S3Uploader;
 import com.yaliny.autismmap.global.utils.SecurityUtil;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -37,6 +38,7 @@ public class CommunityService {
     private final PostRepository postRepository;
     private final S3Uploader s3Uploader;
     private final CommentRepository commentRepository;
+    private final EntityManager em;
 
     @Transactional
     public  List<UploadFileResponse> uploadFile(UploadFileRequest request) {
@@ -78,7 +80,7 @@ public class CommunityService {
         Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
         Long memberId = SecurityUtil.getCurrentMemberId();
         if (!Objects.equals(post.getMember().getId(), memberId)) throw new CustomException(ACCESS_DENIED);
-        List<Long> preserveIds = Optional.ofNullable(request.preserveMediaIds()).orElse(Collections.emptyList());
+        List<Long> preserveIds = Optional.ofNullable(request.getPreserveMediaIds()).orElse(Collections.emptyList());
         List<PostMedia> toPreserve = post.getMediaList().stream().filter(postMedia -> preserveIds.contains(postMedia.getId())).toList();
 
         if (toPreserve.size() != preserveIds.size()) {
@@ -86,8 +88,10 @@ public class CommunityService {
                 preserveIds, toPreserve.stream().map(PostMedia::getId).toList(), postId);
         }
 
-        List<PostMedia> newMedias = getPostMedias(request.mediaList());
+        List<PostMedia> newMedias = getPostMedias(request.getMediaList());
         post.updatePost(request, newMedias, toPreserve);
+
+        em.flush();
 
         return PostDetailResponse.of(post);
     }

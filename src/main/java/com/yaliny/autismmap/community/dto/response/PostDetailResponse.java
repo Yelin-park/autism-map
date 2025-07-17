@@ -10,13 +10,15 @@ import java.util.List;
 
 public record PostDetailResponse(
     @Schema(title = "게시글 ID", description = "게시글 ID")
-    Long postId,
+    long postId,
     @Schema(title = "게시글 제목", description = "게시글 제목")
     String title,
     @Schema(title = "게시글 내용", description = "게시글 내용")
     String content,
     @Schema(title = "게시글 미디어 리스트", description = "게시글 미디어 리스트")
     List<Media> mediaList,
+    @Schema(title = "등록자 ID", description = "등록자 ID")
+    long memberId,
     @Schema(title = "등록자 닉네임", description = "등록자 닉네임")
     String nickName,
     @Schema(title = "등록 일시", description = "등록 일시")
@@ -25,11 +27,15 @@ public record PostDetailResponse(
     String modDateTime
 ) {
     public record Media(
+        @Schema(title = "미디어 파일 ID", description = "미디어 파일 ID")
+        long id,
+        @Schema(title = "미디어 타입", description = "미디어 타입")
         MediaType mediaType,
+        @Schema(title = "S3 URL", description = "S3 URL")
         String url
     ) {
         public static PostDetailResponse.Media of(PostMedia media) {
-            return new PostDetailResponse.Media(media.getMediaType(), media.getUrl());
+            return new PostDetailResponse.Media(media.getId(), media.getMediaType(), media.getUrl());
         }
     }
 
@@ -39,6 +45,7 @@ public record PostDetailResponse(
             post.getTitle(),
             post.getContent(),
             post.getMediaList().stream().map(Media::of).toList(),
+            post.getMember().getId(),
             post.getMember().getNickname(),
             post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
             post.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
