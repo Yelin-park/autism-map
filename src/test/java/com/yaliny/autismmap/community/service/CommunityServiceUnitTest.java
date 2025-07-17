@@ -198,8 +198,8 @@ public class CommunityServiceUnitTest {
         when(mediaRequest.getUrl()).thenReturn("https://s3.aws.com/post.jpg");
 
         PostUpdateRequest request = mock(PostUpdateRequest.class);
-        when(request.preserveMediaIds()).thenReturn(List.of());
-        when(request.mediaList()).thenReturn(List.of(mediaRequest));
+        when(request.getPreserveMediaIds()).thenReturn(List.of());
+        when(request.getMediaList()).thenReturn(List.of(mediaRequest));
 
         when(postRepository.findById(10L)).thenReturn(Optional.of(post));
         when(post.getTitle()).thenReturn("제목");

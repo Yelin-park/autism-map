@@ -75,10 +75,10 @@ public class CommunityController {
     }
 
     @Operation(summary = "게시글 수정")
-    @PatchMapping(value = "/posts/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(value = "/posts/{postId}")
     public ResponseEntity<BaseResponse<PostDetailResponse>> updatePost(
         @PathVariable long postId,
-        @ModelAttribute PostUpdateRequest request
+        @RequestBody PostUpdateRequest request
     ) {
         PostDetailResponse response = communityService.updatePost(postId, request);
         return ResponseEntity.ok(BaseResponse.success(response));

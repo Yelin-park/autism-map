@@ -68,8 +68,8 @@ public class Post extends BaseEntity {
     }
 
     public void updatePost(PostUpdateRequest request, List<PostMedia> newMedias, List<PostMedia> toPreserve) {
-        this.title = request.title();
-        this.content = request.content();
+        this.title = request.getTitle();
+        this.content = request.getContent();
         this.mediaList.clear();
         for (PostMedia media : toPreserve) {
             this.addMedia(media);
