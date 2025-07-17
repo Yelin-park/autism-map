@@ -14,6 +14,7 @@ import com.yaliny.autismmap.global.external.service.S3Uploader;
 import com.yaliny.autismmap.global.security.CustomUserDetails;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,8 @@ public class CommunityServiceUnitTest {
     private S3Uploader s3Uploader;
     @Mock
     private CommentRepository commentRepository;
+    @Mock
+    private EntityManager em;
 
     @InjectMocks
     private CommunityService communityService;
