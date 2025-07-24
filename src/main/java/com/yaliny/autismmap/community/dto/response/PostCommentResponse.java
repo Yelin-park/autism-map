@@ -37,6 +37,8 @@ public record PostCommentResponse(
         long id,
         @Schema(title = "댓글 내용")
         String content,
+        @Schema(title = "댓글 작성자 ID")
+        long memberId,
         @Schema(title = "댓글 작성자 닉네임")
         String nickName,
         @Schema(title = "댓글 등록일")
@@ -47,7 +49,8 @@ public record PostCommentResponse(
         public static ParentComment of(Comment comment) {
             return new ParentComment(
                 comment.getId(),
-                comment.getContent(),
+                getContent(comment),
+                comment.getMember().getId(),
                 comment.getMember().getNickname(),
                 comment.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 comment.getChildComments().stream().map(ChildComment::of).toList()
@@ -60,6 +63,8 @@ public record PostCommentResponse(
         long id,
         @Schema(title = "댓글 내용")
         String content,
+        @Schema(title = "댓글 작성자 ID")
+        long memberId,
         @Schema(title = "댓글 작성자 닉네임")
         String nickName,
         @Schema(title = "댓글 등록일")
@@ -68,10 +73,18 @@ public record PostCommentResponse(
         public static ChildComment of(Comment comment) {
             return new ChildComment(
                 comment.getId(),
-                comment.getContent(),
+                getContent(comment),
+                comment.getMember().getId(),
                 comment.getMember().getNickname(),
                 comment.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
             );
         }
+    }
+
+    private static String getContent(Comment comment) {
+        String content;
+        if (comment.isDeleted()) content = "삭제된 댓글입니다.";
+        else content = comment.getContent();
+        return content;
     }
 }
