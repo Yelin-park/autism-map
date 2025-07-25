@@ -24,7 +24,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column
     private String password;
 
     @Column(nullable = false)
@@ -33,6 +33,16 @@ public class Member extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @Column(nullable = false)
+    private boolean isSocial; // true: 소셜 로그인 회원
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private Provider provider;
+
+    @Column
+    private String providerId; // 구글에서 제공하는 sub 값 (고유 ID)
 
     @OneToMany(mappedBy = "member")
     private List<Post> posts = new ArrayList<>();
@@ -45,6 +55,7 @@ public class Member extends BaseEntity {
         this.password = password;
         this.nickname = nickname;
         this.role = Role.USER;
+        this.isSocial = false;
     }
 
     public Member(String email, String password, String nickname, Role role) {
@@ -52,5 +63,18 @@ public class Member extends BaseEntity {
         this.password = password;
         this.nickname = nickname;
         this.role = role;
+        this.isSocial = false;
+    }
+
+    public static Member socialSignup(String email, String nickname, Provider provider, String providerId) {
+        Member member = new Member();
+        member.email = email;
+        member.password = null;
+        member.nickname = nickname;
+        member.role = Role.USER;
+        member.isSocial = true;
+        member.provider = provider;
+        member.providerId = providerId;
+        return member;
     }
 }

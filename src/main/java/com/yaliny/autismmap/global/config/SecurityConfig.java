@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.jwt.JwtFilter;
 import com.yaliny.autismmap.global.response.BaseResponse;
+import com.yaliny.autismmap.member.handler.CustomOAuth2SuccessHandler;
+import com.yaliny.autismmap.member.service.OAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +28,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final OAuthService OAuthService;
+    private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -47,7 +51,10 @@ public class SecurityConfig {
                     "/api/v1/members/signup",
                     "/api/v1/members/login",
                     "/api/v1/members/logout",
-                    "/api/v1/regions/**"
+                    "/api/v1/regions/**",
+                    "/oauth2/**",
+                    "/login/oauth2/**",
+                    "/oauth2/authorization/**"
                 ).permitAll() // 인증없이 허용
                 .requestMatchers(HttpMethod.GET, "/api/v1/places").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/places/{placeId}").permitAll()
@@ -56,6 +63,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/places/{placeId}").hasRole("ADMIN") // ADMIN 권한만 접근 허용
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/places/{placeId}").hasRole("ADMIN") // ADMIN 권한만 접근 허용
                 .anyRequest().authenticated() // 나머지 요청은 인증 필요
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo.userService(OAuthService)) // 사용자 정보 처리
+                .successHandler(customOAuth2SuccessHandler) // JWT 발급 후 리디렉션
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
