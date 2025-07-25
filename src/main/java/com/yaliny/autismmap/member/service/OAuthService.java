@@ -31,9 +31,10 @@ public class OAuthService extends DefaultOAuth2UserService {
     @Override
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(request);
+        String providerName = request.getClientRegistration().getRegistrationId();
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        OAuth2UserInfo oAuth2UserInfo = getOAuth2UserInfo(Provider.GOOGLE, attributes);
+        OAuth2UserInfo oAuth2UserInfo = getOAuth2UserInfo(providerName, attributes);
         Provider provider = oAuth2UserInfo.getProvider();
         String providerId = oAuth2UserInfo.getProviderId();
         String email = oAuth2UserInfo.getEmail();
@@ -49,15 +50,21 @@ public class OAuthService extends DefaultOAuth2UserService {
             }
             return existing;
         }).orElseGet(() -> {
-            Member newMember = Member.socialSignup(email, nickname, Provider.GOOGLE, providerId);
+            Member newMember = Member.socialSignup(email, nickname, provider, providerId);
             return memberRepository.save(newMember);
         });
+
+        // 사용자 식별자 키 동적 처리(구글은 sub, 카카오는 id..등)
+        String userNameAttribute = request.getClientRegistration()
+            .getProviderDetails()
+            .getUserInfoEndpoint()
+            .getUserNameAttributeName();
 
         // OAuth2User 반환 (SecurityContext 저장용)
         return new DefaultOAuth2User(
             List.of(new SimpleGrantedAuthority("ROLE_" + member.getRole())),
             attributes,
-            "sub" // 구글의 고유 사용자 식별자 key
+            userNameAttribute
         );
     }
 }

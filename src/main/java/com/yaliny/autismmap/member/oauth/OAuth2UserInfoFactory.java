@@ -6,12 +6,12 @@ import java.util.Map;
 
 public class OAuth2UserInfoFactory {
 
-    public static OAuth2UserInfo getOAuth2UserInfo(Provider provider, Map<String, Object> attributes) {
-        return switch (provider.name()) {
+    public static OAuth2UserInfo getOAuth2UserInfo(String providerName, Map<String, Object> attributes) {
+        return switch (providerName.toUpperCase()) {
             case "GOOGLE" -> new GoogleUserInfo(attributes);
-            //case "KAKAO" -> new KakaoUserInfo(attributes);
+            case "KAKAO" -> new KakaoUserInfo(attributes);
             //case "NAVER" -> new NaverUserInfo(attributes);
-            default -> throw new IllegalArgumentException("Unknown provider: " + provider);
+            default -> throw new IllegalArgumentException("Unknown provider: " + providerName);
         };
     }
 }
