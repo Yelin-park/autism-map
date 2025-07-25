@@ -4,6 +4,7 @@ import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.entity.Provider;
+import com.yaliny.autismmap.member.oauth.OAuth2UserInfo;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+import static com.yaliny.autismmap.member.oauth.OAuth2UserInfoFactory.getOAuth2UserInfo;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -30,17 +33,18 @@ public class OAuthService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(request);
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        String provider = request.getClientRegistration().getRegistrationId().toUpperCase();
-        String providerId = (String) attributes.get("sub");
-        String email = (String) attributes.get("email");
-        String nickname = (String) attributes.get("name");
+        OAuth2UserInfo oAuth2UserInfo = getOAuth2UserInfo(Provider.GOOGLE, attributes);
+        Provider provider = oAuth2UserInfo.getProvider();
+        String providerId = oAuth2UserInfo.getProviderId();
+        String email = oAuth2UserInfo.getEmail();
+        String nickname = oAuth2UserInfo.getName();
 
         // 이메일로 기존 회원 확인
         Member member = memberRepository.findByEmail(email).map(existing -> {
             if (!existing.isSocial()) {
                 throw new CustomException(ErrorCode.MEMBER_ALREADY_EXISTS); // 일반 회원과 충돌
             }
-            if (!provider.equals(existing.getProvider().name())) {
+            if (!provider.equals(existing.getProvider())) {
                 throw new CustomException(ErrorCode.DUPLICATE_SOCIAL_EMAIL); // 다른 소셜 플랫폼으로 가입된 이메일
             }
             return existing;
