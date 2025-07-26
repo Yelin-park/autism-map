@@ -47,11 +47,13 @@ public class SecurityConfig {
                     "/h2-console/**",
                     "/swagger-ui/**",
                     "/swagger-resources/**",
+                    "/favicon.ico",
                     "/nurean/v1/api-docs/**",
                     "/api/v1/members/signup",
                     "/api/v1/members/login",
                     "/api/v1/members/logout",
                     "/api/v1/regions/**",
+                    "/api/v1/oauth/**",
                     "/oauth2/**",
                     "/login/oauth2/**",
                     "/oauth2/authorization/**"

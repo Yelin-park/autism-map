@@ -2,6 +2,8 @@ package com.yaliny.autismmap.member.service;
 
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.exception.ErrorCode;
+import com.yaliny.autismmap.global.external.service.KakaoOAuthClient;
+import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.entity.Provider;
 import com.yaliny.autismmap.member.oauth.OAuth2UserInfo;
@@ -15,6 +17,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +30,8 @@ import static com.yaliny.autismmap.member.oauth.OAuth2UserInfoFactory.getOAuth2U
 public class OAuthService extends DefaultOAuth2UserService {
 
     private final MemberRepository memberRepository;
+    private final KakaoOAuthClient kakaoOAuthClient;
+    private final JwtUtil jwtUtil;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
@@ -66,5 +71,36 @@ public class OAuthService extends DefaultOAuth2UserService {
             attributes,
             userNameAttribute
         );
+    }
+
+    @Transactional
+    public String kakaoLogin(String code) {
+        // 1. 인가 코드 → 액세스 토큰
+        String accessToken = kakaoOAuthClient.getAccessToken(code);
+
+        // 2. 사용자 정보 요청
+        OAuth2UserInfo userInfo = kakaoOAuthClient.getUserInfo(accessToken);
+
+        String email = userInfo.getEmail();
+        String providerId = userInfo.getProviderId();
+        String nickname = userInfo.getName();
+        Provider provider = userInfo.getProvider();
+
+        // 3. 회원 조회 or 가입
+        Member member = memberRepository.findByEmail(email).map(existing -> {
+            if (!existing.isSocial()) {
+                throw new CustomException(ErrorCode.MEMBER_ALREADY_EXISTS);
+            }
+            if (!provider.equals(existing.getProvider())) {
+                throw new CustomException(ErrorCode.DUPLICATE_SOCIAL_EMAIL);
+            }
+            return existing;
+        }).orElseGet(() -> {
+            Member newMember = Member.socialSignup(email, nickname, provider, providerId);
+            return memberRepository.save(newMember);
+        });
+
+        // 4. JWT 발급
+        return jwtUtil.generateToken(member.getId(), member.getEmail(), member.getRole().name());
     }
 }
