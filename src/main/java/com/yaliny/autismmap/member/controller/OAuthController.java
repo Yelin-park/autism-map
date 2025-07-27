@@ -1,7 +1,7 @@
 package com.yaliny.autismmap.member.controller;
 
 import com.yaliny.autismmap.global.response.BaseResponse;
-import com.yaliny.autismmap.member.service.OAuthService;
+import com.yaliny.autismmap.member.service.CustomOAuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OAuthController {
 
-    private final OAuthService oAuthService;
+    private final CustomOAuthService customOAuthService;
 
     @GetMapping("/kakao")
     public ResponseEntity<BaseResponse<String>> kakaoLogin(@RequestParam("code") String code) {
-        String jwt = oAuthService.kakaoLogin(code); // 토큰 발급 및 로그인 처리
+        String jwt = customOAuthService.kakaoLogin(code); // 토큰 발급 및 로그인 처리
         return ResponseEntity.ok(BaseResponse.success(jwt));
     }
 

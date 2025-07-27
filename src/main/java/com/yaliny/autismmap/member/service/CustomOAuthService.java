@@ -10,9 +10,11 @@ import com.yaliny.autismmap.member.oauth.OAuth2UserInfo;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -27,15 +29,16 @@ import static com.yaliny.autismmap.member.oauth.OAuth2UserInfoFactory.getOAuth2U
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OAuthService extends DefaultOAuth2UserService {
+public class CustomOAuthService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
+    private final DefaultOAuth2UserService delegateOAuth2UserService;
     private final MemberRepository memberRepository;
     private final KakaoOAuthClient kakaoOAuthClient;
     private final JwtUtil jwtUtil;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = super.loadUser(request);
+        OAuth2User oAuth2User = delegateOAuth2UserService.loadUser(request);
         String providerName = request.getClientRegistration().getRegistrationId();
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
@@ -48,10 +51,10 @@ public class OAuthService extends DefaultOAuth2UserService {
         // 이메일로 기존 회원 확인
         Member member = memberRepository.findByEmail(email).map(existing -> {
             if (!existing.isSocial()) {
-                throw new CustomException(ErrorCode.MEMBER_ALREADY_EXISTS); // 일반 회원과 충돌
+                throw new InternalAuthenticationServiceException(ErrorCode.MEMBER_ALREADY_EXISTS.getMessage());
             }
             if (!provider.equals(existing.getProvider())) {
-                throw new CustomException(ErrorCode.DUPLICATE_SOCIAL_EMAIL); // 다른 소셜 플랫폼으로 가입된 이메일
+                throw new InternalAuthenticationServiceException(ErrorCode.DUPLICATE_SOCIAL_EMAIL.getMessage());
             }
             return existing;
         }).orElseGet(() -> {

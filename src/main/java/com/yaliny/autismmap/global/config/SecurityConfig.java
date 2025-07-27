@@ -4,8 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.jwt.JwtFilter;
 import com.yaliny.autismmap.global.response.BaseResponse;
+import com.yaliny.autismmap.member.handler.CustomOAuth2FailureHandler;
 import com.yaliny.autismmap.member.handler.CustomOAuth2SuccessHandler;
-import com.yaliny.autismmap.member.service.OAuthService;
+import com.yaliny.autismmap.member.service.CustomOAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,8 +29,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
-    private final OAuthService OAuthService;
+    private final CustomOAuthService customOAuthService;
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+    private final CustomOAuth2FailureHandler customOAuth2FailureHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -54,6 +56,7 @@ public class SecurityConfig {
                     "/api/v1/members/logout",
                     "/api/v1/regions/**",
                     "/api/v1/oauth/**",
+                    "/oauth/**",
                     "/oauth2/**",
                     "/login/oauth2/**",
                     "/oauth2/authorization/**"
@@ -67,8 +70,9 @@ public class SecurityConfig {
                 .anyRequest().authenticated() // 나머지 요청은 인증 필요
             )
             .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo.userService(OAuthService)) // 사용자 정보 처리
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuthService)) // 사용자 정보 처리
                 .successHandler(customOAuth2SuccessHandler) // JWT 발급 후 리디렉션
+                .failureHandler(customOAuth2FailureHandler)
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
