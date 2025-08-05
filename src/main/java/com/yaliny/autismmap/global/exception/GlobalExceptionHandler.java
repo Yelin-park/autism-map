@@ -4,8 +4,15 @@ import com.yaliny.autismmap.global.response.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.yaliny.autismmap.global.exception.ErrorCode.VALIDATION_FAILED;
 
 @Slf4j
 @RestControllerAdvice
@@ -17,6 +24,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(ex.getErrorCode().getStatus())
             .body(BaseResponse.error(ex.getErrorCode().getStatus().value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<BaseResponse<Map<String, String>>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        log.warn("ValidationException: {}", ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+
+        return ResponseEntity
+            .status(VALIDATION_FAILED.getStatus())
+            .body(BaseResponse.error(VALIDATION_FAILED.getStatus().value(), VALIDATION_FAILED.getMessage(), errors));
     }
 
     // 그 외 모든 예외 처리 (catch-all)

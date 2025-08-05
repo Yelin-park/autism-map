@@ -16,8 +16,10 @@ public enum ErrorCode {
     NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 닉네임입니다."),
     DUPLICATE_SOCIAL_EMAIL(HttpStatus.CONFLICT, "해당 이메일은 다른 소셜 플랫폼으로 가입되어 있습니다."),
     S3_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "S3에 파일 업로드를 실패했습니다."),
-    ACCESS_DENIED(HttpStatus.FORBIDDEN, "권한이 없습니다."),
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "권한이 없습니다.");
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
+    VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "유효성 검사에 실패했습니다."),
+    ;
 
     private final HttpStatus status;
     private final String message;
