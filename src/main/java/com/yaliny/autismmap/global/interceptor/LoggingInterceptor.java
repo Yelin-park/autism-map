@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-public class LoggingInterceptor implements HandlerInterceptor {
+public final class LoggingInterceptor implements HandlerInterceptor {
 
     public static final String LOG_ID = "logId";
 
@@ -22,6 +22,9 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
         if (handler instanceof HandlerMethod) {
             HandlerMethod hm = (HandlerMethod) handler; // 호출할 컨트롤러 메서드의 모든 정보 포함되어있음
+            String className = hm.getBeanType().getSimpleName();
+            String methodName = hm.getMethod().getName();
+            log.info("➡️ [CONTROLLER] {}#{}", className, methodName);
         }
 
         log.info("➡️ [REQUEST] {} {} {} {}", uuid, request.getMethod(), request.getRequestURI(), handler);
@@ -30,7 +33,6 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        String requestURI = request.getRequestURI();
         String logId = (String) request.getAttribute(LOG_ID);
 
         log.info("⬅️ [RESPONSE] {} {} {} - Status: {}", logId, request.getMethod(), request.getRequestURI(), response.getStatus());

@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +26,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
@@ -33,33 +35,37 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authorizationHeader = request.getHeader("Authorization");
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            String token = authorizationHeader.substring(7);
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
 
-            if (jwtUtil.validateToken(token)) {
-                Claims claims = jwtUtil.getClaims(token);
-                String memberId = claims.getSubject();
-                String email = claims.get("email", String.class);
-                String role = claims.get("role", String.class);
+                if (jwtUtil.validateToken(token)) {
+                    Claims claims = jwtUtil.getClaims(token);
+                    String memberId = claims.getSubject();
+                    String email = claims.get("email", String.class);
+                    String role = claims.get("role", String.class);
 
-                CustomUserDetails userDetails = new CustomUserDetails(
-                    Long.parseLong(memberId),
-                    email,
-                    role,
-                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                );
+                    CustomUserDetails userDetails = new CustomUserDetails(
+                        Long.parseLong(memberId),
+                        email,
+                        role,
+                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                    );
 
-                // 인증 객체 생성
-                UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    // 인증 객체 생성
+                    UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                // SecurityContext에 저장
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    // SecurityContext에 저장
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
-        }
 
-        // 다음 필터로 요청 넘기기
-        filterChain.doFilter(request, response);
+            // 다음 필터로 요청 넘기기
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            log.error("JWT Filter Error : ", e);
+        }
     }
 }

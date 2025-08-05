@@ -25,7 +25,7 @@ public class MemberService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
         Member member = memberRepository.findByEmail(request.email()).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         if (!passwordEncoder.matches(request.password(), member.getPassword()))

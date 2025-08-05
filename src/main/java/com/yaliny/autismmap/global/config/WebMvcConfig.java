@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @RequiredArgsConstructor
 @Configuration
-public class WebMvcConfig implements WebMvcConfigurer{
+public class WebMvcConfig implements WebMvcConfigurer {
 
     private final LoggingInterceptor loggingInterceptor;
 
@@ -23,7 +23,7 @@ public class WebMvcConfig implements WebMvcConfigurer{
                         "http://localhost:5173", // 로컬 프론트엔드 주소
                         "http://nurean.kro.kr",
                         "https://nurean.kro.kr"
-                        )
+                    )
                     .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                     .allowedHeaders("*")
                     .allowCredentials(true);
