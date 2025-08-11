@@ -1,7 +1,5 @@
 package com.yaliny.autismmap.member.service;
 
-import com.yaliny.autismmap.global.exception.CustomException;
-import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.external.service.KakaoOAuthClient;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.member.entity.Member;
@@ -10,6 +8,7 @@ import com.yaliny.autismmap.member.oauth.OAuth2UserInfo;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -23,7 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
+import static com.yaliny.autismmap.global.exception.ErrorCode.*;
 import static com.yaliny.autismmap.member.oauth.OAuth2UserInfoFactory.getOAuth2UserInfo;
 
 @Service
@@ -48,19 +50,8 @@ public class CustomOAuthService implements OAuth2UserService<OAuth2UserRequest, 
         String email = oAuth2UserInfo.getEmail();
         String nickname = oAuth2UserInfo.getName();
 
-        // 이메일로 기존 회원 확인
-        Member member = memberRepository.findByEmail(email).map(existing -> {
-            if (!existing.isSocial()) {
-                throw new InternalAuthenticationServiceException(ErrorCode.MEMBER_ALREADY_EXISTS.getMessage());
-            }
-            if (!provider.equals(existing.getProvider())) {
-                throw new InternalAuthenticationServiceException(ErrorCode.DUPLICATE_SOCIAL_EMAIL.getMessage());
-            }
-            return existing;
-        }).orElseGet(() -> {
-            Member newMember = Member.socialSignup(email, nickname, provider, providerId);
-            return memberRepository.save(newMember);
-        });
+        // 이메일과 닉네임으로 기존 회원 확인 후 Member 저장
+        Member member = getOrCreateSocialMember(email, provider, providerId, nickname);
 
         // 사용자 식별자 키 동적 처리(구글은 sub, 카카오는 id..등)
         String userNameAttribute = request.getClientRegistration()
@@ -83,27 +74,67 @@ public class CustomOAuthService implements OAuth2UserService<OAuth2UserRequest, 
 
         // 2. 사용자 정보 요청
         OAuth2UserInfo userInfo = kakaoOAuthClient.getUserInfo(accessToken);
-
         String email = userInfo.getEmail();
         String providerId = userInfo.getProviderId();
         String nickname = userInfo.getName();
         Provider provider = userInfo.getProvider();
 
         // 3. 회원 조회 or 가입
-        Member member = memberRepository.findByEmail(email).map(existing -> {
-            if (!existing.isSocial()) {
-                throw new CustomException(ErrorCode.MEMBER_ALREADY_EXISTS);
-            }
-            if (!provider.equals(existing.getProvider())) {
-                throw new CustomException(ErrorCode.DUPLICATE_SOCIAL_EMAIL);
-            }
-            return existing;
-        }).orElseGet(() -> {
-            Member newMember = Member.socialSignup(email, nickname, provider, providerId);
-            return memberRepository.save(newMember);
-        });
+        Member member = getOrCreateSocialMember(email, provider, providerId, nickname);
 
         // 4. JWT 발급
         return jwtUtil.generateToken(member.getId(), member.getEmail(), member.getRole().name());
+    }
+
+
+    @Transactional
+    protected Member getOrCreateSocialMember(String email, Provider provider, String providerId, String baseName) {
+        // 이메일 조회
+        Member member = memberRepository.findByEmail(email).map(existing -> {
+            if (!existing.isSocial()) {
+                throw new InternalAuthenticationServiceException(MEMBER_ALREADY_EXISTS.getMessage());
+            }
+            if (!provider.equals(existing.getProvider())) {
+                throw new InternalAuthenticationServiceException(DUPLICATE_SOCIAL_EMAIL.getMessage());
+            }
+            return existing;
+        }).orElseGet(() -> {
+            String nickname = generateUniqueNickname(baseName);
+
+            for (int i = 0; i < 5; i++) {
+                try {
+                    Member newMember = Member.socialSignup(email, nickname, provider, providerId);
+                    return memberRepository.save(newMember);
+                } catch (DataIntegrityViolationException dup) { // 닉네임 충돌 시 닉네임만 다시 생성 후 재시도
+                    nickname = generateUniqueNickname(baseName);
+                }
+            }
+
+            throw new InternalAuthenticationServiceException(NICKNAME_CREATE_COLLISION.getMessage());
+        });
+
+        return member;
+    }
+
+    private String generateUniqueNickname(String preferred) {
+        // 전처리/정규화 (공백 제거, 길이 제한 등)
+        String base = normalize(preferred);
+        if (base.isBlank()) base = "사용자";
+
+        // 빠른 후보 + 재시도(최대 10회)
+        for (int i = 0; i < 10; i++) {
+            String candidate = base + String.format("%04d", ThreadLocalRandom.current().nextInt(10000));
+            if (!memberRepository.existsByNickname(candidate)) {
+                return candidate; // 저장 직전에 또 경쟁이 생길 수 있어도 우선 반환
+            }
+        }
+        // 폴백(거의 확실한 유니크로 UUID 사용)
+        return base + "-" + UUID.randomUUID().toString().substring(0, 6);
+    }
+
+    private String normalize(String s) {
+        if (s == null) return "";
+        String trimmed = s.trim().replaceAll("\\s+", "");
+        return trimmed.length() > 16 ? trimmed.substring(0, 16) : trimmed;
     }
 }
