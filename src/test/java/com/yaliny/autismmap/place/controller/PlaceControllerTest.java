@@ -159,7 +159,7 @@ class PlaceControllerTest {
                 .contentType(MediaType.MULTIPART_FORM_DATA))
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.code").value(403))
-            .andExpect(jsonPath("$.message").value("권한이 없습니다."));
+            .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
     }
 
     @Test
@@ -278,7 +278,7 @@ class PlaceControllerTest {
                 .contentType(MediaType.MULTIPART_FORM_DATA))
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.code").value(403))
-            .andExpect(jsonPath("$.message").value("권한이 없습니다."));
+            .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
     }
 
     @Test
@@ -411,7 +411,7 @@ class PlaceControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.code").value(403))
-            .andExpect(jsonPath("$.message").value("권한이 없습니다."));
+            .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
     }
 
     @Test

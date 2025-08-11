@@ -394,15 +394,18 @@ public class CommunityServiceUnitTest {
     }
 
     @Test
-    @DisplayName("댓글 수정 실패 - 수정 권한 없음")
-    void updatePostComment_fail_access_denied() {
-        clearAuthentication();
-        when(commentRepository.findById(10L)).thenReturn(Optional.of(comment));
+    @DisplayName("댓글 수정 실패 - 댓글 존재하지 않음")
+    void updatePostComment_fail_comment_not_found() {
+        setAuthentication(member);
+        when(commentRepository.findById(10L)).thenReturn(Optional.empty());
+
         PostCommentUpdateRequest request = mock(PostCommentUpdateRequest.class);
 
         assertThatThrownBy(() -> communityService.updatePostComment(10L, request))
             .isInstanceOf(CustomException.class)
-            .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
+            .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
+
+        clearAuthentication();
     }
 
 }

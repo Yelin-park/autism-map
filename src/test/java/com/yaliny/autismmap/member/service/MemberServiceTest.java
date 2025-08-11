@@ -156,12 +156,18 @@ class MemberServiceTest {
         SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
         memberService.signup(signupRequest);
 
+        SignUpRequest signupRequest2 = new SignUpRequest("test@example1.com", "1234", "테스터2");
+        memberService.signup(signupRequest2);
+
         Member member = memberRepository.findByEmail("test@example.com").get();
-        clearAuthentication();
+        Member member2 = memberRepository.findByEmail("test@example1.com").get();
+        setAuthentication(member2);
 
         assertThatThrownBy(() -> memberService.withdraw(member.getId()))
             .isInstanceOf(CustomException.class)
-            .hasMessage("권한이 없습니다.");
+            .hasMessage("접근 권한이 없습니다.");
+
+        clearAuthentication();
     }
 
     @Test
@@ -188,11 +194,17 @@ class MemberServiceTest {
         SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
         memberService.signup(signupRequest);
 
+        SignUpRequest signupRequest2 = new SignUpRequest("test@example1.com", "1234", "테스터2");
+        memberService.signup(signupRequest2);
+
         Member member = memberRepository.findByEmail("test@example.com").get();
-        clearAuthentication();
+        Member member2 = memberRepository.findByEmail("test@example1.com").get();
+        setAuthentication(member2);
 
         assertThatThrownBy(() -> memberService.getMemberInfo(member.getId()))
             .isInstanceOf(CustomException.class)
-            .hasMessage("권한이 없습니다.");
+            .hasMessage("접근 권한이 없습니다.");
+
+        clearAuthentication();
     }
 }

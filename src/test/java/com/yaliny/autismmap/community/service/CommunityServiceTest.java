@@ -16,6 +16,7 @@ import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.security.CustomUserDetails;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
+import org.hibernate.annotations.CurrentTimestamp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,6 +53,7 @@ class CommunityServiceTest {
 
     @Autowired
     private MemberRepository memberRepository;
+
     @Autowired
     private CommentRepository commentRepository;
 
@@ -62,6 +64,12 @@ class CommunityServiceTest {
         memberRepository.deleteAll();
     }
 
+    private Member getMember(String postEmail, String postNickname) {
+        Member member = new Member(postEmail, "test1234", postNickname);
+        memberRepository.save(member);
+        return member;
+    }
+
     private Member getMember() {
         Member member = new Member("test@test.com", "test1234", "닉네임");
         memberRepository.save(member);
@@ -69,7 +77,7 @@ class CommunityServiceTest {
     }
 
     private Post createDummyPost() {
-        Member member = getMember();
+        Member member = getMember("test@test123.com", "닉네임123");
         String title = "제목입니다.";
         String content = "내용입니다.";
 
@@ -186,7 +194,7 @@ class CommunityServiceTest {
         PostListResponse result = communityService.getPostList(null, PageRequest.of(0, 10));
 
         assertThat(result.content().size()).isEqualTo(1);
-        assertThat(result.content().get(0).nickName()).isEqualTo("닉네임");
+        assertThat(result.content().get(0).nickName()).isEqualTo("닉네임123");
         assertThat(result.content().get(0).title()).isEqualTo("제목입니다.");
     }
 
@@ -199,7 +207,7 @@ class CommunityServiceTest {
 
         assertThat(result.title()).isEqualTo("제목입니다.");
         assertThat(result.content()).isEqualTo("내용입니다.");
-        assertThat(result.nickName()).isEqualTo("닉네임");
+        assertThat(result.nickName()).isEqualTo("닉네임123");
     }
 
     @Test
@@ -420,10 +428,12 @@ class CommunityServiceTest {
     void deletePostComment_fail_access_denied() {
         Member member = getMember();
         Post post = createDummyPost();
+        Member member2 = post.getMember();
         Comment parentComment = createComment("부모 댓글", post, member);
         Comment childComment = createComment("자식 댓글", post, member, parentComment);
         commentRepository.save(parentComment);
         commentRepository.save(childComment);
+        setAuthentication(member2);
 
         assertThatThrownBy(() -> communityService.deletePostComment(parentComment.getId()))
             .isInstanceOf(CustomException.class)
@@ -457,8 +467,10 @@ class CommunityServiceTest {
     void updatePostComment_fail_access_denied() {
         Member member = getMember();
         Post post = createDummyPost();
+        Member member1 = post.getMember();
         Comment comment = createComment("기존 댓글", post, member);
         commentRepository.save(comment);
+        setAuthentication(member1);
 
         PostCommentUpdateRequest request = new PostCommentUpdateRequest("수정 댓글");
 
