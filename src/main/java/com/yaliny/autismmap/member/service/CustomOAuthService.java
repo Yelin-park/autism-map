@@ -88,7 +88,7 @@ public class CustomOAuthService implements OAuth2UserService<OAuth2UserRequest, 
 
 
     @Transactional
-    protected Member getOrCreateSocialMember(String email, Provider provider, String providerId, String baseName) {
+    protected Member getOrCreateSocialMember(String email, Provider provider, String providerId, String baseName) throws InternalAuthenticationServiceException {
         // 이메일 조회
         Member member = memberRepository.findByEmail(email).map(existing -> {
             if (!existing.isSocial()) {
