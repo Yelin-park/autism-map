@@ -1,4 +1,4 @@
-package com.yaliny.autismmap.global.external.config;
+package com.yaliny.autismmap.global.external.s3;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;

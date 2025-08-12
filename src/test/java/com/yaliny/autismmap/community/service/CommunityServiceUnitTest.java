@@ -10,7 +10,7 @@ import com.yaliny.autismmap.community.repository.CommentRepository;
 import com.yaliny.autismmap.community.repository.PostRepository;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.exception.ErrorCode;
-import com.yaliny.autismmap.global.external.service.S3Uploader;
+import com.yaliny.autismmap.global.external.s3.S3Uploader;
 import com.yaliny.autismmap.global.security.CustomUserDetails;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
