@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.member.service;
 
 import com.yaliny.autismmap.global.exception.CustomException;
+import com.yaliny.autismmap.global.external.kakao.KakaoUnlinkService;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.global.utils.SecurityUtil;
 import com.yaliny.autismmap.member.dto.request.LoginRequest;
@@ -9,6 +10,7 @@ import com.yaliny.autismmap.member.dto.response.LoginResponse;
 import com.yaliny.autismmap.member.dto.response.MemberInfoResponse;
 import com.yaliny.autismmap.member.dto.response.SignUpResponse;
 import com.yaliny.autismmap.member.entity.Member;
+import com.yaliny.autismmap.member.entity.Provider;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +26,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final KakaoUnlinkService kakaoUnlinkService;
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
@@ -50,6 +53,9 @@ public class MemberService {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         Long tokenMemberId = SecurityUtil.getCurrentMemberId();
         if (tokenMemberId != memberId) throw new CustomException(ACCESS_DENIED);
+        if (member.getProvider() == Provider.KAKAO) {
+            kakaoUnlinkService.unlink(member);
+        }
         memberRepository.delete(member);
     }
 

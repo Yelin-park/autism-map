@@ -61,4 +61,5 @@ public class MemberController {
         MemberInfoResponse response = memberService.getMemberInfo(memberId);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
+
 }

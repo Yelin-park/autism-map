@@ -1,6 +1,6 @@
 package com.yaliny.autismmap.member.service;
 
-import com.yaliny.autismmap.global.external.service.KakaoOAuthClient;
+import com.yaliny.autismmap.global.external.kakao.KakaoOAuthClient;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.entity.Provider;

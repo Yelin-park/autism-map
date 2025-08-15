@@ -2,7 +2,7 @@ package com.yaliny.autismmap.place.service;
 
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.exception.ErrorCode;
-import com.yaliny.autismmap.global.external.service.S3Uploader;
+import com.yaliny.autismmap.global.external.s3.S3Uploader;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
 import com.yaliny.autismmap.place.entity.CrowdLevel;
