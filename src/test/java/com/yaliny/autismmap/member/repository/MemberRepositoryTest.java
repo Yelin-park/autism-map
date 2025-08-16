@@ -21,7 +21,7 @@ class MemberRepositoryTest {
     @Test
     @DisplayName("H2 DB 연결 테스트 - User 저장 및 조회")
     void saveAndFindUser() {
-        Member member = new Member("email", "password", "nickname");
+        Member member = Member.createMember("email", "password", "nickname");
 
         Member savedMember = memberRepository.save(member);
         Member findMember = memberRepository.findById(savedMember.getId()).orElseThrow();

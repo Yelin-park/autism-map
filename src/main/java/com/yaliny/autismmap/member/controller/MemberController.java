@@ -62,4 +62,14 @@ public class MemberController {
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
+    @Operation(summary = "닉네임 수정")
+    @PatchMapping("/{memberId}/nickname")
+    public ResponseEntity<BaseResponse<MemberInfoResponse>> updateNickname(
+        @PathVariable Long memberId,
+        @RequestParam String nickname
+    ) {
+        MemberInfoResponse response = memberService.updateNickname(memberId, nickname);
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
 }

@@ -70,11 +70,11 @@ class PlaceControllerTest {
     }
 
     private Member getAdmin() {
-        return memberRepository.save(new Member("admin@example.com", "1234", "관리자", Role.ADMIN));
+        return memberRepository.save(Member.createMember("admin@example.com", "1234", "관리자", Role.ADMIN));
     }
 
     private Member getUser() {
-        return memberRepository.save(new Member("test@example.com", "1234", "사용자", Role.USER));
+        return memberRepository.save(Member.createMember("test@example.com", "1234", "사용자", Role.USER));
     }
 
     private Province createProvince(District district1, District district2) {

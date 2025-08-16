@@ -41,7 +41,7 @@ public class MemberService {
     public SignUpResponse signup(SignUpRequest request) {
         if (memberRepository.findByEmail(request.email()).isPresent()) throw new CustomException(MEMBER_ALREADY_EXISTS);
 
-        Member member = new Member(request.email(), passwordEncoder.encode(request.password()), request.nickname());
+        Member member = Member.createMember(request.email(), passwordEncoder.encode(request.password()), request.nickname());
         memberRepository.save(member);
 
         String token = jwtUtil.generateToken(member.getId(), member.getEmail(), member.getRole().name());
@@ -64,6 +64,15 @@ public class MemberService {
         Long tokenMemberId = SecurityUtil.getCurrentMemberId();
         if (tokenMemberId != memberId) throw new CustomException(ACCESS_DENIED);
         Member findMember = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+        return MemberInfoResponse.of(findMember);
+    }
+
+    @Transactional
+    public MemberInfoResponse updateNickname(Long memberId, String nickname) {
+        Long tokenMemberId = SecurityUtil.getCurrentMemberId();
+        if (tokenMemberId != memberId) throw new CustomException(ACCESS_DENIED);
+        Member findMember = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+        findMember.updateNickname(nickname);
         return MemberInfoResponse.of(findMember);
     }
 }

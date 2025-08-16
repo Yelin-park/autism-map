@@ -79,7 +79,7 @@ public class CommunityServiceUnitTest {
 
     @BeforeEach
     void setUp() {
-        member = new Member("test@test.com", "1234", "닉네임");
+        member = Member.createMember("test@test.com", "1234", "닉네임");
         ReflectionTestUtils.setField(member, "id", 1L);
 
         post = mock(Post.class);
@@ -359,7 +359,7 @@ public class CommunityServiceUnitTest {
     @DisplayName("댓글 삭제 실패 - 본인이 작성한 댓글이 아님")
     void deletePostComment_fail_access_denied() {
         when(comment.getMember()).thenReturn(member);
-        Member member2 = new Member("test2@test.com", "1234", "닉네임2");
+        Member member2 = Member.createMember("test2@test.com", "1234", "닉네임2");
         ReflectionTestUtils.setField(member2, "id", 100L);
         setAuthentication(member2);
         when(commentRepository.findById(10L)).thenReturn(Optional.of(comment));

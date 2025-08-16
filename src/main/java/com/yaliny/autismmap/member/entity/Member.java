@@ -50,20 +50,24 @@ public class Member extends BaseEntity {
     @OneToMany(mappedBy = "member")
     private List<Comment> comments = new ArrayList<>();
 
-    public Member(String email, String password, String nickname) {
-        this.email = email;
-        this.password = password;
-        this.nickname = nickname;
-        this.role = Role.USER;
-        this.isSocial = false;
+    public static Member createMember(String email, String password, String nickname) {
+        Member member = new Member();
+        member.email = email;
+        member.password = password;
+        member.nickname = nickname;
+        member.role = Role.USER;
+        member.isSocial = false;
+        return member;
     }
 
-    public Member(String email, String password, String nickname, Role role) {
-        this.email = email;
-        this.password = password;
-        this.nickname = nickname;
-        this.role = role;
-        this.isSocial = false;
+    public static Member createMember(String email, String password, String nickname, Role role) {
+        Member member = new Member();
+        member.email = email;
+        member.password = password;
+        member.nickname = nickname;
+        member.role = role;
+        member.isSocial = false;
+        return member;
     }
 
     public static Member socialSignup(String email, String nickname, Provider provider, String providerId) {
@@ -76,5 +80,9 @@ public class Member extends BaseEntity {
         member.provider = provider;
         member.providerId = providerId;
         return member;
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
     }
 }

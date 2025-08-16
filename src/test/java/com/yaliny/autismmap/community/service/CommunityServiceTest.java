@@ -65,13 +65,13 @@ class CommunityServiceTest {
     }
 
     private Member getMember(String postEmail, String postNickname) {
-        Member member = new Member(postEmail, "test1234", postNickname);
+        Member member = Member.createMember(postEmail, "test1234", postNickname);
         memberRepository.save(member);
         return member;
     }
 
     private Member getMember() {
-        Member member = new Member("test@test.com", "test1234", "닉네임");
+        Member member = Member.createMember("test@test.com", "test1234", "닉네임");
         memberRepository.save(member);
         return member;
     }

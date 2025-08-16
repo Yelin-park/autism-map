@@ -60,7 +60,7 @@ class MemberControllerTest {
     void login_success() throws Exception {
         // given
         // 테스트용 사용자 저장
-        Member member = new Member("test@example.com", passwordEncoder.encode("1234"), "테스터");
+        Member member = Member.createMember("test@example.com", passwordEncoder.encode("1234"), "테스터");
         memberRepository.save(member);
 
         LoginRequest request = new LoginRequest("test@example.com", "1234");
@@ -205,5 +205,44 @@ class MemberControllerTest {
             .andExpect(jsonPath("$.code").value(200))
             .andExpect(jsonPath("$.data.email").value("test3@example.com"))
             .andExpect(jsonPath("$.data.nickname").value("테스터3"));
+    }
+
+    @Test
+    @DisplayName("닉네임 수정 성공 테스트")
+    void updateNickname_success() throws Exception {
+        // 회원가입 요청
+        SignUpRequest request = new SignUpRequest("test2@example.com", "1234", "테스터");
+
+        mockMvc.perform(post("/api/v1/members/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk());
+
+        // 로그인 후 JWT 발급 받기
+        LoginRequest loginRequest = new LoginRequest("test2@example.com", "1234");
+
+        String responseBody = mockMvc.perform(post("/api/v1/members/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+
+        // BaseResponse<LoginResponse>로 파싱
+        BaseResponse<LoginResponse> baseResponse = objectMapper.readValue(
+            responseBody,
+            new TypeReference<>() {
+            }
+        );
+
+        token = baseResponse.data().token();
+        String nickName = "수정닉네임";
+        mockMvc.perform(patch("/api/v1/members/{memberId}/nickname", jwtUtil.getMemberId(token))
+                .header("Authorization", "Bearer " + token)
+                .param("nickname", nickName))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(200));
+
+        // 닉네임 수정 확인
+        assertThat(memberRepository.findByEmail("test2@example.com").get().getNickname()).isEqualTo("수정닉네임");
     }
 }

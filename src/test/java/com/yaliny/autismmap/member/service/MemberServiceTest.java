@@ -207,4 +207,44 @@ class MemberServiceTest {
 
         clearAuthentication();
     }
+
+    @Test
+    @DisplayName("닉네임 수정 성공")
+    void updateNickname_success() {
+        // given
+        SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
+        memberService.signup(signupRequest);
+
+        Member member = memberRepository.findByEmail("test@example.com").get();
+        setAuthentication(member);
+
+        // when
+        String nickName = "수정닉네임";
+        MemberInfoResponse memberInfo = memberService.updateNickname(member.getId(), nickName);
+
+        // then
+        assertThat(memberInfo.email()).isEqualTo("test@example.com");
+        assertThat(memberInfo.nickname()).isEqualTo("수정닉네임");
+    }
+
+    @Test
+    @DisplayName("닉네임 수정 실패 - 본인 아님 (권한 없음)")
+    void updateNickName_no_permission() {
+        SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
+        memberService.signup(signupRequest);
+
+        SignUpRequest signupRequest2 = new SignUpRequest("test@example1.com", "1234", "테스터2");
+        memberService.signup(signupRequest2);
+
+        Member member = memberRepository.findByEmail("test@example.com").get();
+        Member member2 = memberRepository.findByEmail("test@example1.com").get();
+        setAuthentication(member2);
+
+        String nickName = "수정닉네임";
+        assertThatThrownBy(() -> memberService.updateNickname(member.getId(), nickName))
+            .isInstanceOf(CustomException.class)
+            .hasMessage("접근 권한이 없습니다.");
+
+        clearAuthentication();
+    }
 }

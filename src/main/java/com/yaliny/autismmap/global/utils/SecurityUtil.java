@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @NoArgsConstructor
 public class SecurityUtil {
 
+    // TODO(해당 기능 없애고 컨트롤러 쪽에서 받아서 처리하는 걸로 구성해보기)
     public static Long getCurrentMemberId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

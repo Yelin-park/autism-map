@@ -35,7 +35,7 @@ class PostMediaRepositoryTest {
     @Test
     @DisplayName("H2 DB 연결 테스트 - PostMedia 저장 및 조회")
     void postMediaSaveAndFind() {
-        Member member = new Member(
+        Member member = Member.createMember(
             "test@test.com",
             "test",
             "닉네임"

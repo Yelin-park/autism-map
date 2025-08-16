@@ -25,6 +25,7 @@ public class District {
     @JoinColumn(name = "province_id")
     private Province province;
 
+    // 생성 메서드
     public static District createDistrict(String name) {
         District district = new District();
         district.setName(name);
