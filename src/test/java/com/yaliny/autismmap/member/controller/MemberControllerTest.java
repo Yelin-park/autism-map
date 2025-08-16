@@ -78,7 +78,7 @@ class MemberControllerTest {
     @Test
     @DisplayName("이메일 중복 시 MemberAlreadyExistsException 발생 → 409 CONFLICT 응답")
     void signup_email_duplicate() throws Exception {
-        SignUpRequest request = new SignUpRequest("test@test.com", "1234", "테스터");
+        SignUpRequest request = new SignUpRequest("test@test.com", "test1234@", "테스터");
 
         mockMvc.perform(post("/api/v1/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -135,7 +135,7 @@ class MemberControllerTest {
     @DisplayName("회원탈퇴 성공 테스트")
     void withdraw_success() throws Exception {
         // 회원가입 요청
-        SignUpRequest request = new SignUpRequest("test2@example.com", "1234", "테스터");
+        SignUpRequest request = new SignUpRequest("test2@example.com", "test1234@", "테스터");
 
         mockMvc.perform(post("/api/v1/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -143,7 +143,7 @@ class MemberControllerTest {
             .andExpect(status().isOk());
 
         // 로그인 후 JWT 발급 받기
-        LoginRequest loginRequest = new LoginRequest("test2@example.com", "1234");
+        LoginRequest loginRequest = new LoginRequest("test2@example.com", "test1234@");
 
         String responseBody = mockMvc.perform(post("/api/v1/members/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -174,7 +174,7 @@ class MemberControllerTest {
     @DisplayName("회원 정보 조회 성공 테스트")
     void getMemberInfo_success() throws Exception {
         // 회원가입 요청
-        SignUpRequest request = new SignUpRequest("test3@example.com", "1234", "테스터3");
+        SignUpRequest request = new SignUpRequest("test3@example.com", "test1234@", "테스터3");
 
         mockMvc.perform(post("/api/v1/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -182,7 +182,7 @@ class MemberControllerTest {
             .andExpect(status().isOk());
 
         // 로그인 후 JWT 발급 받기
-        LoginRequest loginRequest = new LoginRequest("test3@example.com", "1234");
+        LoginRequest loginRequest = new LoginRequest("test3@example.com", "test1234@");
 
         String responseBody = mockMvc.perform(post("/api/v1/members/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -211,7 +211,7 @@ class MemberControllerTest {
     @DisplayName("닉네임 수정 성공 테스트")
     void updateNickname_success() throws Exception {
         // 회원가입 요청
-        SignUpRequest request = new SignUpRequest("test2@example.com", "1234", "테스터");
+        SignUpRequest request = new SignUpRequest("test2@example.com", "test1234@", "테스터");
 
         mockMvc.perform(post("/api/v1/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -219,7 +219,7 @@ class MemberControllerTest {
             .andExpect(status().isOk());
 
         // 로그인 후 JWT 발급 받기
-        LoginRequest loginRequest = new LoginRequest("test2@example.com", "1234");
+        LoginRequest loginRequest = new LoginRequest("test2@example.com", "test1234@");
 
         String responseBody = mockMvc.perform(post("/api/v1/members/login")
                 .contentType(MediaType.APPLICATION_JSON)
