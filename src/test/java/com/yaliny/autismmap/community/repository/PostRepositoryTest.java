@@ -29,7 +29,7 @@ class PostRepositoryTest {
     @Test
     @DisplayName("H2 DB 연결 테스트 - Post 저장 및 조회")
     void postSaveAndFind() {
-        Member member = new Member(
+        Member member = Member.createMember(
             "test@test.com",
             "test",
             "닉네임"

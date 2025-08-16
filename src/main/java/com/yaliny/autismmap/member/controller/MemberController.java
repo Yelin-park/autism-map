@@ -9,6 +9,7 @@ import com.yaliny.autismmap.member.dto.response.SignUpResponse;
 import com.yaliny.autismmap.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,7 +32,7 @@ public class MemberController {
 
     @Operation(summary = "회원가입")
     @PostMapping("/signup")
-    public ResponseEntity<BaseResponse<SignUpResponse>> signup(@RequestBody SignUpRequest request) {
+    public ResponseEntity<BaseResponse<SignUpResponse>> signup(@RequestBody @Valid SignUpRequest request) {
         SignUpResponse response = memberService.signup(request);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
@@ -59,6 +60,16 @@ public class MemberController {
         @PathVariable long memberId
     ) {
         MemberInfoResponse response = memberService.getMemberInfo(memberId);
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
+    @Operation(summary = "닉네임 수정")
+    @PatchMapping("/{memberId}/nickname")
+    public ResponseEntity<BaseResponse<MemberInfoResponse>> updateNickname(
+        @PathVariable Long memberId,
+        @RequestParam String nickname
+    ) {
+        MemberInfoResponse response = memberService.updateNickname(memberId, nickname);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 

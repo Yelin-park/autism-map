@@ -34,13 +34,13 @@ class CommentRepositoryTest {
     @Test
     @DisplayName("H2 DB 연결 테스트 - Comment 저장 및 조회")
     void postSaveTest() {
-        Member member1 = new Member(
+        Member member1 = Member.createMember(
             "test1@test.com",
             "test1",
             "닉네임1"
         );
 
-        Member member2 = new Member(
+        Member member2 = Member.createMember(
             "test2@test.com",
             "test2",
             "닉네임2"
