@@ -49,10 +49,10 @@ public class MemberService {
     }
 
     @Transactional
-    public void withdraw(long memberId) {
+    public void withdraw(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         Long tokenMemberId = SecurityUtil.getCurrentMemberId();
-        if (tokenMemberId != memberId) throw new CustomException(ACCESS_DENIED);
+        if (!memberId.equals(tokenMemberId)) throw new CustomException(ACCESS_DENIED);
         if (member.getProvider() == Provider.KAKAO) {
             kakaoUnlinkService.unlink(member);
         }
@@ -60,9 +60,9 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public MemberInfoResponse getMemberInfo(long memberId) {
+    public MemberInfoResponse getMemberInfo(Long memberId) {
         Long tokenMemberId = SecurityUtil.getCurrentMemberId();
-        if (tokenMemberId != memberId) throw new CustomException(ACCESS_DENIED);
+        if (!memberId.equals(tokenMemberId)) throw new CustomException(ACCESS_DENIED);
         Member findMember = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         return MemberInfoResponse.of(findMember);
     }
@@ -70,7 +70,7 @@ public class MemberService {
     @Transactional
     public MemberInfoResponse updateNickname(Long memberId, String nickname) {
         Long tokenMemberId = SecurityUtil.getCurrentMemberId();
-        if (tokenMemberId != memberId) throw new CustomException(ACCESS_DENIED);
+        if (!memberId.equals(tokenMemberId)) throw new CustomException(ACCESS_DENIED);
         Member findMember = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         findMember.updateNickname(nickname);
         return MemberInfoResponse.of(findMember);
