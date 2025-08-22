@@ -11,8 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.yaliny.autismmap.global.exception.ErrorCode.MEMBER_NOT_FOUND;
-import static com.yaliny.autismmap.global.exception.ErrorCode.PLACE_NOT_FOUND;
+import static com.yaliny.autismmap.global.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -28,5 +27,16 @@ public class FavoriteService {
         Place place = placeRepository.findById(placeId).orElseThrow(() -> new CustomException(PLACE_NOT_FOUND));
         if (favoriteRepository.existsByMemberIdAndPlaceId(memberId, placeId)) return;
         favoriteRepository.save(Favorite.createFavorite(member, place));
+    }
+
+    @Transactional
+    public void deleteFavorite(Long memberId, Long favoriteId) {
+        Favorite favorite = favoriteRepository.findById(favoriteId).orElseThrow(() -> new CustomException(FAVORITE_NOT_FOUND));
+
+        if (!favorite.getMember().getId().equals(memberId)) {
+            throw new CustomException(ACCESS_DENIED);
+        }
+
+        favoriteRepository.delete(favorite);
     }
 }
