@@ -1,5 +1,7 @@
 package com.yaliny.autismmap.favorite.service;
 
+import com.yaliny.autismmap.favorite.dto.request.FavoriteListRequest;
+import com.yaliny.autismmap.favorite.dto.response.FavoriteListResponse;
 import com.yaliny.autismmap.favorite.entity.Favorite;
 import com.yaliny.autismmap.favorite.repository.FavoriteRepository;
 import com.yaliny.autismmap.global.exception.CustomException;
@@ -8,6 +10,8 @@ import com.yaliny.autismmap.member.repository.MemberRepository;
 import com.yaliny.autismmap.place.entity.Place;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,5 +42,11 @@ public class FavoriteService {
         }
 
         favoriteRepository.delete(favorite);
+    }
+
+    @Transactional(readOnly = true)
+    public FavoriteListResponse getFavoriteList(Long memberId, FavoriteListRequest request, PageRequest pageRequest) {
+        Page<Favorite> favorites = favoriteRepository.searchFavoritePlace(memberId, request, pageRequest);
+        return FavoriteListResponse.of(favorites);
     }
 }
