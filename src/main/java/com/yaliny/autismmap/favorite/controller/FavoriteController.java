@@ -2,6 +2,7 @@ package com.yaliny.autismmap.favorite.controller;
 
 import com.yaliny.autismmap.favorite.dto.request.AddFavoriteRequest;
 import com.yaliny.autismmap.favorite.dto.request.FavoriteListRequest;
+import com.yaliny.autismmap.favorite.dto.response.FavoriteDetailResponse;
 import com.yaliny.autismmap.favorite.dto.response.FavoriteListResponse;
 import com.yaliny.autismmap.favorite.service.FavoriteService;
 import com.yaliny.autismmap.global.response.BaseResponse;
@@ -28,7 +29,7 @@ public class FavoriteController {
     @Operation(summary = "장소 즐겨찾기 등록")
     @PostMapping
     public ResponseEntity<BaseResponse<Void>> addFavorite(@RequestBody AddFavoriteRequest request) {
-        favoriteService.addFavorite(request.memberId(), request.memberId());
+        favoriteService.addFavorite(request.memberId(), request.placeId());
         return ResponseEntity.ok(BaseResponse.success());
     }
 
@@ -43,7 +44,7 @@ public class FavoriteController {
     }
 
     @Operation(summary = "장소 즐겨찾기 목록 조회")
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<BaseResponse<FavoriteListResponse>> getFavoriteList(
         @AuthenticationPrincipal CustomUserDetails customUserDetails,
         @Parameter(description = "행정 구역 ID")
@@ -75,6 +76,16 @@ public class FavoriteController {
     ) {
         FavoriteListRequest request = FavoriteListRequest.of(provinceId, districtId, category, isQuiet, hasParking, hasRestArea, hasPrivateRoom, lightingLevel);
         FavoriteListResponse response = favoriteService.getFavoriteList(customUserDetails.getMemberId(), request, PageRequest.of(page, size));
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
+    @Operation(summary = "장소 즐겨찾기 상세 조회")
+    @GetMapping("{favoriteId}")
+    public ResponseEntity<BaseResponse<FavoriteDetailResponse>> getFavoriteDetail(
+        @PathVariable Long favoriteId,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        FavoriteDetailResponse response = favoriteService.getFavoriteDetail(customUserDetails.getMemberId(), favoriteId);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 }

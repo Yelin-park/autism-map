@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.favorite.service;
 
 import com.yaliny.autismmap.favorite.dto.request.FavoriteListRequest;
+import com.yaliny.autismmap.favorite.dto.response.FavoriteDetailResponse;
 import com.yaliny.autismmap.favorite.dto.response.FavoriteListResponse;
 import com.yaliny.autismmap.favorite.entity.Favorite;
 import com.yaliny.autismmap.favorite.repository.FavoriteRepository;
@@ -48,5 +49,16 @@ public class FavoriteService {
     public FavoriteListResponse getFavoriteList(Long memberId, FavoriteListRequest request, PageRequest pageRequest) {
         Page<Favorite> favorites = favoriteRepository.searchFavoritePlace(memberId, request, pageRequest);
         return FavoriteListResponse.of(favorites);
+    }
+
+    @Transactional(readOnly = true)
+    public FavoriteDetailResponse getFavoriteDetail(Long memberId, Long favoriteId) {
+        Favorite favorite = favoriteRepository.findByIdAndMemberId(favoriteId, memberId).orElseThrow(() -> new CustomException(FAVORITE_NOT_FOUND));
+
+        if (!favorite.getMember().getId().equals(memberId)) {
+            throw new CustomException(ACCESS_DENIED);
+        }
+
+        return FavoriteDetailResponse.of(favorite);
     }
 }
