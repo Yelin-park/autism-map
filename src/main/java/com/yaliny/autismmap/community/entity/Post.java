@@ -40,6 +40,9 @@ public class Post extends BaseEntity {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
+    @Column(nullable = false)
+    private Long viewCount = 0L;
+
     public static Post createPost(String title, String content, Member member) {
         Post post = new Post();
         post.setTitle(title);

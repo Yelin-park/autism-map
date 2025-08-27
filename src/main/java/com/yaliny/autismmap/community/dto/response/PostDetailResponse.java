@@ -13,6 +13,8 @@ public record PostDetailResponse(
     long postId,
     @Schema(title = "게시글 제목", description = "게시글 제목")
     String title,
+    @Schema(title = "게시글 조회수")
+    Long viewCount,
     @Schema(title = "게시글 내용", description = "게시글 내용")
     String content,
     @Schema(title = "게시글 미디어 리스트", description = "게시글 미디어 리스트")
@@ -43,6 +45,21 @@ public record PostDetailResponse(
         return new PostDetailResponse(
             post.getId(),
             post.getTitle(),
+            post.getViewCount(),
+            post.getContent(),
+            post.getMediaList().stream().map(Media::of).toList(),
+            post.getMember().getId(),
+            post.getMember().getNickname(),
+            post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+            post.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+    }
+
+    public static PostDetailResponse ofWithOverriddenViewCount(Post post, long overriddenViewCount) {
+        return new PostDetailResponse(
+            post.getId(),
+            post.getTitle(),
+            overriddenViewCount,
             post.getContent(),
             post.getMediaList().stream().map(Media::of).toList(),
             post.getMember().getId(),
