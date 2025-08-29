@@ -13,7 +13,7 @@ public record PostCommentResponse(
     @Schema(title = "페이지 크기")
     int size,
     @Schema(title = "총 항목 수")
-    long totalElements,
+    Long totalElements,
     @Schema(title = "총 페이지 수")
     int totalPages,
     @Schema(title = "마지막 페이지 여부")
