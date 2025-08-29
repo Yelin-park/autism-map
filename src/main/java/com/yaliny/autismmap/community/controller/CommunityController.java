@@ -59,7 +59,7 @@ public class CommunityController {
     @Operation(summary = "게시글 상세 조회")
     @GetMapping(value = "/posts/{postId}")
     public ResponseEntity<BaseResponse<PostDetailResponse>> getPostDetail(
-        @PathVariable long postId
+        @PathVariable Long postId
     ) {
         PostDetailResponse response = communityService.getPostDetail(postId);
         return ResponseEntity.ok(BaseResponse.success(response));
@@ -68,7 +68,7 @@ public class CommunityController {
     @Operation(summary = "게시글 삭제")
     @DeleteMapping(value = "/posts/{postId}")
     public ResponseEntity<BaseResponse<String>> deletePost(
-        @PathVariable long postId
+        @PathVariable Long postId
     ) {
         communityService.deletePost(postId);
         return ResponseEntity.ok(BaseResponse.success("postId: " + postId + " 게시글 삭제 성공"));
@@ -77,7 +77,7 @@ public class CommunityController {
     @Operation(summary = "게시글 수정")
     @PatchMapping(value = "/posts/{postId}")
     public ResponseEntity<BaseResponse<PostDetailResponse>> updatePost(
-        @PathVariable long postId,
+        @PathVariable Long postId,
         @RequestBody PostUpdateRequest request
     ) {
         PostDetailResponse response = communityService.updatePost(postId, request);
@@ -87,7 +87,7 @@ public class CommunityController {
     @Operation(summary = "댓글 목록 조회")
     @GetMapping(value = "/posts/{postId}/comments")
     public ResponseEntity<BaseResponse<PostCommentResponse>> getPostComments(
-        @PathVariable long postId,
+        @PathVariable Long postId,
         @Parameter(description = "페이지")
         @RequestParam(defaultValue = "0") int page,
         @Parameter(description = "요청 개수")
@@ -100,7 +100,7 @@ public class CommunityController {
     @Operation(summary = "댓글 등록")
     @PostMapping(value = "/posts/{postId}/comment")
     public ResponseEntity<BaseResponse<String>> registerPostComment(
-        @PathVariable long postId,
+        @PathVariable Long postId,
         @RequestBody PostCommentCreateRequest request
     ) {
         long commentId = communityService.registerPostComment(postId, request);
@@ -110,7 +110,7 @@ public class CommunityController {
     @Operation(summary = "댓글 삭제")
     @DeleteMapping(value = "/comments/{commentId}")
     public ResponseEntity<BaseResponse<String>> registerPostComment(
-        @PathVariable long commentId
+        @PathVariable Long commentId
     ) {
         communityService.deletePostComment(commentId);
         return ResponseEntity.ok(BaseResponse.success("commentId: " + commentId + " 댓글 삭제 성공"));
@@ -119,7 +119,7 @@ public class CommunityController {
     @Operation(summary = "댓글 수정")
     @PatchMapping(value = "/comments/{commentId}")
     public ResponseEntity<BaseResponse<String>> updatePostComment(
-        @PathVariable long commentId,
+        @PathVariable Long commentId,
         @RequestBody PostCommentUpdateRequest request
     ) {
         String response = communityService.updatePostComment(commentId, request);

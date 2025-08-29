@@ -151,4 +151,40 @@ class FavoriteServiceTest {
         clearAuthentication();
     }
 
+    @Test
+    @DisplayName("즐겨찾기 삭제 성공")
+    void deleteFavorite_success() {
+        Member member = getMember("test1234@test.com", "테스터");
+        District district1 = District.createDistrict("속초시");
+        District district2 = District.createDistrict("횡성시");
+        Province province = getProvince(district1, district2);
+
+        Place place = placeRepository.save(Place.createPlace(
+            "테스트 장소",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            province,
+            district1,
+            "경기도 수원시",
+            37.5665,
+            126.9780,
+            true,
+            true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+        setAuthentication(member);
+        Favorite favorite = favoriteRepository.save(Favorite.createFavorite(member, place));
+
+        favoriteService.deleteFavorite(member.getId(), favorite.getId());
+        Favorite findFavorite = favoriteRepository.findById(favorite.getId()).orElse(null);
+        assertThat(findFavorite).isNull();
+        clearAuthentication();
+    }
+
 }

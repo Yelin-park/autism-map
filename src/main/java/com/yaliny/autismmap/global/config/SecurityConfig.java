@@ -33,6 +33,7 @@ public class SecurityConfig {
     private final CustomOAuthService customOAuthService;
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
     private final CustomOAuth2FailureHandler customOAuth2FailureHandler;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -41,6 +42,10 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .exceptionHandling(exceptionHandling -> exceptionHandling
                 .accessDeniedHandler(accessDeniedHandler()) // 커스텀 핸들러 사용
+                .defaultAuthenticationEntryPointFor(
+                    restAuthenticationEntryPoint,
+                    new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/api/**")
+                )
             )
             // H2 Console은 iframe 기반 → 기본 Security 설정에서는 iframe 금지 → 403 발생 → disable() 설정으로 해결
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
@@ -50,6 +55,7 @@ public class SecurityConfig {
                     "/h2-console/**",
                     "/swagger-ui/**",
                     "/swagger-resources/**",
+                    "/v3/api-docs/**",
                     "/favicon.ico",
                     "/nurean/v1/api-docs/**",
                     "/api/v1/members/signup",
