@@ -1,4 +1,4 @@
-package com.yaliny.autismmap.favorite.dto;
+package com.yaliny.autismmap.favorite.dto.request;
 
 public record AddFavoriteRequest(
     Long memberId,
