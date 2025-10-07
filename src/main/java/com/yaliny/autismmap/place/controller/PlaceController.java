@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.place.controller;
 
 import com.yaliny.autismmap.global.response.BaseResponse;
+import com.yaliny.autismmap.global.security.CustomUserDetails;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "장소 관리 기능")
@@ -77,10 +79,11 @@ public class PlaceController {
         @RequestParam(required = false)
         LightingLevel lightingLevel,
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size
+        @RequestParam(defaultValue = "10") int size,
+        @AuthenticationPrincipal CustomUserDetails user
     ) {
         PlaceListRequest request = PlaceListRequest.of(provinceId, districtId, category, isQuiet, hasParking, hasRestArea, hasPrivateRoom, lightingLevel);
-        PlaceListResponse response = placeService.getPlaceList(request, PageRequest.of(page, size));
+        PlaceListResponse response = placeService.getPlaceList(request, PageRequest.of(page, size), user == null ? null : user.getMemberId());
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 

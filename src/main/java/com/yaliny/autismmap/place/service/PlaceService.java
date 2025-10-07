@@ -1,5 +1,7 @@
 package com.yaliny.autismmap.place.service;
 
+import com.yaliny.autismmap.favorite.entity.Favorite;
+import com.yaliny.autismmap.favorite.repository.FavoriteRepository;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.external.s3.S3Uploader;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
@@ -25,7 +27,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.yaliny.autismmap.global.exception.ErrorCode.*;
 
@@ -37,6 +42,7 @@ public class PlaceService {
     private final PlaceRepository placeRepository;
     private final ProvinceRepository provinceRepository;
     private final DistrictRepository districtRepository;
+    private final FavoriteRepository favoriteRepository;
     private final S3Uploader s3Uploader;
 
     @Transactional
@@ -80,9 +86,54 @@ public class PlaceService {
     }
 
     @Transactional(readOnly = true)
-    public PlaceListResponse getPlaceList(PlaceListRequest request, PageRequest pageRequest) {
+    public PlaceListResponse getPlaceList(PlaceListRequest request, PageRequest pageRequest, Long memberId) {
         Page<Place> response = placeRepository.searchPlace(request, pageRequest);
-        return PlaceListResponse.of(response);
+        PlaceListResponse baseResponse = PlaceListResponse.of(response);
+        
+        // 로그인 하지 않은 경우는 그대로 반환
+        if (memberId == null || baseResponse.content().isEmpty()) {
+            return baseResponse;
+        }
+
+        List<Long> placeIds = baseResponse.content().stream()
+            .map(PlaceDetailResponse::id)
+            .toList();
+
+        // 즐겨찾기 조회
+        List<Favorite> favorites = favoriteRepository.findByMemberIdAndPlaceIdIn(memberId, placeIds);
+
+        Map<Long, Favorite> favoriteByPlaceId = favorites.stream()
+            .collect(Collectors.toMap(
+                f -> f.getPlace().getId(),
+                Function.identity(),
+                (a, b) -> a
+            ));
+
+        // content 후처리 (isFavorite, favoriteId 추가)
+        List<PlaceDetailResponse> updated = baseResponse.content().stream()
+            .map(d -> {
+                Favorite fav = favoriteByPlaceId.get(d.id());
+                Boolean isFavorite = fav != null;
+                Long favoriteId = (fav != null) ? fav.getId() : null;
+
+                return new PlaceDetailResponse(
+                    d.id(), d.name(), d.description(), d.category(),
+                    d.provinceName(), d.districtName(), d.address(),
+                    d.latitude(), d.longitude(),
+                    d.isQuiet(), d.hasParking(), d.hasRestArea(), d.hasPrivateRoom(),
+                    d.lightingLevel(), d.crowdLevel(),
+                    d.businessStartTime(), d.businessClosingTime(),
+                    d.dayOff(), d.images(),
+                    isFavorite, favoriteId
+                );
+            })
+            .toList();
+
+        // 동일 페이지 정보로 새로운 응답 반환
+        return new PlaceListResponse(
+            baseResponse.page(), baseResponse.size(), baseResponse.totalElements(),
+            baseResponse.totalPages(), baseResponse.last(), updated
+        );
     }
 
     @Transactional(readOnly = true)

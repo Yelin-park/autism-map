@@ -45,7 +45,11 @@ public record PlaceDetailResponse(
     @Schema(title = "휴무일", example = "매주 화요일")
     String dayOff,
     @Schema(title = "장소 이미지")
-    List<PlaceImages> images
+    List<PlaceImages> images,
+    @Schema(title = "로그인 여부")
+    Boolean isFavorite,
+    @Schema(title = "즐겨찾기 ID")
+    Long favoriteId
 ) implements PlaceCommonResponse {
 
     public record PlaceImages(
@@ -77,7 +81,9 @@ public record PlaceDetailResponse(
             place.getBusinessStartTime().format(DateTimeFormatter.ofPattern("HH:mm")),
             place.getBusinessClosingTime().format(DateTimeFormatter.ofPattern("HH:mm")),
             place.getDayOff(),
-            place.getImages().stream().map(PlaceImages::of).toList()
+            place.getImages().stream().map(PlaceImages::of).toList(),
+            false,
+            null
         );
     }
 }

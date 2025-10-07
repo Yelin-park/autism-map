@@ -27,7 +27,7 @@ public record PlaceListResponse(
             page.getTotalElements(),
             page.getTotalPages(),
             page.isLast(),
-            page.getContent().stream().map(PlaceDetailResponse::of).toList()
+            page.getContent().stream().map(place -> PlaceDetailResponse.of(place)).toList()
         );
     }
 }

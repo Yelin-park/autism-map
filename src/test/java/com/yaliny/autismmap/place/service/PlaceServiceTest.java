@@ -311,7 +311,7 @@ class PlaceServiceTest {
 
         PlaceListRequest request = new PlaceListRequest(null, district2.getId(), PlaceCategory.RESTAURANT, null, null, null, null, null);
 
-        PlaceListResponse result = placeService.getPlaceList(request, PageRequest.of(0, 10));
+        PlaceListResponse result = placeService.getPlaceList(request, PageRequest.of(0, 10), null);
 
         assertThat(result.totalElements()).isEqualTo(1);
         assertThat(result.totalPages()).isEqualTo(1);
