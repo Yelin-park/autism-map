@@ -8,6 +8,7 @@ import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.repository.CommentRepository;
 import com.yaliny.autismmap.community.repository.PostRepository;
+import com.yaliny.autismmap.community.service.view.ViewCountService;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.external.s3.S3Uploader;
@@ -53,6 +54,8 @@ public class CommunityServiceUnitTest {
     private CommentRepository commentRepository;
     @Mock
     private EntityManager em;
+    @Mock
+    private ViewCountService viewCountService;
 
     @InjectMocks
     private CommunityService communityService;
@@ -149,15 +152,20 @@ public class CommunityServiceUnitTest {
     void getPostDetail_success() {
         when(postRepository.findById(10L)).thenReturn(Optional.of(post));
         when(post.getTitle()).thenReturn("제목");
+        when(post.getViewCount()).thenReturn(1L);
         when(post.getContent()).thenReturn("내용");
         when(post.getMember()).thenReturn(member);
         when(post.getMediaList()).thenReturn(List.of());
         when(post.getCreatedAt()).thenReturn(LocalDateTime.now());
         when(post.getUpdatedAt()).thenReturn(LocalDateTime.now());
 
+        //when(postRepository.incrementViewCount(10L)).thenReturn(1);
+        when(postRepository.findById(10L)).thenReturn(Optional.of(post));
+        when(post.getId()).thenReturn(10L);
         communityService.getPostDetail(10L);
 
         verify(postRepository).findById(10L);
+        verify(viewCountService).bump(10L);
     }
 
     @Test

@@ -27,7 +27,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -75,22 +77,21 @@ class CommunityServiceTest {
         memberRepository.save(member);
         return member;
     }
-
+    
     private Post createDummyPost() {
         Member member = getMember("test@test123.com", "닉네임123");
         String title = "제목입니다.";
         String content = "내용입니다.";
 
-        PostCreateRequest request = new PostCreateRequest(
-            member.getId(),
+        Post post = Post.createPost(
             title,
             content,
-            null
+            member
         );
 
-        Long postId = communityService.registerPost(request);
+        Post savedPost = postRepository.save(post);
 
-        return postRepository.findById(postId).get();
+        return postRepository.findById(savedPost.getId()).get();
     }
 
     private static MockMultipartFile getMockMultipartFileImage() {
@@ -200,14 +201,26 @@ class CommunityServiceTest {
 
     @Test
     @DisplayName("게시글 상세 조회 성공")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED) // 해당 테스트만 트랜잭션없이 실행
     void getPostDetail_success() {
-        long dummyPostId = createDummyPost().getId();
+        Member member = getMember("test@test1234.com", "닉네임1234");
+        String title = "제목1입니다.";
+        String content = "내용1입니다.";
 
-        PostDetailResponse result = communityService.getPostDetail(dummyPostId);
+        Post post = Post.createPost(
+            title,
+            content,
+            member
+        );
 
-        assertThat(result.title()).isEqualTo("제목입니다.");
-        assertThat(result.content()).isEqualTo("내용입니다.");
-        assertThat(result.nickName()).isEqualTo("닉네임123");
+        Post savedPost = postRepository.save(post);
+
+        PostDetailResponse result = communityService.getPostDetail(savedPost.getId());
+
+        assertThat(result.title()).isEqualTo("제목1입니다.");
+        assertThat(result.content()).isEqualTo("내용1입니다.");
+        assertThat(result.nickName()).isEqualTo("닉네임1234");
+        assertThat(result.viewCount()).isEqualTo(1);
     }
 
     @Test
