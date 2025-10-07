@@ -15,6 +15,7 @@ import com.yaliny.autismmap.region.entity.Province;
 import com.yaliny.autismmap.region.repository.DistrictRepository;
 import com.yaliny.autismmap.region.repository.ProvinceRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

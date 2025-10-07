@@ -10,6 +10,7 @@ import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.entity.PostMedia;
 import com.yaliny.autismmap.community.repository.CommentRepository;
 import com.yaliny.autismmap.community.repository.PostRepository;
+import com.yaliny.autismmap.community.service.view.ViewCountService;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.external.s3.S3Uploader;
 import com.yaliny.autismmap.global.utils.SecurityUtil;
@@ -39,9 +40,10 @@ public class CommunityService {
     private final S3Uploader s3Uploader;
     private final CommentRepository commentRepository;
     private final EntityManager em;
+    private final ViewCountService viewCountService;
 
     @Transactional
-    public  List<UploadFileResponse> uploadFile(UploadFileRequest request) {
+    public List<UploadFileResponse> uploadFile(UploadFileRequest request) {
         return uploadPostMedias(request, "post-medias");
     }
 
@@ -64,7 +66,8 @@ public class CommunityService {
     @Transactional(readOnly = true)
     public PostDetailResponse getPostDetail(long postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
-        return PostDetailResponse.of(post);
+        viewCountService.bump(post.getId());
+        return PostDetailResponse.ofWithOverriddenViewCount(post, post.getViewCount() + 1);
     }
 
     @Transactional
