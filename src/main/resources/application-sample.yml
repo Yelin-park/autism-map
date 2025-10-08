@@ -1,0 +1,93 @@
+# 로컬 개발 템플릿(공유용)
+# 사용법:
+#   cp src/main/resources/application-sample.yml src/main/resources/application-dev.yml
+#   환경변수 설정 후: ./gradlew bootRun
+spring:
+  datasource:
+    url: jdbc:h2:mem:autismmap
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  sql:
+    init:
+      mode: always
+
+  # OAuth2 클라이언트 (값이 비어 있어도 서버 기동은 됩니다)
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8095/login/oauth2/code/google}
+            scope: [email, profile]
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID:}
+            client-secret: ""   # kakao는 secret 미사용
+            redirect-uri: ${KAKAO_REDIRECT_URI:}
+            authorization-grant-type: authorization_code
+            client-name: Kakao
+            scope: [profile_nickname, account_email]
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+oauth2:
+  google:
+    front-redirect-uri: ${GOOGLE_FRONT_REDIRECT_URI:http://localhost:5173}
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID:}
+    redirect-uri: ${KAKAO_REDIRECT_URI:}
+    admin-key: ${KAKAO_ADMIN_KEY:}
+
+front:
+  url: ${FRONT_URL:http://localhost:5173}
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+    org.springframework.security: DEBUG
+    org.springframework.aop: DEBUG
+    org.springframework.transaction: DEBUG
+    com.yaliny.autismmap: DEBUG
+
+jwt:
+  secret: ${JWT_SECRET:}           # ⛔️ 빈 값이면 인증/인가 기능 사용 시 오류 가능 → 로컬 실행 전 꼭 세팅 권장
+  expiration: ${JWT_EXPIRATION:3600000}
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY:}
+      secret-key: ${AWS_SECRET_KEY:}
+    s3:
+      bucket: ${AWS_S3_BUCKET:}
+    region:
+      static: ${AWS_REGION:ap-northeast-2}
+    stack:
+      auto: false

@@ -1,0 +1,36 @@
+# 공통 설정 (dev/prod 공통으로 적용하고 싶은 것들은 여기 작성 가능)
+server:
+  port: 8095  # 개발 및 운영 공통으로 포트 유지 가능 (운영에서 다르게 하고 싶으면 prod에서 override 가능)
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: autism-map
+
+  profiles:
+    active: dev # 사용할 설정파일로 바꾸기
+
+  servlet:
+    multipart:
+      max-file-size: 20MB     # 업로드할 수 있는 개별 파일의 최대 크기. 기본 10MB
+      max-request-size: 20MB  # multipart/form-data 요청의 최대 허용 크기. 기본 10MB
+
+# Swagger
+springdoc:
+  swagger-ui:
+    groups-order: desc
+    tags-sorter: alpha
+    operations-sorter: method
+    disable-swagger-default-url: true
+    display-request-duration: true
+    default-models-expand-depth: 2
+    default-model-expand-depth: 2
+  api-docs:
+    path: /nurean/v1/api-docs #SecurityConfig의 requestMatchers와 맞춰줘야함
+  show-actuator: true
+  default-consumes-media-type: application/json;charset=UTF-8
+  default-produces-media-type: application/json;charset=UTF-8
+  writer-with-default-pretty-printer: true
+  model-and-view-allowed: true
+  paths-to-match:
+    - /api/v1/**

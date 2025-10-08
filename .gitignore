@@ -36,4 +36,6 @@ out/
 .vscode/
 
 ### resources ###
-/src/main/resources/
+src/main/resources/application*.yml
+!src/main/resources/application-sample.yml
+!src/main/resources/application.yml
