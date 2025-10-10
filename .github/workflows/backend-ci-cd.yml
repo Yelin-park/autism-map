@@ -3,7 +3,6 @@ name: backend-ci-cd
 on:
   push:
     branches: [ "main" ]
-    # 필요 시 특정 경로만 트리거하려면 paths 설정 추가 가능
   pull_request:
 
 jobs:
@@ -34,7 +33,17 @@ jobs:
           echo "path=$FILE" >> $GITHUB_OUTPUT
           echo "Found JAR: $FILE"
 
+      # --- 아래부터는 main 브랜치 push에서만 수행 ---
+      - name: Check secrets for deploy
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: |
+          test -n "${{ secrets.SSH_HOST }}" || (echo "SSH_HOST missing" && exit 1)
+          test -n "${{ secrets.SSH_USER }}" || (echo "SSH_USER missing" && exit 1)
+          test -n "${{ secrets.SSH_KEY }}"  || (echo "SSH_KEY missing"  && exit 1)
+          echo "Secrets OK"
+
       - name: Upload JAR to EC2 (SCP)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -45,6 +54,7 @@ jobs:
           overwrite: true
 
       - name: Activate & restart on EC2 (SSH)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -57,11 +67,9 @@ jobs:
             mkdir -p /srv/nurean/backend/current
             ln -sfn "$JAR_SRC" /srv/nurean/backend/current/app.jar
 
-            # 안전 재기동
             /srv/nurean/backend/stop.sh || true
             /srv/nurean/backend/run.sh
 
-            # 헬스체크 (8095, /actuator/health)
             for i in {1..30}; do
               sleep 1
               if curl -fsS http://127.0.0.1:8095/actuator/health | grep -q '"status":"UP"'; then
