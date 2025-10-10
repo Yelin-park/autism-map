@@ -1,53 +1,56 @@
+#spring:
+#  config:
+#    activate:
+#      on-profile: test
+#
+#  datasource:
+#    url: jdbc:h2:mem:autismmap;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password:
+#
+#  sql:
+#    init:
+#      mode: never
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: create-drop
+#    defer-datasource-initialization: true
+#    show-sql: true
+#    properties:
+#      hibernate:
+#        format_sql: true
+#
+#  # 테스트에선 OAuth2 자동구성 자체를 꺼서 컨텍스트 로딩 실패를 원천 차단
+#  autoconfigure:
+#    exclude:
+#      - org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
+#
+#  h2:
+#    console:
+#      enabled: true
+#      path: /h2-console
+
+# (참고) 실제 OAuth2 테스트가 필요하면 위 exclude 지우고, 아래 더미값을 빈 문자열이 아닌 값으로 둔다.
 spring:
-  datasource:
-    url: jdbc:h2:mem:autismmap
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-
-  config:
-    activate:
-      on-profile: test
-  # 테스트 환경 설정 (data.sql 미사용)
-  sql:
-    init:
-      mode: never
-
-  jpa:
-    hibernate:
-      ddl-auto: create-drop  # 개발 시에는 편하게 update 사용
-    defer-datasource-initialization: true
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
-  # Google OAuth
   security:
     oauth2:
       client:
         registration:
           google:
+            client-id: test-google-id
+            client-secret: test-google-secret
             redirect-uri: "http://localhost:8095/login/oauth2/code/google"
-            scope:
-              - email
-              - profile
-            client-id: ""
-            client-secret: ""
+            authorization-grant-type: authorization_code
+            scope: [ email, profile ]
           kakao:
-            client-id: ""
-            client-secret: ""  # 카카오는 secret 사용하지 않음
+            client-id: test-kakao-id
+            client-secret: test-kakao-secret
             redirect-uri: "http://localhost:5173/oauth2/callback/kakao"
             authorization-grant-type: authorization_code
             client-name: Kakao
-            scope:
-              - profile_nickname
-              - account_email
+            scope: [ profile_nickname, account_email ]
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
@@ -64,9 +67,9 @@ oauth2:
   google:
     front-redirect-uri: http://localhost:5173/oauth
   kakao:
-    client-id:
+    client-id: test-kakao-id
     redirect-uri: http://localhost:5173/oauth2/callback/kakao
-    admin-key:
+    admin-key: test-admin-key
 
 front:
   url: http://localhost:5173
@@ -74,8 +77,8 @@ front:
 cloud:
   aws:
     credentials:
-      access-key:
-      secret-key:
+      access-key: test-access
+      secret-key: test-secret
     s3:
       bucket: nurean-bucket
     region:
