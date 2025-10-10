@@ -1,0 +1,93 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:autismmap
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  config:
+    activate:
+      on-profile: test
+  # 테스트 환경 설정 (data.sql 미사용)
+  sql:
+    init:
+      mode: never
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # 개발 시에는 편하게 update 사용
+    defer-datasource-initialization: true
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Google OAuth
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect-uri: "http://localhost:8095/login/oauth2/code/google"
+            scope:
+              - email
+              - profile
+            client-id: ""
+            client-secret: ""
+          kakao:
+            client-id: ""
+            client-secret: ""  # 카카오는 secret 사용하지 않음
+            redirect-uri: "http://localhost:5173/oauth2/callback/kakao"
+            authorization-grant-type: authorization_code
+            client-name: Kakao
+            scope:
+              - profile_nickname
+              - account_email
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+oauth2:
+  google:
+    front-redirect-uri: http://localhost:5173/oauth
+  kakao:
+    client-id:
+    redirect-uri: http://localhost:5173/oauth2/callback/kakao
+    admin-key:
+
+front:
+  url: http://localhost:5173
+
+cloud:
+  aws:
+    credentials:
+      access-key:
+      secret-key:
+    s3:
+      bucket: nurean-bucket
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+
+jwt:
+  secret: "YalinyAutismMapSecretKey2025SuperSecure!"
+  expiration: 3600000
