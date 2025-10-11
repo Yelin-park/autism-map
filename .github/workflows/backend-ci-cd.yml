@@ -91,29 +91,52 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          command_timeout: 10m
           script: |
-            set -e
+            set -uo pipefail
+
             REL="/srv/nurean/backend/releases/${{ github.sha }}"
-            ART=$(find "$REL" -type f \( -name "*.jar" -o -name "*.war" \) | head -n1)
+            echo "[INFO] Release dir: $REL"
+
+            echo "[INFO] Stop old app"
+            /srv/nurean/backend/stop.sh || true
+
+            echo "[INFO] Find artifact under release recursively"
+            ART=$(find "$REL" -type f \( -name "*.jar" -o -name "*.war" \) | head -n1 || true)
             if [ -z "$ART" ]; then
-              echo "No artifact found under $REL"
+              echo "[ERROR] No artifact found under $REL"
               ls -alR "$REL" || true
               exit 1
             fi
+            echo "[INFO] Artifact: $ART"
+
+            echo "[INFO] Link current/app.jar -> artifact"
             mkdir -p /srv/nurean/backend/current
             ln -sfn "$ART" /srv/nurean/backend/current/app.jar
 
-            /srv/nurean/backend/stop.sh || true
+            echo "[INFO] Start app"
+            set +e
             /srv/nurean/backend/run.sh
+            RC=$?
+            set -e
+            if [ $RC -ne 0 ]; then
+              echo "[ERROR] run.sh exit code=$RC"
+              echo "---- tail app.log (last 200 lines) ----"
+              tail -n 200 /srv/nurean/backend/shared/logs/app.log || true
+              exit $RC
+            fi
 
-            for i in {1..30}; do
+            echo "[INFO] Health check"
+            for i in {1..60}; do
               sleep 1
               if curl -fsS http://127.0.0.1:8095/actuator/health | grep -q '"status":"UP"'; then
-                echo "App is UP"
+                echo "[INFO] App is UP"
                 exit 0
               fi
             done
-            echo "Health check failed"
+
+            echo "[ERROR] Health check failed"
             tail -n 200 /srv/nurean/backend/shared/logs/app.log || true
             exit 1
+
 
