@@ -60,6 +60,10 @@ jobs:
           echo "path=$ART" >> $GITHUB_OUTPUT
           echo "Found artifact: $ART"
 
+      # 사용 가능한 태스크 상태 찍어보기
+      - name: Print archive tasks (debug)
+        run: ./gradlew -q tasks --all | grep -E "bootJar|bootWar|jar|war|assemble"
+
       # --- 아래부터 main push에서만 배포 ---
       - name: Check secrets for deploy
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
