@@ -23,13 +23,24 @@ jobs:
           java-version: "17"
           cache: gradle
 
+      # BACKEND_BUILD_CMD 시크릿이 있으면 사용, 없으면 기본값(-x test)
       - name: Build (Gradle)
         run: ${{ secrets.BACKEND_BUILD_CMD || './gradlew clean build -x test' }}
 
-      - name: Find built JAR
+      # 멀티모듈 대비: */build/libs 아래를 재귀 탐색, *-plain.jar 우선 제외
+      - name: Find built JAR (recursive, prefer bootJar)
         id: jar
         run: |
-          FILE=$(ls build/libs/*.jar | head -n1)
+          set -e
+          FILE=$(find . -type f -path "*/build/libs/*.jar" ! -name "*-plain.jar" | head -n1 || true)
+          if [ -z "$FILE" ]; then
+            FILE=$(find . -type f -path "*/build/libs/*.jar" | head -n1 || true)
+          fi
+          if [ -z "$FILE" ]; then
+            echo "No JAR found under */build/libs. Listing nearby files for debug:"
+            find . -maxdepth 3 -type f -print
+            exit 1
+          fi
           echo "path=$FILE" >> $GITHUB_OUTPUT
           echo "Found JAR: $FILE"
 
