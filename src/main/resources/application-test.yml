@@ -28,6 +28,11 @@ spring:
       enabled: true
       path: /h2-console
 
+  # 테스트 환경 설정 (data.sql 미사용)
+  sql:
+    init:
+      mode: never
+
 # (OAuth2를 테스트에서 써야 한다면 위 exclude 지우고 더미값을 유지)
   security:
     oauth2:
@@ -38,14 +43,18 @@ spring:
             client-secret: test-google-secret
             redirect-uri: "http://localhost:8095/login/oauth2/code/google"
             authorization-grant-type: authorization_code
-            scope: [ email, profile ]
+            scope:
+              - email
+              - profile
           kakao:
             client-id: test-kakao-id
             client-secret: test-kakao-secret
             redirect-uri: "http://localhost:5173/oauth2/callback/kakao"
             authorization-grant-type: authorization_code
             client-name: Kakao
-            scope: [ profile_nickname, account_email ]
+            scope:
+              - profile_nickname
+              - account_email
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/v2/auth

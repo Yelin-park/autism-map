@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.place.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yaliny.autismmap.global.external.s3.S3Uploader;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.entity.Role;
@@ -21,13 +22,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -59,14 +67,20 @@ class PlaceControllerTest {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @MockBean(S3Uploader.class)
+    private S3Uploader s3Uploader;
+
     private String token;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
         placeRepository.deleteAll();
         memberRepository.deleteAll();
         provinceRepository.deleteAll();
         districtRepository.deleteAll();
+
+        when(s3Uploader.upload(any(MultipartFile.class), anyString()))
+            .thenReturn("https://dummy-s3/nurean/test.jpg");
     }
 
     private Member getAdmin() {
