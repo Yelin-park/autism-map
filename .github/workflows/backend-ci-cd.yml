@@ -51,9 +51,10 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "${{ steps.jar.outputs.path }}"
+          source: "${{ steps.jar.outputs.path }}"   # 예: build/libs/app.jar
           target: "/srv/nurean/backend/releases/${{ github.sha }}/"
           overwrite: true
+          strip_components: 2  # <<--- build/libs 제거 (경로 앞 2개 컴포넌트 제거)
 
       - name: Link, Restart, Health (one SSH)
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
