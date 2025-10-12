@@ -3,7 +3,14 @@ name: backend-ci-cd
 on:
   push:
     branches: [ "main" ]
-  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-cd-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-deploy:
@@ -12,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Ensure Gradle wrapper is executable
         run: chmod +x gradlew
@@ -23,55 +32,17 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      # 기본은 테스트 스킵하고 bootJar 생성 (원하면 BACKEND_BUILD_CMD 시크릿으로 덮어쓰기)
       - name: Build (Gradle)
         run: ${{ secrets.BACKEND_BUILD_CMD || './gradlew clean bootJar -x test' }}
 
-      # 🔎 산출물 탐색 + 디버그
-      - name: Find built artifact (jar/war, recursive, with debug)
+      - name: Find built artifact
         id: jar
+        shell: bash
         run: |
           set -e
-
-          echo "== Gradle buildDir(s) =="
-          ./gradlew -q properties | grep -E '^buildDir:' || true
-          echo
-
-          echo "== List build/* (root) =="
-          ls -alR build || echo "no ./build directory"
-          echo
-
-          echo "== Find jar/war under repo (exclude *-plain first) =="
-          ART=$(find . -type f \( -path "*/build/libs/*.jar" -o -path "*/build/libs/*.war" \) ! -name "*-plain.*" | head -n1 || true)
-          if [ -z "$ART" ]; then
-            echo "(fallback) Include *-plain.*"
-            ART=$(find . -type f \( -path "*/build/libs/*.jar" -o -path "*/build/libs/*.war" \) | head -n1 || true)
-          fi
-
-          echo "== All jar/war candidates (top 20) =="
-          find . -type f \( -name "*.jar" -o -name "*.war" \) | head -n 20 || true
-          echo
-
-          if [ -z "$ART" ]; then
-            echo "ERROR: No artifact found under */build/libs"
-            exit 1
-          fi
-
+          ART=$(ls -1 build/libs/*.jar | grep -v '\-plain\.jar$' | head -n1)
           echo "path=$ART" >> $GITHUB_OUTPUT
-          echo "Found artifact: $ART"
-
-      # (옵션) 사용 가능한 아카이브 태스크 상태 찍기
-      - name: Print archive tasks (debug)
-        run: ./gradlew -q tasks --all | grep -E "bootJar|bootWar|jar|war|assemble" || true
-
-      # --- 아래부터 main push에서만 배포 ---
-      - name: Check secrets for deploy
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        run: |
-          test -n "${{ secrets.SSH_HOST }}" || (echo "SSH_HOST missing" && exit 1)
-          test -n "${{ secrets.SSH_USER }}" || (echo "SSH_USER missing" && exit 1)
-          test -n "${{ secrets.SSH_KEY }}"  || (echo "SSH_KEY missing"  && exit 1)
-          echo "Secrets OK"
+          echo "Found: $ART"
 
       - name: Upload artifact to EC2 (SCP)
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -83,61 +54,42 @@ jobs:
           source: "${{ steps.jar.outputs.path }}"
           target: "/srv/nurean/backend/releases/${{ github.sha }}/"
           overwrite: true
-          # ./build/libs/<file>.jar → 릴리즈 루트로 평탄화
-          strip_components: 3
 
-      # (A) 아티팩트 확인 & 링크
-      - name: Link artifact on EC2 (SSH)
+      - name: Link, Restart, Health (one SSH)
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          request_pty: true
           command_timeout: 10m
           script: |
-            set -euxo pipefail
-            REL="/srv/nurean/backend/releases/${{ github.sha }}"
-            echo "[INFO] Release dir: $REL"
-            # 릴리즈 하위(예: build/libs)까지 재귀 검색
-            ART=$(find "$REL" -type f \( -name "*.jar" -o -name "*.war" \) | head -n1 || true)
+            set -euo pipefail
+            BASE="/srv/nurean/backend"
+            REL="$BASE/releases/${{ github.sha }}"
+            CUR="$BASE/current"
+
+            echo "[INFO] Ensure release dir"
+            mkdir -p "$REL" "$CUR"
+
+            echo "[INFO] Pick artifact and normalize name"
+            ART=$(find "$REL" -maxdepth 2 -type f \( -name "*.jar" -o -name "*.war" \) | head -n1 || true)
             if [ -z "$ART" ]; then
-              echo "[ERROR] No artifact found under $REL"
+              echo "[ERROR] No artifact in $REL"
               ls -alR "$REL" || true
               exit 1
             fi
-            echo "[INFO] Artifact: $ART"
-            mkdir -p /srv/nurean/backend/current
-            ln -sfn "$ART" /srv/nurean/backend/current/app.jar
-            ls -l /srv/nurean/backend/current
+            mv -f "$ART" "$REL/app.jar"
 
-      # (B) 재기동 & 헬스체크
-      - name: Restart & health-check on EC2 (SSH)
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          request_pty: true
-          command_timeout: 10m
-          script: |
-            set -euxo pipefail
+            echo "[INFO] Update symlink"
+            ln -sfn "$REL/app.jar" "$CUR/app.jar"
+            ls -l "$CUR"
+
             echo "[INFO] Stop old app"
-            /srv/nurean/backend/stop.sh || true
+            "$BASE/stop.sh" || true
 
             echo "[INFO] Start app"
-            set +e
-            /srv/nurean/backend/run.sh
-            RC=$?
-            set -e
-            if [ $RC -ne 0 ]; then
-              echo "[ERROR] run.sh exit code=$RC"
-              echo "---- tail app.log (last 200 lines) ----"
-              tail -n 200 /srv/nurean/backend/shared/logs/app.log || true
-              exit $RC
-            fi
+            "$BASE/run.sh" || { echo "[ERROR] run.sh failed"; tail -n 200 "$BASE/shared/logs/app.log" || true; exit 1; }
 
             echo "[INFO] Health check"
             for i in {1..60}; do
@@ -147,7 +99,6 @@ jobs:
                 exit 0
               fi
             done
-
             echo "[ERROR] Health check failed"
-            tail -n 200 /srv/nurean/backend/shared/logs/app.log || true
+            tail -n 200 "$BASE/shared/logs/app.log" || true
             exit 1
