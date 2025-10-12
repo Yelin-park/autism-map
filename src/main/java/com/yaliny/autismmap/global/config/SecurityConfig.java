@@ -23,6 +23,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.actuate.info.InfoEndpoint;
 
 @Configuration
 @RequiredArgsConstructor
@@ -50,6 +53,8 @@ public class SecurityConfig {
             // H2 Console은 iframe 기반 → 기본 Security 설정에서는 iframe 금지 → 403 발생 → disable() 설정으로 해결
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             .authorizeHttpRequests(auth -> auth
+                // Actuator health, info만 공개
+                .requestMatchers(EndpointRequest.to(HealthEndpoint.class, InfoEndpoint.class)).permitAll()
                 .requestMatchers(
                     "/",
                     "/h2-console/**",

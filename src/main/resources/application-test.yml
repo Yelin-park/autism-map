@@ -98,3 +98,14 @@ logging:
 jwt:
   secret: "YalinyAutismMapSecretKey2025SuperSecure!"
   expiration: 3600000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true   # /actuator/health/liveness, /readiness 까지 활성화
