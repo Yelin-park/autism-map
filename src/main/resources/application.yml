@@ -8,7 +8,7 @@ spring:
     name: autism-map
 
   profiles:
-    active: dev # 사용할 설정파일로 바꾸기
+    active: dev-mysql #dev # 사용할 설정파일로 바꾸기
 
   servlet:
     multipart:
