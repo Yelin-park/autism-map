@@ -23,4 +23,7 @@ public class Test {
     @Column(nullable = false)
     private int age;
 
+    @Column(nullable = false)
+    private double height;
+
 }
