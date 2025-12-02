@@ -27,16 +27,34 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     private final MemberRepository memberRepository;
 
     @Value("${oauth2.google.front-redirect-uri}")
-    private String REDIRECT_URI;
+    private String WEB_REDIRECT_URI;
+
+    @Value("${oauth2.google.app-redirect-uri}")
+    private String APP_REDIRECT_URI;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Authentication authentication
+    ) throws IOException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = (String) oAuth2User.getAttributes().get("email");
-        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        Member member = memberRepository.findByEmail(email)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         String token = jwtUtil.generateToken(member.getId(), member.getEmail(), member.getRole().name());
-        String redirectUrl = REDIRECT_URI + "?token=" + token;
+
+        String userAgent = request.getHeader("User-Agent");
+        boolean isAndroidWebView = userAgent != null && userAgent.contains("wv");
+
+        String redirectUrl = isAndroidWebView
+            ? APP_REDIRECT_URI + "?token=" + token
+            : WEB_REDIRECT_URI + "?token=" + token;
+
         log.info("[OAuth2SuccessHandler] Redirecting to: {}", redirectUrl);
+
         response.sendRedirect(redirectUrl);
     }
 }
