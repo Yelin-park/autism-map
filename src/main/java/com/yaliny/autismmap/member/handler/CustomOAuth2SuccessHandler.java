@@ -46,12 +46,15 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         String token = jwtUtil.generateToken(member.getId(), member.getEmail(), member.getRole().name());
 
-        String userAgent = request.getHeader("User-Agent");
-        boolean isAndroidWebView = userAgent != null && userAgent.contains("wv");
+        // 프론트(WebView)에서 로그인 버튼 클릭 시 ?device=app 붙여서 요청
+        String device = request.getParameter("device");
 
-        String redirectUrl = isAndroidWebView
-            ? APP_REDIRECT_URI + "?token=" + token
-            : WEB_REDIRECT_URI + "?token=" + token;
+        String redirectUrl;
+        if ("app".equalsIgnoreCase(device)) {
+            redirectUrl = APP_REDIRECT_URI + "?token=" + token;
+        } else {
+            redirectUrl = WEB_REDIRECT_URI + "?token=" + token;
+        }
 
         log.info("[OAuth2SuccessHandler] Redirecting to: {}", redirectUrl);
 
