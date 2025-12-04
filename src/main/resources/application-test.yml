@@ -70,6 +70,7 @@ spring:
 oauth2:
   google:
     front-redirect-uri: http://localhost:5173/oauth
+    app-redirect-uri: nurean://oauth/callback
   kakao:
     client-id: test-kakao-id
     redirect-uri: http://localhost:5173/oauth2/callback/kakao
