@@ -3,6 +3,7 @@ package com.yaliny.autismmap.member.handler;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
+import com.yaliny.autismmap.global.oauth.CustomOAuth2AuthorizationRequestRepository;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import jakarta.servlet.ServletException;
@@ -26,6 +27,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
     private final JwtUtil jwtUtil;
     private final MemberRepository memberRepository;
+    private final CustomOAuth2AuthorizationRequestRepository authRequestRepository;
 
     @Value("${oauth2.google.front-redirect-uri}")
     private String WEB_REDIRECT_URI;
@@ -48,16 +50,8 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         String token = jwtUtil.generateToken(member.getId(), member.getEmail(), member.getRole().name());
 
         // 프론트(WebView)에서 로그인 버튼 클릭 시 ?device=app 붙여서 요청
-        /*String device = (String) ((OAuth2AuthenticationToken) authentication)
-            .getPrincipal()
-            .getAttribute("device");
-*/
-        // AuthorizationRequestResolver에서 저장한 additionalParameter 로부터 읽어야 함.
-        String device1 = (String) oAuth2User.getAttributes().get("device");
-        String device = request.getParameter("device");
-        log.info("[OAuth2SuccessHandler] device1: {}", device1);
-        log.info("[OAuth2SuccessHandler] request: {}", request);
-        log.info("[OAuth2SuccessHandler] request.getParameter(device): {}", request.getParameter("device"));
+        String device = authRequestRepository.getDevice(request);
+        log.info("[OAuth2SuccessHandler] device: {}", device);
 
         String redirectUrl;
         if ("app".equalsIgnoreCase(device)) {
