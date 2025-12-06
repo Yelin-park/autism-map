@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.global.oauth;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
@@ -9,6 +10,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public class CustomOAuth2AuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
     private final DefaultOAuth2AuthorizationRequestResolver defaultResolver;
@@ -35,8 +37,11 @@ public class CustomOAuth2AuthorizationRequestResolver implements OAuth2Authoriza
         OAuth2AuthorizationRequest originalRequest
     ) {
         if (originalRequest == null) return null;
+        log.info("[CustomOAuth2AuthorizationRequestResolver] request: {}", request);
+        log.info("[CustomOAuth2AuthorizationRequestResolver] originalRequest: {}", originalRequest);
 
         String device = request.getParameter("device");
+        log.info("[CustomOAuth2AuthorizationRequestResolver] device: {}", device);
 
         Map<String, Object> additionalParams = new HashMap<>(originalRequest.getAdditionalParameters());
         if (device != null) {
