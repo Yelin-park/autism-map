@@ -43,12 +43,6 @@ public class SecurityConfig {
     private final ClientRegistrationRepository clientRegistrationRepository;
 
     @Bean
-    public CustomOAuth2AuthorizationRequestRepository customAuthRequestRepository() {
-        return new CustomOAuth2AuthorizationRequestRepository();
-    }
-
-
-    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .cors(Customizer.withDefaults())
@@ -96,7 +90,7 @@ public class SecurityConfig {
                     authorization.authorizationRequestResolver(
                             new CustomOAuth2AuthorizationRequestResolver(clientRegistrationRepository)
                         )
-                        .authorizationRequestRepository(customAuthRequestRepository())
+                        .authorizationRequestRepository(new CustomOAuth2AuthorizationRequestRepository())
                 )
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuthService)) // 사용자 정보 처리
                 .successHandler(customOAuth2SuccessHandler) // JWT 발급 후 리디렉션

@@ -27,7 +27,9 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
     private final JwtUtil jwtUtil;
     private final MemberRepository memberRepository;
-    private final CustomOAuth2AuthorizationRequestRepository authRequestRepository;
+
+    private final CustomOAuth2AuthorizationRequestRepository authRequestRepository =
+        new CustomOAuth2AuthorizationRequestRepository();
 
     @Value("${oauth2.google.front-redirect-uri}")
     private String WEB_REDIRECT_URI;
