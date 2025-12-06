@@ -1,3 +1,4 @@
+/*
 package com.yaliny.autismmap.global.oauth;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,3 +31,4 @@ public class CustomOAuth2AuthorizationRequestRepository extends HttpSessionOAuth
         return device != null ? device.toString() : null;
     }
 }
+*/
