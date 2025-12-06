@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -47,7 +48,13 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         String token = jwtUtil.generateToken(member.getId(), member.getEmail(), member.getRole().name());
 
         // 프론트(WebView)에서 로그인 버튼 클릭 시 ?device=app 붙여서 요청
-        String device = request.getParameter("device");
+        /*String device = (String) ((OAuth2AuthenticationToken) authentication)
+            .getPrincipal()
+            .getAttribute("device");
+*/
+        // AuthorizationRequestResolver에서 저장한 additionalParameter 로부터 읽어야 함.
+        String device = (String) oAuth2User.getAttributes().get("device");
+        log.info("[OAuth2SuccessHandler] device: {}", device);
 
         String redirectUrl;
         if ("app".equalsIgnoreCase(device)) {
