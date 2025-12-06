@@ -75,4 +75,17 @@ public class MemberService {
         findMember.updateNickname(nickname);
         return MemberInfoResponse.of(findMember);
     }
+
+    @Transactional
+    public void memberDelete(LoginRequest request) {
+        Member member = memberRepository.findByEmail(request.email()).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+        if (!passwordEncoder.matches(request.password(), member.getPassword()))
+            throw new CustomException(INVALID_PASSWORD);
+
+        if (member.getProvider() == Provider.KAKAO) {
+            kakaoUnlinkService.unlink(member);
+        }
+
+        memberRepository.softDeleteByMemberId(member.getId());
+    }
 }

@@ -72,6 +72,7 @@ public class SecurityConfig {
                     "/api/v1/members/logout",
                     "/api/v1/regions/**",
                     "/api/v1/oauth/**",
+                    "/api/v1/public/member/delete",
                     "/oauth/**",
                     "/oauth2/**",
                     "/login/oauth2/**",
