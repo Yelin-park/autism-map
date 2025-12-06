@@ -37,9 +37,6 @@ public class CustomOAuth2AuthorizationRequestResolver implements OAuth2Authoriza
         OAuth2AuthorizationRequest originalRequest
     ) {
         if (originalRequest == null) return null;
-        log.info("[CustomOAuth2AuthorizationRequestResolver] request: {}", request);
-        log.info("[CustomOAuth2AuthorizationRequestResolver] originalRequest: {}", originalRequest);
-
         String device = request.getParameter("device");
         log.info("[CustomOAuth2AuthorizationRequestResolver] device: {}", device);
 

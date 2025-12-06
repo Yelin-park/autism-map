@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +16,8 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@SQLDelete(sql = "UPDATE member SET del_yn = 1 WHERE member_id = ?")
+@SQLRestriction("del_yn = 0")
 public class Member extends BaseEntity {
 
     @Id
@@ -43,6 +47,9 @@ public class Member extends BaseEntity {
 
     @Column
     private String providerId; // 구글에서 제공하는 sub 값 (고유 ID)
+
+    @Column(nullable = false)
+    private int delYn = 0;
 
     @OneToMany(mappedBy = "member")
     private List<Post> posts = new ArrayList<>();

@@ -21,6 +21,7 @@ import static com.yaliny.autismmap.global.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MemberService {
 
     private final MemberRepository memberRepository;
@@ -28,7 +29,6 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final KakaoUnlinkService kakaoUnlinkService;
 
-    @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
         Member member = memberRepository.findByEmail(request.email()).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         if (!passwordEncoder.matches(request.password(), member.getPassword()))
@@ -56,10 +56,10 @@ public class MemberService {
         if (member.getProvider() == Provider.KAKAO) {
             kakaoUnlinkService.unlink(member);
         }
-        memberRepository.delete(member);
+
+        memberRepository.softDeleteByMemberId(member.getId());
     }
 
-    @Transactional(readOnly = true)
     public MemberInfoResponse getMemberInfo(Long memberId) {
         Long tokenMemberId = SecurityUtil.getCurrentMemberId();
         if (!memberId.equals(tokenMemberId)) throw new CustomException(ACCESS_DENIED);

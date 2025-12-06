@@ -9,5 +9,11 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByEmail(String email);
 
+    Optional<Member> findById(long id);
+
     boolean existsByNickname(String nickname);
+
+    default void softDeleteByMemberId(Long memberId) {
+        findById(memberId).ifPresent(this::delete);
+    };
 }
