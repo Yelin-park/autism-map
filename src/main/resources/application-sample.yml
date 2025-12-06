@@ -59,6 +59,7 @@ spring:
 oauth2:
   google:
     front-redirect-uri: ${GOOGLE_FRONT_REDIRECT_URI:http://localhost:5173}
+    app-redirect-uri: ${GOOGLE_FRONT_REDIRECT_URI:nurean://oauth/callback}
   kakao:
     client-id: ${KAKAO_CLIENT_ID:}
     redirect-uri: ${KAKAO_REDIRECT_URI:}
