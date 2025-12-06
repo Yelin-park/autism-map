@@ -53,9 +53,11 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             .getAttribute("device");
 */
         // AuthorizationRequestResolver에서 저장한 additionalParameter 로부터 읽어야 함.
-        String device = (String) oAuth2User.getAttributes().get("device");
-        log.info("[OAuth2SuccessHandler] device: {}", device);
+        String device1 = (String) oAuth2User.getAttributes().get("device");
+        String device = request.getParameter("device");
+        log.info("[OAuth2SuccessHandler] device1: {}", device1);
         log.info("[OAuth2SuccessHandler] request: {}", request);
+        log.info("[OAuth2SuccessHandler] request.getParameter(device): {}", request.getParameter("device"));
 
         String redirectUrl;
         if ("app".equalsIgnoreCase(device)) {

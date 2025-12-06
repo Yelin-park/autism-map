@@ -1,3 +1,4 @@
+/*
 package com.yaliny.autismmap.global.oauth;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,3 +54,4 @@ public class CustomOAuth2AuthorizationRequestResolver implements OAuth2Authoriza
             .build();
     }
 }
+*/
