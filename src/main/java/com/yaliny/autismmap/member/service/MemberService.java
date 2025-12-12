@@ -5,6 +5,7 @@ import com.yaliny.autismmap.global.external.kakao.KakaoUnlinkService;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.global.utils.SecurityUtil;
 import com.yaliny.autismmap.member.dto.request.LoginRequest;
+import com.yaliny.autismmap.member.dto.request.PasswordRequest;
 import com.yaliny.autismmap.member.dto.request.SignUpRequest;
 import com.yaliny.autismmap.member.dto.response.LoginResponse;
 import com.yaliny.autismmap.member.dto.response.MemberInfoResponse;
@@ -87,5 +88,17 @@ public class MemberService {
         }
 
         memberRepository.softDeleteByMemberId(member.getId());
+    }
+
+    @Transactional
+    public MemberInfoResponse updatePassword(Long memberId, PasswordRequest request) {
+        Long tokenMemberId = SecurityUtil.getCurrentMemberId();
+        if (!memberId.equals(tokenMemberId)) throw new CustomException(ACCESS_DENIED);
+        Member findMember = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+        if (findMember.isSocial()) {
+            throw new CustomException(SOCIAL_ACCOUNT_PASSWORD_CHANGE_NOT_ALLOWED);
+        }
+        findMember.updatePassword(passwordEncoder.encode(request.password()));
+        return MemberInfoResponse.of(findMember);
     }
 }

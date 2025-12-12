@@ -17,6 +17,7 @@ public enum ErrorCode {
     NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 닉네임입니다."),
     NICKNAME_CREATE_COLLISION(HttpStatus.CONFLICT, "닉네임 생성 중에 충돌이 발생했습니다."),
     DUPLICATE_SOCIAL_EMAIL(HttpStatus.CONFLICT, "해당 이메일은 다른 소셜 플랫폼으로 가입되어 있습니다."),
+    SOCIAL_ACCOUNT_PASSWORD_CHANGE_NOT_ALLOWED(HttpStatus.CONFLICT, "소셜 플랫폼 가입 계정은 비밀번호 수정을 할 수 없습니다."),
     S3_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "S3에 파일 업로드를 실패했습니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),

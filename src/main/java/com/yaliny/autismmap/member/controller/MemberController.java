@@ -2,6 +2,7 @@ package com.yaliny.autismmap.member.controller;
 
 import com.yaliny.autismmap.global.response.BaseResponse;
 import com.yaliny.autismmap.member.dto.request.LoginRequest;
+import com.yaliny.autismmap.member.dto.request.PasswordRequest;
 import com.yaliny.autismmap.member.dto.request.SignUpRequest;
 import com.yaliny.autismmap.member.dto.response.LoginResponse;
 import com.yaliny.autismmap.member.dto.response.MemberInfoResponse;
@@ -70,6 +71,16 @@ public class MemberController {
         @RequestParam String nickname
     ) {
         MemberInfoResponse response = memberService.updateNickname(memberId, nickname);
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
+    @Operation(summary = "비밀번호 변경")
+    @DeleteMapping("/{memberId}/password")
+    public ResponseEntity<BaseResponse<MemberInfoResponse>> updatePassword(
+            @PathVariable Long memberId,
+            @RequestBody @Valid PasswordRequest request
+    ) {
+        MemberInfoResponse response = memberService.updatePassword(memberId, request);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
