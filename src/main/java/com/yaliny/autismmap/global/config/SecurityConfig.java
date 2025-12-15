@@ -6,8 +6,8 @@ import com.yaliny.autismmap.global.jwt.JwtFilter;
 import com.yaliny.autismmap.global.oauth.CustomOAuth2AuthorizationRequestRepository;
 import com.yaliny.autismmap.global.oauth.CustomOAuth2AuthorizationRequestResolver;
 import com.yaliny.autismmap.global.response.BaseResponse;
-import com.yaliny.autismmap.member.handler.CustomOAuth2FailureHandler;
-import com.yaliny.autismmap.member.handler.CustomOAuth2SuccessHandler;
+import com.yaliny.autismmap.global.oauth.handler.CustomOAuth2FailureHandler;
+import com.yaliny.autismmap.global.oauth.handler.CustomOAuth2SuccessHandler;
 import com.yaliny.autismmap.member.service.CustomOAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
@@ -41,6 +41,8 @@ public class SecurityConfig {
     private final CustomOAuth2FailureHandler customOAuth2FailureHandler;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final ClientRegistrationRepository clientRegistrationRepository;
+    private final CustomOAuth2AuthorizationRequestRepository authRequestRepository;
+    private final CustomOAuth2AuthorizationRequestResolver authRequestResolver;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -88,10 +90,9 @@ public class SecurityConfig {
             )
             .oauth2Login(oauth2 -> oauth2
                 .authorizationEndpoint(authorization ->
-                    authorization.authorizationRequestResolver(
-                            new CustomOAuth2AuthorizationRequestResolver(clientRegistrationRepository)
-                        )
-                        .authorizationRequestRepository(new CustomOAuth2AuthorizationRequestRepository())
+                    authorization
+                            .authorizationRequestResolver(authRequestResolver)
+                            .authorizationRequestRepository(authRequestRepository)
                 )
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuthService)) // 사용자 정보 처리
                 .successHandler(customOAuth2SuccessHandler) // JWT 발급 후 리디렉션

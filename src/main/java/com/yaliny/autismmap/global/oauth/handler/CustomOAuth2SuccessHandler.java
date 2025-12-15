@@ -1,4 +1,4 @@
-package com.yaliny.autismmap.member.handler;
+package com.yaliny.autismmap.global.oauth.handler;
 
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.exception.ErrorCode;
@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 
@@ -25,9 +26,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
     private final JwtUtil jwtUtil;
     private final MemberRepository memberRepository;
-
-    private final CustomOAuth2AuthorizationRequestRepository authRequestRepository =
-        new CustomOAuth2AuthorizationRequestRepository();
+    private final CustomOAuth2AuthorizationRequestRepository authRequestRepository;
 
     @Value("${oauth2.google.front-redirect-uri}")
     private String WEB_REDIRECT_URI;
@@ -37,15 +36,15 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
     @Override
     public void onAuthenticationSuccess(
-        HttpServletRequest request,
-        HttpServletResponse response,
-        Authentication authentication
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Authentication authentication
     ) throws IOException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        String email = (String) oAuth2User.getAttributes().get("email");
+        String email = oAuth2User.getAttribute("email");
 
         Member member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         String token = jwtUtil.generateToken(member.getId(), member.getEmail(), member.getRole().name());
 
@@ -55,9 +54,17 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         String redirectUrl;
         if ("app".equalsIgnoreCase(device)) {
-            redirectUrl = APP_REDIRECT_URI + "?token=" + token;
+            //redirectUrl = APP_REDIRECT_URI + "?token=" + token;
+            redirectUrl = UriComponentsBuilder.fromUriString(APP_REDIRECT_URI)
+                    .fragment("token=" + token)
+                    .build()
+                    .toUriString();
         } else {
-            redirectUrl = WEB_REDIRECT_URI + "?token=" + token;
+            //redirectUrl = WEB_REDIRECT_URI + "?token=" + token;
+            redirectUrl = UriComponentsBuilder.fromUriString(WEB_REDIRECT_URI)
+                    .fragment("token=" + token)
+                    .build()
+                    .toUriString();
         }
 
         log.info("[OAuth2SuccessHandler] Redirecting to: {}", redirectUrl);

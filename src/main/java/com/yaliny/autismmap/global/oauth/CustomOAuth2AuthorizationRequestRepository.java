@@ -2,12 +2,12 @@ package com.yaliny.autismmap.global.oauth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.stereotype.Component;
 
-@RequiredArgsConstructor
+@Component
 public class CustomOAuth2AuthorizationRequestRepository
     implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
@@ -42,8 +42,9 @@ public class CustomOAuth2AuthorizationRequestRepository
     @Override
     public OAuth2AuthorizationRequest removeAuthorizationRequest(
         HttpServletRequest request,
-        HttpServletResponse response) {
-
+        HttpServletResponse response
+    ) {
+        request.getSession().removeAttribute(SESSION_DEVICE_KEY);
         return delegate.removeAuthorizationRequest(request, response);
     }
 
