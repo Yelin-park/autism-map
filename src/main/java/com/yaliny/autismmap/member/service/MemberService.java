@@ -71,9 +71,18 @@ public class MemberService {
     @Transactional
     public MemberInfoResponse updateNickname(Long memberId, String nickname) {
         Long tokenMemberId = SecurityUtil.getCurrentMemberId();
-        if (!memberId.equals(tokenMemberId)) throw new CustomException(ACCESS_DENIED);
+        if (!memberId.equals(tokenMemberId)) {
+            throw new CustomException(ACCESS_DENIED);
+        }
+
         Member findMember = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+
+        if (nickname.equals(findMember.getNickname())) {
+            throw new CustomException(NICKNAME_ALREADY_EXISTS);
+        }
+
         findMember.updateNickname(nickname);
+
         return MemberInfoResponse.of(findMember);
     }
 
