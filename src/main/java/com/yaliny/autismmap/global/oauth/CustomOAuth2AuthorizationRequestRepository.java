@@ -45,7 +45,10 @@ public class CustomOAuth2AuthorizationRequestRepository
         HttpServletRequest request,
         HttpServletResponse response
     ) {
-
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.removeAttribute(SESSION_DEVICE_KEY);
+        }
         return delegate.removeAuthorizationRequest(request, response);
     }
 

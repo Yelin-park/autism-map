@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 
@@ -54,7 +55,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         boolean isApp = "app".equalsIgnoreCase(device);
         String base = isApp ? APP_REDIRECT_URI : WEB_REDIRECT_URI;
 
-        String redirectUrl = org.springframework.web.util.UriComponentsBuilder
+        String redirectUrl = UriComponentsBuilder
             .fromUriString(base)
             .queryParam("token", token)
             .build(true)
