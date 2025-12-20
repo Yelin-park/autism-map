@@ -105,7 +105,11 @@ public class CustomOAuthService implements OAuth2UserService<OAuth2UserRequest, 
                 try {
                     Member newMember = Member.socialSignup(email, nickname, provider, providerId);
                     return memberRepository.save(newMember);
-                } catch (DataIntegrityViolationException dup) { // 닉네임 충돌 시 닉네임만 다시 생성 후 재시도
+                } catch (DataIntegrityViolationException ex) { // 닉네임 충돌 시 닉네임만 다시 생성 후 재시도
+                    if (isEmailDuplicate(ex)) {
+                        throw new InternalAuthenticationServiceException(MEMBER_ALREADY_EXISTS.getMessage());
+                    }
+
                     nickname = generateUniqueNickname(baseName);
                 }
             }
@@ -136,5 +140,9 @@ public class CustomOAuthService implements OAuth2UserService<OAuth2UserRequest, 
         if (s == null) return "";
         String trimmed = s.trim().replaceAll("\\s+", "");
         return trimmed.length() > 16 ? trimmed.substring(0, 16) : trimmed;
+    }
+
+    private boolean isEmailDuplicate(DataIntegrityViolationException e) {
+        return e.getMessage().contains("email");
     }
 }

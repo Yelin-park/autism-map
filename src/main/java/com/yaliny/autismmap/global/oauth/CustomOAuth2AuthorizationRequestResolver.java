@@ -6,11 +6,13 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
+@Component
 public class CustomOAuth2AuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
     private final DefaultOAuth2AuthorizationRequestResolver defaultResolver;
@@ -37,10 +39,12 @@ public class CustomOAuth2AuthorizationRequestResolver implements OAuth2Authoriza
         OAuth2AuthorizationRequest originalRequest
     ) {
         if (originalRequest == null) return null;
+
         String device = request.getParameter("device");
         log.info("[CustomOAuth2AuthorizationRequestResolver] device: {}", device);
 
         Map<String, Object> additionalParams = new HashMap<>(originalRequest.getAdditionalParameters());
+
         if (device != null) {
             additionalParams.put("device", device);
         }

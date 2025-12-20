@@ -1,4 +1,4 @@
-package com.yaliny.autismmap.member.handler;
+package com.yaliny.autismmap.global.oauth.handler;
 
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.exception.ErrorCode;
@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 
@@ -25,9 +26,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
     private final JwtUtil jwtUtil;
     private final MemberRepository memberRepository;
-
-    private final CustomOAuth2AuthorizationRequestRepository authRequestRepository =
-        new CustomOAuth2AuthorizationRequestRepository();
+    private final CustomOAuth2AuthorizationRequestRepository authRequestRepository;
 
     @Value("${oauth2.google.front-redirect-uri}")
     private String WEB_REDIRECT_URI;
@@ -53,12 +52,14 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         String device = authRequestRepository.getDevice(request);
         log.info("[OAuth2SuccessHandler] device: {}", device);
 
-        String redirectUrl;
-        if ("app".equalsIgnoreCase(device)) {
-            redirectUrl = APP_REDIRECT_URI + "?token=" + token;
-        } else {
-            redirectUrl = WEB_REDIRECT_URI + "?token=" + token;
-        }
+        boolean isApp = "app".equalsIgnoreCase(device);
+        String base = isApp ? APP_REDIRECT_URI : WEB_REDIRECT_URI;
+
+        String redirectUrl = UriComponentsBuilder
+            .fromUriString(base)
+            .queryParam("token", token)
+            .build(true)
+            .toUriString();
 
         log.info("[OAuth2SuccessHandler] Redirecting to: {}", redirectUrl);
 

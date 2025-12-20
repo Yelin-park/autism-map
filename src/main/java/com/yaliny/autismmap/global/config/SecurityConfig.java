@@ -5,9 +5,9 @@ import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.jwt.JwtFilter;
 import com.yaliny.autismmap.global.oauth.CustomOAuth2AuthorizationRequestRepository;
 import com.yaliny.autismmap.global.oauth.CustomOAuth2AuthorizationRequestResolver;
+import com.yaliny.autismmap.global.oauth.handler.CustomOAuth2FailureHandler;
+import com.yaliny.autismmap.global.oauth.handler.CustomOAuth2SuccessHandler;
 import com.yaliny.autismmap.global.response.BaseResponse;
-import com.yaliny.autismmap.member.handler.CustomOAuth2FailureHandler;
-import com.yaliny.autismmap.member.handler.CustomOAuth2SuccessHandler;
 import com.yaliny.autismmap.member.service.CustomOAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
@@ -25,7 +25,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -40,10 +39,13 @@ public class SecurityConfig {
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
     private final CustomOAuth2FailureHandler customOAuth2FailureHandler;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
-    private final ClientRegistrationRepository clientRegistrationRepository;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(
+        HttpSecurity http,
+        CustomOAuth2AuthorizationRequestRepository authorizationRequestRepository,
+        CustomOAuth2AuthorizationRequestResolver authorizationRequestResolver
+    ) throws Exception {
         http
             .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
@@ -88,10 +90,9 @@ public class SecurityConfig {
             )
             .oauth2Login(oauth2 -> oauth2
                 .authorizationEndpoint(authorization ->
-                    authorization.authorizationRequestResolver(
-                            new CustomOAuth2AuthorizationRequestResolver(clientRegistrationRepository)
-                        )
-                        .authorizationRequestRepository(new CustomOAuth2AuthorizationRequestRepository())
+                    authorization
+                        .authorizationRequestResolver(authorizationRequestResolver)
+                        .authorizationRequestRepository(authorizationRequestRepository)
                 )
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuthService)) // 사용자 정보 처리
                 .successHandler(customOAuth2SuccessHandler) // JWT 발급 후 리디렉션
