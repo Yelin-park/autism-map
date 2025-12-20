@@ -75,7 +75,7 @@ public class MemberController {
     }
 
     @Operation(summary = "비밀번호 변경")
-    @DeleteMapping("/{memberId}/password")
+    @PatchMapping("/{memberId}/password")
     public ResponseEntity<BaseResponse<MemberInfoResponse>> updatePassword(
             @PathVariable Long memberId,
             @RequestBody @Valid PasswordRequest request
