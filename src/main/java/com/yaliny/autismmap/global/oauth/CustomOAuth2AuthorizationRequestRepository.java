@@ -2,12 +2,13 @@ package com.yaliny.autismmap.global.oauth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.stereotype.Component;
 
-@RequiredArgsConstructor
+@Component
 public class CustomOAuth2AuthorizationRequestRepository
     implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
@@ -42,14 +43,18 @@ public class CustomOAuth2AuthorizationRequestRepository
     @Override
     public OAuth2AuthorizationRequest removeAuthorizationRequest(
         HttpServletRequest request,
-        HttpServletResponse response) {
+        HttpServletResponse response
+    ) {
 
         return delegate.removeAuthorizationRequest(request, response);
     }
 
     // SuccessHandler 에서 device 를 조회하기 위한 메서드
     public String getDevice(HttpServletRequest request) {
-        Object device = request.getSession().getAttribute(SESSION_DEVICE_KEY);
+        HttpSession session = request.getSession(false);
+        if (session == null) return null;
+
+        Object device = session.getAttribute(SESSION_DEVICE_KEY);
         return device != null ? device.toString() : null;
     }
 }

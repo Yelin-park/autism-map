@@ -1,10 +1,12 @@
-package com.yaliny.autismmap.member.handler;
+package com.yaliny.autismmap.global.oauth.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yaliny.autismmap.global.exception.CustomException;
+import com.yaliny.autismmap.global.oauth.CustomOAuth2AuthorizationRequestRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
@@ -17,28 +19,38 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Component
+@RequiredArgsConstructor
 public class CustomOAuth2FailureHandler implements AuthenticationFailureHandler {
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final CustomOAuth2AuthorizationRequestRepository authRequestRepository;
 
-    @Value("${front.url}")
-    private String frontUrl;
+    @Value("${oauth2.google.front-redirect-uri}")
+    private String WEB_REDIRECT_URI;
+
+    @Value("${oauth2.google.app-redirect-uri}")
+    private String APP_REDIRECT_URI;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
         String message = "소셜 로그인 실패";
-
         if (exception.getCause() instanceof CustomException customException) {
             message = customException.getMessage();
         } else if (exception.getMessage() != null) {
             message = exception.getMessage();
         }
 
-        String redirectUrl = frontUrl + "/oauth?error=true&message=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
+        String device = authRequestRepository.getDevice(request);
+        boolean isApp = "app".equalsIgnoreCase(device);
+
+        String base = isApp ? APP_REDIRECT_URI : WEB_REDIRECT_URI;
+
+        String redirectUrl = org.springframework.web.util.UriComponentsBuilder
+            .fromUriString(base)
+            .queryParam("error", "true")
+            .queryParam("message", URLEncoder.encode(message, StandardCharsets.UTF_8))
+            .build(true)
+            .toUriString();
+
         response.sendRedirect(redirectUrl);
-        response.flushBuffer();
     }
 }

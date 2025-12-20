@@ -16,7 +16,19 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@SQLDelete(sql = "UPDATE member SET del_yn = 1 WHERE member_id = ?")
+@SQLDelete(sql = """
+    UPDATE member 
+    SET 
+        del_yn = 1, 
+        email = CONCAT(email, '_deleted_', member_id),
+        nickname = CONCAT(nickname, '_deleted_', member_id),
+        provider_id = CASE
+            WHEN provider_id IS NOT NULL
+            THEN CONCAT(provider_id, '_deleted_', member_id)
+            ELSE NULL
+        END
+    WHERE member_id = ?
+""")
 @SQLRestriction("del_yn = 0")
 public class Member extends BaseEntity {
 

@@ -53,7 +53,9 @@ public class MemberService {
     public void withdraw(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         Long tokenMemberId = SecurityUtil.getCurrentMemberId();
+
         if (!memberId.equals(tokenMemberId)) throw new CustomException(ACCESS_DENIED);
+
         if (member.getProvider() == Provider.KAKAO) {
             kakaoUnlinkService.unlink(member);
         }
