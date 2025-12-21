@@ -3,7 +3,6 @@ package com.yaliny.autismmap.global.oauth.handler;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
-import com.yaliny.autismmap.global.oauth.CustomOAuth2AuthorizationRequestRepository;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,9 +23,11 @@ import java.io.IOException;
 @Slf4j
 public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
+    private static final String STATE_DELIM = "|";
+    private static final String DEVICE_PREFIX = "device=";
+
     private final JwtUtil jwtUtil;
     private final MemberRepository memberRepository;
-    private final CustomOAuth2AuthorizationRequestRepository authRequestRepository;
 
     @Value("${oauth2.google.front-redirect-uri}")
     private String WEB_REDIRECT_URI;
@@ -48,9 +49,9 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         String token = jwtUtil.generateToken(member.getId(), member.getEmail(), member.getRole().name());
 
-        // 프론트(WebView)에서 로그인 버튼 클릭 시 ?device=app 붙여서 요청
-        String device = authRequestRepository.getDevice(request);
-        log.info("[OAuth2SuccessHandler] device: {}", device);
+        // ✅ 세션 대신, state에서 device를 추출 (외부 브라우저에서도 안정적)
+        String device = extractDeviceFromState(request.getParameter("state"));
+        log.info("[OAuth2SuccessHandler] device(from state): {}", device);
 
         boolean isApp = "app".equalsIgnoreCase(device);
         String base = isApp ? APP_REDIRECT_URI : WEB_REDIRECT_URI;
@@ -65,4 +66,19 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         response.sendRedirect(redirectUrl);
     }
+
+    private String extractDeviceFromState(String state) {
+        if (state == null || state.isBlank()) return null;
+
+        // state = <random>|device=app 형태
+        // 구분자(|) 기준으로 토큰 분리해서 device= 로 시작하는 조각을 찾는다
+        String[] parts = state.split("\\Q" + STATE_DELIM + "\\E");
+        for (String p : parts) {
+            if (p != null && p.startsWith(DEVICE_PREFIX)) {
+                return p.substring(DEVICE_PREFIX.length());
+            }
+        }
+        return null;
+    }
+
 }
