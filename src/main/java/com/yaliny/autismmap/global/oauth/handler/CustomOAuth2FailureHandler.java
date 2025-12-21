@@ -1,14 +1,11 @@
 package com.yaliny.autismmap.global.oauth.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yaliny.autismmap.global.exception.CustomException;
-import com.yaliny.autismmap.global.oauth.CustomOAuth2AuthorizationRequestRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
@@ -16,13 +13,13 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 public class CustomOAuth2FailureHandler implements AuthenticationFailureHandler {
 
-    private final CustomOAuth2AuthorizationRequestRepository authRequestRepository;
+    private static final String STATE_DELIM = "|";
+    private static final String DEVICE_PREFIX = "device=";
 
     @Value("${oauth2.google.front-redirect-uri}")
     private String WEB_REDIRECT_URI;
@@ -39,7 +36,7 @@ public class CustomOAuth2FailureHandler implements AuthenticationFailureHandler 
             message = exception.getMessage();
         }
 
-        String device = authRequestRepository.getDevice(request);
+        String device = extractDeviceFromState(request.getParameter("state"));
         boolean isApp = "app".equalsIgnoreCase(device);
 
         String base = isApp ? APP_REDIRECT_URI : WEB_REDIRECT_URI;
@@ -52,5 +49,17 @@ public class CustomOAuth2FailureHandler implements AuthenticationFailureHandler 
             .toUriString();
 
         response.sendRedirect(redirectUrl);
+    }
+
+    private String extractDeviceFromState(String state) {
+        if (state == null || state.isBlank()) return null;
+
+        String[] parts = state.split("\\Q" + STATE_DELIM + "\\E");
+        for (String p : parts) {
+            if (p != null && p.startsWith(DEVICE_PREFIX)) {
+                return p.substring(DEVICE_PREFIX.length());
+            }
+        }
+        return null;
     }
 }

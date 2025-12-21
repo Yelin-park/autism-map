@@ -15,6 +15,10 @@ import java.util.Map;
 @Component
 public class CustomOAuth2AuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
+    private static final String DEVICE_PARAM = "device";
+    private static final String STATE_DELIM = "|";
+    private static final String DEVICE_PREFIX = "device=";
+
     private final DefaultOAuth2AuthorizationRequestResolver defaultResolver;
 
     public CustomOAuth2AuthorizationRequestResolver(ClientRegistrationRepository repo) {
@@ -40,17 +44,19 @@ public class CustomOAuth2AuthorizationRequestResolver implements OAuth2Authoriza
     ) {
         if (originalRequest == null) return null;
 
-        String device = request.getParameter("device");
+        String device = request.getParameter(DEVICE_PARAM);
         log.info("[CustomOAuth2AuthorizationRequestResolver] device: {}", device);
 
-        Map<String, Object> additionalParams = new HashMap<>(originalRequest.getAdditionalParameters());
-
-        if (device != null) {
-            additionalParams.put("device", device);
+        if (device == null || device.isBlank()) {
+            return originalRequest;
         }
 
+        // ✅ OAuth 왕복 보장 값인 state에 device를 붙여서 callback까지 가져간다
+        String baseState = originalRequest.getState();
+        String newState = baseState + STATE_DELIM + DEVICE_PREFIX + device;
+
         return OAuth2AuthorizationRequest.from(originalRequest)
-            .additionalParameters(additionalParams)
+            .state(newState)
             .build();
     }
 }

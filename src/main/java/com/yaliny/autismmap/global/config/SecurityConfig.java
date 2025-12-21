@@ -3,7 +3,6 @@ package com.yaliny.autismmap.global.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.jwt.JwtFilter;
-import com.yaliny.autismmap.global.oauth.CustomOAuth2AuthorizationRequestRepository;
 import com.yaliny.autismmap.global.oauth.CustomOAuth2AuthorizationRequestResolver;
 import com.yaliny.autismmap.global.oauth.handler.CustomOAuth2FailureHandler;
 import com.yaliny.autismmap.global.oauth.handler.CustomOAuth2SuccessHandler;
@@ -43,7 +42,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(
         HttpSecurity http,
-        CustomOAuth2AuthorizationRequestRepository authorizationRequestRepository,
         CustomOAuth2AuthorizationRequestResolver authorizationRequestResolver
     ) throws Exception {
         http
@@ -92,7 +90,6 @@ public class SecurityConfig {
                 .authorizationEndpoint(authorization ->
                     authorization
                         .authorizationRequestResolver(authorizationRequestResolver)
-                        .authorizationRequestRepository(authorizationRequestRepository)
                 )
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuthService)) // 사용자 정보 처리
                 .successHandler(customOAuth2SuccessHandler) // JWT 발급 후 리디렉션
