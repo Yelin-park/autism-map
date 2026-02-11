@@ -38,6 +38,7 @@ public class MemberController {
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
+    @Deprecated
     @Operation(summary = "로그아웃")
     @PostMapping("/logout")
     public ResponseEntity<BaseResponse<String>> logout(Authentication authentication) {
