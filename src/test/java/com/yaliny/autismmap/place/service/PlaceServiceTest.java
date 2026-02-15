@@ -7,10 +7,7 @@ import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
 import com.yaliny.autismmap.place.dto.response.PlaceDetailResponse;
 import com.yaliny.autismmap.place.dto.response.PlaceListResponse;
-import com.yaliny.autismmap.place.entity.CrowdLevel;
-import com.yaliny.autismmap.place.entity.LightingLevel;
-import com.yaliny.autismmap.place.entity.Place;
-import com.yaliny.autismmap.place.entity.PlaceCategory;
+import com.yaliny.autismmap.place.entity.*;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
 import com.yaliny.autismmap.region.entity.District;
 import com.yaliny.autismmap.region.entity.Province;
@@ -74,7 +71,7 @@ class PlaceServiceTest {
             "서울시 강남구",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -111,7 +108,7 @@ class PlaceServiceTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -131,7 +128,7 @@ class PlaceServiceTest {
             "서울시 강남구2",
             37.5665,
             126.9780,
-            false,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -150,7 +147,7 @@ class PlaceServiceTest {
         assertThat(findPlace.getName()).isEqualTo(request.name());
         assertThat(findPlace.getDescription()).isEqualTo(request.description());
         assertThat(findPlace.getAddress()).isEqualTo(request.address());
-        assertThat(findPlace.isQuiet()).isFalse();
+        assertThat(findPlace.getNoiseLevel()).isEqualTo(request.noiseLevel());
         assertThat(findPlace.isHasParking()).isTrue();
         assertThat(findPlace.isHasRestArea()).isTrue();
         assertThat(findPlace.getLightingLevel()).isEqualTo(request.lightingLevel());
@@ -174,7 +171,7 @@ class PlaceServiceTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -206,7 +203,7 @@ class PlaceServiceTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -238,7 +235,7 @@ class PlaceServiceTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -258,7 +255,7 @@ class PlaceServiceTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -278,7 +275,7 @@ class PlaceServiceTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -298,7 +295,7 @@ class PlaceServiceTest {
             "경기도 안양시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -335,7 +332,7 @@ class PlaceServiceTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -371,7 +368,7 @@ class PlaceServiceTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,

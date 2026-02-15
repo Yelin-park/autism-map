@@ -5,10 +5,7 @@ import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.external.s3.S3Uploader;
 import com.yaliny.autismmap.place.dto.request.PlaceCreateRequest;
 import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
-import com.yaliny.autismmap.place.entity.CrowdLevel;
-import com.yaliny.autismmap.place.entity.LightingLevel;
-import com.yaliny.autismmap.place.entity.Place;
-import com.yaliny.autismmap.place.entity.PlaceCategory;
+import com.yaliny.autismmap.place.entity.*;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
 import com.yaliny.autismmap.region.entity.District;
 import com.yaliny.autismmap.region.entity.Province;
@@ -82,7 +79,7 @@ public class PlaceServiceUnitTest {
         when(request.address()).thenReturn("서울 강남구");
         when(request.latitude()).thenReturn(37.123);
         when(request.longitude()).thenReturn(127.123);
-        when(request.isQuiet()).thenReturn(true);
+        when(request.noiseLevel()).thenReturn(NoiseLevel.MODERATE);
         when(request.hasParking()).thenReturn(true);
         when(request.hasRestArea()).thenReturn(false);
         when(request.hasPrivateRoom()).thenReturn(false);
@@ -164,7 +161,7 @@ public class PlaceServiceUnitTest {
         when(place.getAddress()).thenReturn("");
         when(place.getLatitude()).thenReturn(37.123);
         when(place.getLongitude()).thenReturn(127.123);
-        when(place.isQuiet()).thenReturn(false);
+        when(place.getNoiseLevel()).thenReturn(NoiseLevel.MODERATE);
         when(place.isHasParking()).thenReturn(false);
         when(place.isHasRestArea()).thenReturn(false);
         when(place.isHasPrivateRoom()).thenReturn(false);
@@ -204,7 +201,7 @@ public class PlaceServiceUnitTest {
         when(place.getAddress()).thenReturn("");
         when(place.getLatitude()).thenReturn(37.123);
         when(place.getLongitude()).thenReturn(127.123);
-        when(place.isQuiet()).thenReturn(false);
+        when(place.getNoiseLevel()).thenReturn(NoiseLevel.MODERATE);
         when(place.isHasParking()).thenReturn(false);
         when(place.isHasRestArea()).thenReturn(false);
         when(place.isHasPrivateRoom()).thenReturn(false);

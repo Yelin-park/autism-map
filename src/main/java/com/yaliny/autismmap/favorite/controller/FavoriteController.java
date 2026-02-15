@@ -8,9 +8,11 @@ import com.yaliny.autismmap.favorite.service.FavoriteService;
 import com.yaliny.autismmap.global.response.BaseResponse;
 import com.yaliny.autismmap.global.security.CustomUserDetails;
 import com.yaliny.autismmap.place.entity.LightingLevel;
+import com.yaliny.autismmap.place.entity.NoiseLevel;
 import com.yaliny.autismmap.place.entity.PlaceCategory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -56,9 +58,9 @@ public class FavoriteController {
         @Parameter(description = "카테고리 구분")
         @RequestParam(required = false)
         PlaceCategory category,
-        @Parameter(description = "조용한 환경 여부")
+        @Parameter(description = "소음 정도")
         @RequestParam(required = false)
-        Boolean isQuiet,
+        NoiseLevel noiseLevel,
         @Parameter(description = "주차장 유무")
         @RequestParam(required = false)
         Boolean hasParking,
@@ -74,7 +76,7 @@ public class FavoriteController {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
-        FavoriteListRequest request = FavoriteListRequest.of(provinceId, districtId, category, isQuiet, hasParking, hasRestArea, hasPrivateRoom, lightingLevel);
+        FavoriteListRequest request = FavoriteListRequest.of(provinceId, districtId, category, noiseLevel, hasParking, hasRestArea, hasPrivateRoom, lightingLevel);
         FavoriteListResponse response = favoriteService.getFavoriteList(customUserDetails.getMemberId(), request, PageRequest.of(page, size));
         return ResponseEntity.ok(BaseResponse.success(response));
     }

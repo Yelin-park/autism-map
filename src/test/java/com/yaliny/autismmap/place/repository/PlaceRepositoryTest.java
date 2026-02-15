@@ -1,10 +1,7 @@
 package com.yaliny.autismmap.place.repository;
 
 import com.yaliny.autismmap.global.config.QuerydslConfig;
-import com.yaliny.autismmap.place.entity.CrowdLevel;
-import com.yaliny.autismmap.place.entity.LightingLevel;
-import com.yaliny.autismmap.place.entity.Place;
-import com.yaliny.autismmap.place.entity.PlaceCategory;
+import com.yaliny.autismmap.place.entity.*;
 import com.yaliny.autismmap.region.entity.District;
 import com.yaliny.autismmap.region.entity.Province;
 import com.yaliny.autismmap.region.repository.ProvinceRepository;
@@ -37,7 +34,7 @@ class PlaceRepositoryTest {
 
         Place place = Place.createPlace("장소명", "설명", PlaceCategory.ATTRACTION,
             province,district2, "주소", 1.0, 2.0,
-            false, true,
+            NoiseLevel.MODERATE, true,
             true, true, LightingLevel.MODERATE,
             CrowdLevel.NORMAL, "09:00", "18:00", "월요일");
 

@@ -5,10 +5,7 @@ import com.yaliny.autismmap.favorite.repository.FavoriteRepository;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
-import com.yaliny.autismmap.place.entity.CrowdLevel;
-import com.yaliny.autismmap.place.entity.LightingLevel;
-import com.yaliny.autismmap.place.entity.Place;
-import com.yaliny.autismmap.place.entity.PlaceCategory;
+import com.yaliny.autismmap.place.entity.*;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
 import com.yaliny.autismmap.region.entity.District;
 import com.yaliny.autismmap.region.entity.Province;
@@ -57,7 +54,7 @@ class FavoriteServiceUnitTest {
 
         Place place = Place.createPlace("장소명", "설명", PlaceCategory.ATTRACTION,
             province, district2, "주소", 1.0, 2.0,
-            false, true,
+            NoiseLevel.MODERATE, true,
             true, true, LightingLevel.MODERATE,
             CrowdLevel.NORMAL, "09:00", "18:00", "월요일");
 
@@ -81,7 +78,7 @@ class FavoriteServiceUnitTest {
 
         Place place = Place.createPlace("장소명", "설명", PlaceCategory.ATTRACTION,
             province, district2, "주소", 1.0, 2.0,
-            false, true,
+            NoiseLevel.MODERATE, true,
             true, true, LightingLevel.MODERATE,
             CrowdLevel.NORMAL, "09:00", "18:00", "월요일");
 
@@ -131,7 +128,7 @@ class FavoriteServiceUnitTest {
 
         Place place = Place.createPlace("장소명", "설명", PlaceCategory.ATTRACTION,
             province, district2, "주소", 1.0, 2.0,
-            false, true,
+            NoiseLevel.MODERATE, true,
             true, true, LightingLevel.MODERATE,
             CrowdLevel.NORMAL, "09:00", "18:00", "월요일");
 
@@ -181,7 +178,7 @@ class FavoriteServiceUnitTest {
         Place place = Place.createPlace("장소명", "설명", PlaceCategory.ATTRACTION,
             province, province.getDistricts().get(0),
             "주소", 1.0, 2.0,
-            false, true,
+            NoiseLevel.MODERATE, true,
             true, true, LightingLevel.MODERATE,
             CrowdLevel.NORMAL, "09:00", "18:00", "월요일");
 

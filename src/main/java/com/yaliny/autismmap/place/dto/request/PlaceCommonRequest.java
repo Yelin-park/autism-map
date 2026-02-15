@@ -2,6 +2,7 @@ package com.yaliny.autismmap.place.dto.request;
 
 import com.yaliny.autismmap.place.entity.CrowdLevel;
 import com.yaliny.autismmap.place.entity.LightingLevel;
+import com.yaliny.autismmap.place.entity.NoiseLevel;
 import com.yaliny.autismmap.place.entity.PlaceCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -14,7 +15,7 @@ public interface PlaceCommonRequest {
     String address();
     Double latitude();
     Double longitude();
-    boolean isQuiet();
+    NoiseLevel noiseLevel();
     boolean hasParking();
     boolean hasRestArea();
     boolean hasPrivateRoom();
