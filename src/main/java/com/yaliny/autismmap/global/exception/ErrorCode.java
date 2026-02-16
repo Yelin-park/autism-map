@@ -22,8 +22,17 @@ public enum ErrorCode {
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "유효성 검사에 실패했습니다."),
+
+    // OAuth2 관련
     KAKAO_UNLINK_ID_MISMATCH(HttpStatus.BAD_REQUEST, "카카오 연결해제 응답 ID가 불일치합니다."),
+    INVALID_OAUTH_RESPONSE(HttpStatus.BAD_REQUEST, "OAuth 응답이 유효하지 않습니다."),
+    OAUTH_TOKEN_REQUEST_FAILED(HttpStatus.BAD_REQUEST, "OAuth 토큰 발급에 실패했습니다."),
+    OAUTH_USER_INFO_REQUEST_FAILED(HttpStatus.BAD_REQUEST, "OAuth 사용자 정보 조회에 실패했습니다."),
+    OAUTH_UNLINK_FAILED(HttpStatus.BAD_REQUEST, "OAuth 연결 해제에 실패했습니다."),
     INVALID_PROVIDER_ID_FORMAT(HttpStatus.BAD_REQUEST, "provider Id가 숫자가 아닙니다."),
+
+    // 500
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 에러 발생"),
     ;
 
     private final HttpStatus status;

@@ -22,6 +22,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -46,7 +47,16 @@ public class SecurityConfig {
     ) throws Exception {
         http
             .cors(Customizer.withDefaults())
+
+            // CSRF 비활성화 (JWT 사용)
             .csrf(AbstractHttpConfigurer::disable)
+
+            // 세션 사용 안 함 (Stateless)
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            // 예외처리
             .exceptionHandling(exceptionHandling -> exceptionHandling
                 .accessDeniedHandler(accessDeniedHandler()) // 커스텀 핸들러 사용
                 .defaultAuthenticationEntryPointFor(
@@ -54,11 +64,17 @@ public class SecurityConfig {
                     new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/api/**")
                 )
             )
+
             // H2 Console은 iframe 기반 → 기본 Security 설정에서는 iframe 금지 → 403 발생 → disable() 설정으로 해결
-            .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+            .headers(headers
+                -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
+            )
+
+            // 권한 설정
             .authorizeHttpRequests(auth -> auth
                 // Actuator health, info만 공개
                 .requestMatchers(EndpointRequest.to(HealthEndpoint.class, InfoEndpoint.class)).permitAll()
+                // 공개 엔드포인트
                 .requestMatchers(
                     "/",
                     "/h2-console/**",
@@ -66,52 +82,81 @@ public class SecurityConfig {
                     "/swagger-resources/**",
                     "/v3/api-docs/**",
                     "/favicon.ico",
-                    "/nurean/v1/api-docs/**",
+                    "/nurean/v1/api-docs/**"
+                ).permitAll() // 인증없이 허용
+
+                // 인증 API
+                .requestMatchers(
                     "/api/v1/members/signup",
                     "/api/v1/members/login",
                     "/api/v1/members/logout",
                     "/api/v1/regions/**",
                     "/api/v1/oauth/**",
-                    "/api/v1/public/member/delete",
+                    "/api/v1/public/member/delete"
+                ).permitAll()
+
+                // OAuth2 엔드포인트
+                .requestMatchers(
                     "/oauth/**",
                     "/oauth2/**",
                     "/login/oauth2/**",
                     "/oauth2/authorization/**"
-                ).permitAll() // 인증없이 허용
+                ).permitAll()
+
+                // 장소 조회
                 .requestMatchers(HttpMethod.GET, "/api/v1/places").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/places/{placeId}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/places/*").permitAll()
+
+                // 회원 탈퇴
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/members/{memberId}").authenticated()
+
+                // 장소 관리 - ADMIN 권한 필요
                 .requestMatchers(HttpMethod.POST, "/api/v1/places").hasRole("ADMIN")            // ADMIN 권한만 접근 허용
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/places/{placeId}").hasRole("ADMIN") // ADMIN 권한만 접근 허용
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/places/{placeId}").hasRole("ADMIN") // ADMIN 권한만 접근 허용
-                .anyRequest().authenticated() // 나머지 요청은 인증 필요
+
+                // 나머지 요청은 인증 필요
+                .anyRequest().authenticated()
             )
+
+            // OAuth2 로그인 설정
             .oauth2Login(oauth2 -> oauth2
+                // 인가 요청 커스텀(state에 device 추가)
                 .authorizationEndpoint(authorization ->
                     authorization
                         .authorizationRequestResolver(authorizationRequestResolver)
                 )
-                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuthService)) // 사용자 정보 처리
+                // 사용자 정보 처리
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuthService))
                 .successHandler(customOAuth2SuccessHandler) // JWT 발급 후 리디렉션
                 .failureHandler(customOAuth2FailureHandler)
             )
+            // JWT 필터 추가(UsernamePasswordAuthenticationFilter  앞에)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // 패스워드 암호화에 사용할 PasswordEncoder 등록
+    /**
+     * 패스워드 암호화에 사용할 PasswordEncoder 등록
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // AuthenticationManager 등록 (로그인 시 사용 가능)
+    /**
+     * AuthenticationManager 등록 (로그인 시 사용 가능)
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
+    /**
+     * 접근 거부 핸들러 (403 Forbidden)
+     * JSON 형식으로 에러 응답 반환
+     */
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) -> {

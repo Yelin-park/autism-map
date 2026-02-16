@@ -30,8 +30,11 @@ public class FavoriteController {
 
     @Operation(summary = "장소 즐겨찾기 등록")
     @PostMapping
-    public ResponseEntity<BaseResponse<Void>> addFavorite(@RequestBody AddFavoriteRequest request) {
-        favoriteService.addFavorite(request.memberId(), request.placeId());
+    public ResponseEntity<BaseResponse<Void>> addFavorite(
+        @RequestBody AddFavoriteRequest request,
+        @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        favoriteService.addFavorite(user.getMemberId(), request.placeId());
         return ResponseEntity.ok(BaseResponse.success());
     }
 
