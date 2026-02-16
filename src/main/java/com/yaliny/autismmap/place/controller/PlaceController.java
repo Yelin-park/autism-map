@@ -81,10 +81,10 @@ public class PlaceController {
         LightingLevel lightingLevel,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size,
-        @AuthenticationPrincipal CustomUserDetails user
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         PlaceListRequest request = PlaceListRequest.of(provinceId, districtId, category, noiseLevel, hasParking, hasRestArea, hasPrivateRoom, lightingLevel);
-        PlaceListResponse response = placeService.getPlaceList(request, PageRequest.of(page, size), user == null ? null : user.getMemberId());
+        PlaceListResponse response = placeService.getPlaceList(request, PageRequest.of(page, size), userDetails == null ? null : userDetails.getMemberId());
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 

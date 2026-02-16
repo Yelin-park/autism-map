@@ -159,7 +159,7 @@ class CommunityServiceTest {
             list
         );
 
-        Long postId = communityService.registerPost(request);
+        Long postId = communityService.registerPost(member.getId(), request);
 
         Post findPost = postRepository.findById(postId).get();
         assertThat(findPost).isNotNull();
@@ -182,7 +182,7 @@ class CommunityServiceTest {
             null
         );
 
-        assertThatThrownBy(() -> communityService.registerPost(request))
+        assertThatThrownBy(() -> communityService.registerPost(1L, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
@@ -239,7 +239,7 @@ class CommunityServiceTest {
         Post dummyPost = createDummyPost();
         long dummyPostId = dummyPost.getId();
         setAuthentication(dummyPost.getMember());
-        communityService.deletePost(dummyPostId);
+        communityService.deletePost(dummyPost.getMember().getId(), dummyPostId);
 
         List<Post> all = postRepository.findAll();
         assertThat(all.size()).isEqualTo(0);
@@ -257,7 +257,7 @@ class CommunityServiceTest {
         long dummyPostId = dummyPost.getId();
         setAuthentication(dummyPost.getMember());
 
-        assertThatThrownBy(() -> communityService.deletePost(dummyPostId + 1))
+        assertThatThrownBy(() -> communityService.deletePost(dummyPost.getMember().getId(), dummyPostId + 1))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }
@@ -272,7 +272,7 @@ class CommunityServiceTest {
         PostMediaRequest postMediaRequest = new PostMediaRequest(MediaType.IMAGE, mockImage);
         PostUpdateRequest request = new PostUpdateRequest("수정제목", "수정내용", null, List.of(postMediaRequest));
 
-        communityService.updatePost(dummyPostId, request);
+        communityService.updatePost(dummyPost.getMember().getId(), dummyPostId, request);
 
         Post post = postRepository.findById(dummyPostId).get();
         assertThat(post.getTitle()).isEqualTo("수정제목");
@@ -289,7 +289,7 @@ class CommunityServiceTest {
         setAuthentication(dummyPost.getMember());
         PostUpdateRequest request = new PostUpdateRequest("수정제목", "수정내용", null, List.of());
 
-        assertThatThrownBy(() -> communityService.updatePost(dummyPostId + 1, request))
+        assertThatThrownBy(() -> communityService.updatePost(dummyPost.getMember().getId(), dummyPostId + 1, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }
@@ -308,7 +308,7 @@ class CommunityServiceTest {
             null
         );
 
-        Long postId = communityService.registerPost(request);
+        Long postId = communityService.registerPost(member.getId(), request);
         Post post = postRepository.findById(postId).get();
 
         Comment parentComment = createComment("부모 댓글", post, member);
@@ -339,7 +339,7 @@ class CommunityServiceTest {
 
         PostCommentCreateRequest request = new PostCommentCreateRequest(member.getId(), content, parentCommentId);
 
-        long commentId = communityService.registerPostComment(post.getId(), request);
+        long commentId = communityService.registerPostComment(member.getId(), post.getId(), request);
 
         Comment comment = commentRepository.findById(commentId).get();
 
@@ -361,7 +361,7 @@ class CommunityServiceTest {
 
         PostCommentCreateRequest request = new PostCommentCreateRequest(member.getId(), content, parentCommentId);
 
-        assertThatThrownBy(() -> communityService.registerPostComment(post.getId() + 1, request))
+        assertThatThrownBy(() -> communityService.registerPostComment(member.getId(), post.getId() + 1, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }
@@ -377,7 +377,7 @@ class CommunityServiceTest {
 
         PostCommentCreateRequest request = new PostCommentCreateRequest(member.getId() + 10, content, parentCommentId);
 
-        assertThatThrownBy(() -> communityService.registerPostComment(post.getId(), request))
+        assertThatThrownBy(() -> communityService.registerPostComment(member.getId() + 10, post.getId(), request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
@@ -393,7 +393,7 @@ class CommunityServiceTest {
 
         PostCommentCreateRequest request = new PostCommentCreateRequest(member.getId() + 1, content, parentCommentId);
 
-        assertThatThrownBy(() -> communityService.registerPostComment(post.getId(), request))
+        assertThatThrownBy(() -> communityService.registerPostComment(member.getId(), post.getId(), request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
     }
@@ -409,7 +409,7 @@ class CommunityServiceTest {
         commentRepository.save(parentComment);
         commentRepository.save(childComment);
 
-        communityService.deletePostComment(parentComment.getId());
+        communityService.deletePostComment(member.getId(), parentComment.getId());
 
         Comment parentResult = commentRepository.findById(parentComment.getId()).orElse(null);
         assertThat(parentResult).isNotNull();
@@ -431,7 +431,7 @@ class CommunityServiceTest {
         commentRepository.save(parentComment);
         commentRepository.save(childComment);
 
-        assertThatThrownBy(() -> communityService.deletePostComment(parentComment.getId() + 100))
+        assertThatThrownBy(() -> communityService.deletePostComment(member.getId(), parentComment.getId() + 100))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
     }
@@ -448,7 +448,7 @@ class CommunityServiceTest {
         commentRepository.save(childComment);
         setAuthentication(member2);
 
-        assertThatThrownBy(() -> communityService.deletePostComment(parentComment.getId()))
+        assertThatThrownBy(() -> communityService.deletePostComment(member2.getId(), parentComment.getId()))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
     }
@@ -464,7 +464,7 @@ class CommunityServiceTest {
         commentRepository.save(comment);
 
         PostCommentUpdateRequest request = new PostCommentUpdateRequest("수정 댓글");
-        communityService.updatePostComment(comment.getId(), request);
+        communityService.updatePostComment(member.getId(), comment.getId(), request);
 
         Comment result = commentRepository.findById(comment.getId()).orElse(null);
 
@@ -487,7 +487,7 @@ class CommunityServiceTest {
 
         PostCommentUpdateRequest request = new PostCommentUpdateRequest("수정 댓글");
 
-        assertThatThrownBy(() -> communityService.updatePostComment(comment.getId(), request))
+        assertThatThrownBy(() -> communityService.updatePostComment(member1.getId(), comment.getId(), request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
     }

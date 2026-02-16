@@ -48,8 +48,8 @@ public class CommunityService {
     }
 
     @Transactional
-    public Long registerPost(PostCreateRequest request) {
-        Member member = memberRepository.findById(request.getMemberId()).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+    public Long registerPost(Long memberId, PostCreateRequest request) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         List<PostMedia> postMediaList = getPostMedias(request.getMediaList());
         Post post = Post.createPost(request.getTitle(), request.getContent(), member, postMediaList);
         Post savedPost = postRepository.save(post);
@@ -71,17 +71,15 @@ public class CommunityService {
     }
 
     @Transactional
-    public void deletePost(long postId) {
+    public void deletePost(Long memberId, long postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
-        Long memberId = SecurityUtil.getCurrentMemberId();
         if (!Objects.equals(post.getMember().getId(), memberId)) throw new CustomException(ACCESS_DENIED);
         postRepository.deleteById(postId);
     }
 
     @Transactional
-    public PostDetailResponse updatePost(long postId, PostUpdateRequest request) {
+    public PostDetailResponse updatePost(Long memberId, long postId, PostUpdateRequest request) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
-        Long memberId = SecurityUtil.getCurrentMemberId();
         if (!Objects.equals(post.getMember().getId(), memberId)) throw new CustomException(ACCESS_DENIED);
         List<Long> preserveIds = Optional.ofNullable(request.getPreserveMediaIds()).orElse(Collections.emptyList());
         List<PostMedia> toPreserve = post.getMediaList().stream().filter(postMedia -> preserveIds.contains(postMedia.getId())).toList();
@@ -106,9 +104,9 @@ public class CommunityService {
     }
 
     @Transactional
-    public long registerPostComment(long postId, PostCommentCreateRequest request) {
+    public long registerPostComment(Long memberId, long postId, PostCommentCreateRequest request) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(POST_NOT_FOUND));
-        Member member = memberRepository.findById(request.memberId()).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         Comment parentComment = null;
 
         if (request.parentCommentId() != null) {
@@ -121,17 +119,15 @@ public class CommunityService {
     }
 
     @Transactional
-    public void deletePostComment(long commentId) {
+    public void deletePostComment(Long memberId, long commentId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CustomException(COMMENT_NOT_FOUND));
-        Long memberId = SecurityUtil.getCurrentMemberId();
         if (!Objects.equals(comment.getMember().getId(), memberId)) throw new CustomException(ACCESS_DENIED);
         comment.deleteComment();
     }
 
     @Transactional
-    public String updatePostComment(long commentId, PostCommentUpdateRequest request) {
+    public String updatePostComment(Long memberId, long commentId, PostCommentUpdateRequest request) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CustomException(COMMENT_NOT_FOUND));
-        Long memberId = SecurityUtil.getCurrentMemberId();
         if (!Objects.equals(comment.getMember().getId(), memberId)) throw new CustomException(ACCESS_DENIED);
         comment.updateComment(request.content());
         return request.content();

@@ -96,16 +96,15 @@ public class CommunityServiceUnitTest {
     @DisplayName("게시글 등록 성공")
     void registerPost_success() throws IOException {
         PostMediaRequest media = new PostMediaRequest(MediaType.IMAGE, "https://s3.aws.com/post.jpg");
-        PostCreateRequest request = new PostCreateRequest(1L, "제목", "내용", List.of(media));
-
-        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        PostCreateRequest request = new PostCreateRequest(member.getId(), "제목", "내용", List.of(media));
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
         when(postRepository.save(any(Post.class))).thenAnswer(invocation -> {
             Post post = invocation.getArgument(0, Post.class);
             ReflectionTestUtils.setField(post, "id", 100L);
             return post;
         });
 
-        Long savedPostId = communityService.registerPost(request);
+        Long savedPostId = communityService.registerPost(member.getId(), request);
 
         assertThat(savedPostId).isEqualTo(100L);
         verify(postRepository).save(any(Post.class));
@@ -114,10 +113,10 @@ public class CommunityServiceUnitTest {
     @Test
     @DisplayName("게시글 등록 실패 - 회원이 존재하지 않음")
     void registerPost_fail_no_member() {
-        PostCreateRequest request = new PostCreateRequest(999L, "제목", "내용", null);
-        when(memberRepository.findById(999L)).thenReturn(Optional.empty());
+        PostCreateRequest request = new PostCreateRequest(member.getId(), "제목", "내용", null);
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> communityService.registerPost(request))
+        assertThatThrownBy(() -> communityService.registerPost(member.getId(), request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
@@ -186,7 +185,7 @@ public class CommunityServiceUnitTest {
         setAuthentication(member);
         when(postRepository.findById(10L)).thenReturn(Optional.of(post));
 
-        communityService.deletePost(10L);
+        communityService.deletePost(member.getId(), 10L);
 
         verify(postRepository).deleteById(10L);
     }
@@ -197,7 +196,7 @@ public class CommunityServiceUnitTest {
         setAuthentication(member);
         when(postRepository.findById(100L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> communityService.deletePost(100L))
+        assertThatThrownBy(() -> communityService.deletePost(member.getId(), 100L))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }
@@ -221,7 +220,7 @@ public class CommunityServiceUnitTest {
         when(post.getCreatedAt()).thenReturn(LocalDateTime.now());
         when(post.getUpdatedAt()).thenReturn(LocalDateTime.now());
 
-        communityService.updatePost(10L, request);
+        communityService.updatePost(member.getId(), 10L, request);
 
         verify(post).updatePost(eq(request), anyList(), eq(List.of()));
     }
@@ -234,7 +233,7 @@ public class CommunityServiceUnitTest {
 
         PostUpdateRequest request = mock(PostUpdateRequest.class);
 
-        assertThatThrownBy(() -> communityService.updatePost(100L, request))
+        assertThatThrownBy(() -> communityService.updatePost(member.getId(), 100L, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }
@@ -298,10 +297,10 @@ public class CommunityServiceUnitTest {
     @Test
     @DisplayName("댓글 등록 성공")
     void registerPostComment_success() {
-        PostCommentCreateRequest request = new PostCommentCreateRequest(10L, "댓글댓글", null);
+        PostCommentCreateRequest request = new PostCommentCreateRequest(member.getId(), "댓글댓글", null);
 
         when(postRepository.findById(10L)).thenReturn(Optional.of(post));
-        when(memberRepository.findById(10L)).thenReturn(Optional.of(member));
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
 
         Comment.createComment(request.content(), post, member);
         when(commentRepository.save(any(Comment.class))).thenAnswer(invocation -> {
@@ -310,7 +309,7 @@ public class CommunityServiceUnitTest {
             return comment;
         });
 
-        long commentId = communityService.registerPostComment(10L, request);
+        long commentId = communityService.registerPostComment(member.getId(), 10L, request);
 
         assertThat(commentId).isEqualTo(100L);
     }
@@ -320,7 +319,7 @@ public class CommunityServiceUnitTest {
     void registerPostComment_fail_post_not_found() {
         PostCommentCreateRequest request = new PostCommentCreateRequest(10L, "댓글댓글", null);
 
-        assertThatThrownBy(() -> communityService.registerPostComment(101L, request))
+        assertThatThrownBy(() -> communityService.registerPostComment(10L, 101L, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }
@@ -328,12 +327,12 @@ public class CommunityServiceUnitTest {
     @Test
     @DisplayName("댓글 등록 실패 - 존재하지 않는 사용자")
     void registerPostComment_fail_member_not_found() {
-        PostCommentCreateRequest request = new PostCommentCreateRequest(101L, "댓글댓글", null);
+        PostCommentCreateRequest request = new PostCommentCreateRequest(member.getId(), "댓글댓글", null);
 
         when(postRepository.findById(10L)).thenReturn(Optional.of(post));
-        when(memberRepository.findById(101L)).thenReturn(Optional.empty());
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> communityService.registerPostComment(10L, request))
+        assertThatThrownBy(() -> communityService.registerPostComment(member.getId(), 10L, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
@@ -341,12 +340,12 @@ public class CommunityServiceUnitTest {
     @Test
     @DisplayName("댓글 등록 실패 - 존재하지 않는 댓글")
     void registerPostComment_fail_comment_not_found() {
-        PostCommentCreateRequest request = new PostCommentCreateRequest(101L, "댓글댓글", 101L);
+        PostCommentCreateRequest request = new PostCommentCreateRequest(member.getId(), "댓글댓글", 101L);
 
         when(postRepository.findById(100L)).thenReturn(Optional.of(post));
-        when(memberRepository.findById(101L)).thenReturn(Optional.of(member));
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
 
-        assertThatThrownBy(() -> communityService.registerPostComment(100L, request))
+        assertThatThrownBy(() -> communityService.registerPostComment(member.getId(), 100L, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
     }
@@ -358,7 +357,7 @@ public class CommunityServiceUnitTest {
         setAuthentication(member);
         when(commentRepository.findById(10L)).thenReturn(Optional.of(comment));
 
-        communityService.deletePostComment(10L);
+        communityService.deletePostComment(member.getId(), 10L);
 
         verify(comment).deleteComment(); // soft delete 메서드가 호출되었는지 확인
     }
@@ -372,7 +371,7 @@ public class CommunityServiceUnitTest {
         setAuthentication(member2);
         when(commentRepository.findById(10L)).thenReturn(Optional.of(comment));
 
-        assertThatThrownBy(() -> communityService.deletePostComment(10L))
+        assertThatThrownBy(() -> communityService.deletePostComment(member2.getId(), 10L))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.ACCESS_DENIED.getMessage());
     }
@@ -383,7 +382,7 @@ public class CommunityServiceUnitTest {
         clearAuthentication();
         when(commentRepository.findById(10L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> communityService.deletePostComment(10L))
+        assertThatThrownBy(() -> communityService.deletePostComment(member.getId(), 10L))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
     }
@@ -396,7 +395,7 @@ public class CommunityServiceUnitTest {
         when(commentRepository.findById(10L)).thenReturn(Optional.of(comment));
         PostCommentUpdateRequest request = mock(PostCommentUpdateRequest.class);
 
-        communityService.updatePostComment(10L, request);
+        communityService.updatePostComment(member.getId(), 10L, request);
 
         verify(comment).updateComment(request.content());
     }
@@ -409,7 +408,7 @@ public class CommunityServiceUnitTest {
 
         PostCommentUpdateRequest request = mock(PostCommentUpdateRequest.class);
 
-        assertThatThrownBy(() -> communityService.updatePostComment(10L, request))
+        assertThatThrownBy(() -> communityService.updatePostComment(member.getId(), 10L, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
 

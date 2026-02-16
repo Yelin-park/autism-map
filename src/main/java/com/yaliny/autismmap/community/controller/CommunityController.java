@@ -7,6 +7,7 @@ import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.dto.response.UploadFileResponse;
 import com.yaliny.autismmap.community.service.CommunityService;
 import com.yaliny.autismmap.global.response.BaseResponse;
+import com.yaliny.autismmap.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,9 +38,10 @@ public class CommunityController {
     @Operation(summary = "게시글 등록")
     @PostMapping(value = "/posts")
     public ResponseEntity<BaseResponse<String>> registerPost(
-        @RequestBody PostCreateRequest request
+        @RequestBody PostCreateRequest request,
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        long postId = communityService.registerPost(request);
+        long postId = communityService.registerPost(userDetails.getMemberId(), request);
         return ResponseEntity.ok(BaseResponse.success("postId: " + postId + " 게시글 등록 성공"));
     }
 
@@ -68,9 +71,10 @@ public class CommunityController {
     @Operation(summary = "게시글 삭제")
     @DeleteMapping(value = "/posts/{postId}")
     public ResponseEntity<BaseResponse<String>> deletePost(
-        @PathVariable Long postId
+        @PathVariable Long postId,
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        communityService.deletePost(postId);
+        communityService.deletePost(userDetails.getMemberId(), postId);
         return ResponseEntity.ok(BaseResponse.success("postId: " + postId + " 게시글 삭제 성공"));
     }
 
@@ -78,9 +82,10 @@ public class CommunityController {
     @PatchMapping(value = "/posts/{postId}")
     public ResponseEntity<BaseResponse<PostDetailResponse>> updatePost(
         @PathVariable Long postId,
-        @RequestBody PostUpdateRequest request
+        @RequestBody PostUpdateRequest request,
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        PostDetailResponse response = communityService.updatePost(postId, request);
+        PostDetailResponse response = communityService.updatePost(userDetails.getMemberId(), postId, request);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
@@ -101,18 +106,20 @@ public class CommunityController {
     @PostMapping(value = "/posts/{postId}/comment")
     public ResponseEntity<BaseResponse<String>> registerPostComment(
         @PathVariable Long postId,
-        @RequestBody PostCommentCreateRequest request
+        @RequestBody PostCommentCreateRequest request,
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        long commentId = communityService.registerPostComment(postId, request);
+        long commentId = communityService.registerPostComment(userDetails.getMemberId(), postId, request);
         return ResponseEntity.ok(BaseResponse.success("commentId: " + commentId + " 댓글 등록 성공"));
     }
 
     @Operation(summary = "댓글 삭제")
     @DeleteMapping(value = "/comments/{commentId}")
     public ResponseEntity<BaseResponse<String>> registerPostComment(
-        @PathVariable Long commentId
+        @PathVariable Long commentId,
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        communityService.deletePostComment(commentId);
+        communityService.deletePostComment(userDetails.getMemberId(), commentId);
         return ResponseEntity.ok(BaseResponse.success("commentId: " + commentId + " 댓글 삭제 성공"));
     }
 
@@ -120,9 +127,10 @@ public class CommunityController {
     @PatchMapping(value = "/comments/{commentId}")
     public ResponseEntity<BaseResponse<String>> updatePostComment(
         @PathVariable Long commentId,
-        @RequestBody PostCommentUpdateRequest request
+        @RequestBody PostCommentUpdateRequest request,
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        String response = communityService.updatePostComment(commentId, request);
+        String response = communityService.updatePostComment(userDetails.getMemberId(), commentId, request);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 }

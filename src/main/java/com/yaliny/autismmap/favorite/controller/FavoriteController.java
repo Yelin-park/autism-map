@@ -32,9 +32,9 @@ public class FavoriteController {
     @PostMapping
     public ResponseEntity<BaseResponse<Void>> addFavorite(
         @RequestBody AddFavoriteRequest request,
-        @AuthenticationPrincipal CustomUserDetails user
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        favoriteService.addFavorite(user.getMemberId(), request.placeId());
+        favoriteService.addFavorite(userDetails.getMemberId(), request.placeId());
         return ResponseEntity.ok(BaseResponse.success());
     }
 
@@ -42,16 +42,16 @@ public class FavoriteController {
     @DeleteMapping("{favoriteId}")
     public ResponseEntity<BaseResponse<Void>> deleteFavorite(
         @PathVariable Long favoriteId,
-        @AuthenticationPrincipal CustomUserDetails customUserDetails
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        favoriteService.deleteFavorite(customUserDetails.getMemberId(), favoriteId);
+        favoriteService.deleteFavorite(userDetails.getMemberId(), favoriteId);
         return ResponseEntity.ok(BaseResponse.success());
     }
 
     @Operation(summary = "장소 즐겨찾기 목록 조회")
     @GetMapping
     public ResponseEntity<BaseResponse<FavoriteListResponse>> getFavoriteList(
-        @AuthenticationPrincipal CustomUserDetails customUserDetails,
+        @AuthenticationPrincipal CustomUserDetails userDetails,
         @Parameter(description = "행정 구역 ID")
         @RequestParam(required = false)
         Long provinceId,
@@ -80,7 +80,7 @@ public class FavoriteController {
         @RequestParam(defaultValue = "10") int size
     ) {
         FavoriteListRequest request = FavoriteListRequest.of(provinceId, districtId, category, noiseLevel, hasParking, hasRestArea, hasPrivateRoom, lightingLevel);
-        FavoriteListResponse response = favoriteService.getFavoriteList(customUserDetails.getMemberId(), request, PageRequest.of(page, size));
+        FavoriteListResponse response = favoriteService.getFavoriteList(userDetails.getMemberId(), request, PageRequest.of(page, size));
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
@@ -88,9 +88,9 @@ public class FavoriteController {
     @GetMapping("{favoriteId}")
     public ResponseEntity<BaseResponse<FavoriteDetailResponse>> getFavoriteDetail(
         @PathVariable Long favoriteId,
-        @AuthenticationPrincipal CustomUserDetails customUserDetails
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        FavoriteDetailResponse response = favoriteService.getFavoriteDetail(customUserDetails.getMemberId(), favoriteId);
+        FavoriteDetailResponse response = favoriteService.getFavoriteDetail(userDetails.getMemberId(), favoriteId);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 }

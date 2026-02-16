@@ -103,6 +103,10 @@ public class SecurityConfig {
                     "/oauth2/authorization/**"
                 ).permitAll()
 
+                // 게시글 조회, 댓글 조회
+                .requestMatchers(HttpMethod.GET, "/api/v1/community/posts").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/community/posts/*").permitAll()
+
                 // 장소 조회
                 .requestMatchers(HttpMethod.GET, "/api/v1/places").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/places/*").permitAll()
