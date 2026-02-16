@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.favorite.dto.response;
 
 import com.yaliny.autismmap.favorite.entity.Favorite;
+import com.yaliny.autismmap.place.entity.NoiseLevel;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record FavoriteCardResponse(
@@ -20,8 +21,8 @@ public record FavoriteCardResponse(
     String districtName,
     @Schema(title = "주소", example = "경기도 수원시 권선구 금곡로 10번길 29")
     String address,
-    @Schema(title = "조용한 환경 여부")
-    boolean isQuiet,
+    @Schema(title = "소음 정도", description = "소음 정도", example = "보통")
+    String noiseLevel,
     @Schema(title = "주차장 유무")
     boolean hasParking,
     @Schema(title = "쉴 수 있는 공간 여부")
@@ -43,7 +44,7 @@ public record FavoriteCardResponse(
             favorite.getPlace().getProvince().getName(),
             favorite.getPlace().getDistrict().getName(),
             favorite.getPlace().getAddress(),
-            favorite.getPlace().isQuiet(),
+            favorite.getPlace().getNoiseLevel().getDescription(),
             favorite.getPlace().isHasParking(),
             favorite.getPlace().isHasRestArea(),
             favorite.getPlace().isHasPrivateRoom(),

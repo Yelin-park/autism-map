@@ -52,8 +52,9 @@ public class Place extends BaseEntity {
     @Column(nullable = false)
     private Double longitude; // 경도
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean isQuiet; // 조용한 환경 여부
+    private NoiseLevel noiseLevel; // 소음 정도
 
     @Column(nullable = false)
     private boolean hasParking; // 주차장 유무
@@ -100,7 +101,7 @@ public class Place extends BaseEntity {
         String address,
         Double latitude,
         Double longitude,
-        boolean isQuiet,
+        NoiseLevel noiseLevel,
         boolean hasParking,
         boolean hasRestArea,
         boolean hasPrivateRoom,
@@ -120,7 +121,7 @@ public class Place extends BaseEntity {
         place.setAddress(address);
         place.setLatitude(latitude);
         place.setLongitude(longitude);
-        place.setQuiet(isQuiet);
+        place.setNoiseLevel(noiseLevel);
         place.setHasParking(hasParking);
         place.setHasRestArea(hasRestArea);
         place.setHasPrivateRoom(hasPrivateRoom);
@@ -144,7 +145,7 @@ public class Place extends BaseEntity {
         this.address = request.address();
         this.latitude = request.latitude();
         this.longitude = request.longitude();
-        this.isQuiet = request.isQuiet();
+        this.noiseLevel = request.noiseLevel();
         this.hasParking = request.hasParking();
         this.hasRestArea = request.hasRestArea();
         this.hasPrivateRoom = request.hasPrivateRoom();

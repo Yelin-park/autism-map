@@ -26,8 +26,8 @@ public record PlaceDetailResponse(
     Double latitude,
     @Schema(title = "경도", example = "48.25")
     Double longitude,
-    @Schema(title = "조용한 환경 여부")
-    boolean isQuiet,
+    @Schema(title = "소음 정도", description = "소음 정도", example = "보통")
+    String noiseLevel,
     @Schema(title = "주차장 유무")
     boolean hasParking,
     @Schema(title = "쉴 수 있는 공간 여부")
@@ -72,7 +72,7 @@ public record PlaceDetailResponse(
             place.getAddress(),
             place.getLatitude(),
             place.getLongitude(),
-            place.isQuiet(),
+            place.getNoiseLevel().getDescription(),
             place.isHasParking(),
             place.isHasRestArea(),
             place.isHasPrivateRoom(),

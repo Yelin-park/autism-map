@@ -5,10 +5,7 @@ import com.yaliny.autismmap.favorite.repository.FavoriteRepository;
 import com.yaliny.autismmap.global.security.CustomUserDetails;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
-import com.yaliny.autismmap.place.entity.CrowdLevel;
-import com.yaliny.autismmap.place.entity.LightingLevel;
-import com.yaliny.autismmap.place.entity.Place;
-import com.yaliny.autismmap.place.entity.PlaceCategory;
+import com.yaliny.autismmap.place.entity.*;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
 import com.yaliny.autismmap.region.entity.District;
 import com.yaliny.autismmap.region.entity.Province;
@@ -85,7 +82,7 @@ class FavoriteServiceTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -132,7 +129,7 @@ class FavoriteServiceTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -169,7 +166,7 @@ class FavoriteServiceTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,

@@ -26,7 +26,7 @@ public class PlaceSearchConditionBuilder {
             provinceEq(),
             districtEq(),
             categoryEq(),
-            isQuietEq(),
+            noiseLevelEq(),
             hasParkingEq(),
             hasRestAreaEq(),
             hasPrivateRoomEq(),
@@ -46,8 +46,8 @@ public class PlaceSearchConditionBuilder {
         return extractCondition(request.category(), place.category::eq);
     }
 
-    private BooleanExpression isQuietEq() {
-        return extractCondition(request.isQuiet(), place.isQuiet::eq);
+    private BooleanExpression noiseLevelEq() {
+        return extractCondition(request.noiseLevel(), place.noiseLevel::eq);
     }
 
     private BooleanExpression hasParkingEq() {

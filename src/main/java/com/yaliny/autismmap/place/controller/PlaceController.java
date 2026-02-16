@@ -8,6 +8,7 @@ import com.yaliny.autismmap.place.dto.request.PlaceUpdateRequest;
 import com.yaliny.autismmap.place.dto.response.PlaceDetailResponse;
 import com.yaliny.autismmap.place.dto.response.PlaceListResponse;
 import com.yaliny.autismmap.place.entity.LightingLevel;
+import com.yaliny.autismmap.place.entity.NoiseLevel;
 import com.yaliny.autismmap.place.entity.PlaceCategory;
 import com.yaliny.autismmap.place.service.PlaceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,9 +64,9 @@ public class PlaceController {
         @Parameter(description = "카테고리 구분")
         @RequestParam(required = false)
         PlaceCategory category,
-        @Parameter(description = "조용한 환경 여부")
+        @Parameter(description = "소음 정도")
         @RequestParam(required = false)
-        Boolean isQuiet,
+        NoiseLevel noiseLevel,
         @Parameter(description = "주차장 유무")
         @RequestParam(required = false)
         Boolean hasParking,
@@ -82,7 +83,7 @@ public class PlaceController {
         @RequestParam(defaultValue = "10") int size,
         @AuthenticationPrincipal CustomUserDetails user
     ) {
-        PlaceListRequest request = PlaceListRequest.of(provinceId, districtId, category, isQuiet, hasParking, hasRestArea, hasPrivateRoom, lightingLevel);
+        PlaceListRequest request = PlaceListRequest.of(provinceId, districtId, category, noiseLevel, hasParking, hasRestArea, hasPrivateRoom, lightingLevel);
         PlaceListResponse response = placeService.getPlaceList(request, PageRequest.of(page, size), user == null ? null : user.getMemberId());
         return ResponseEntity.ok(BaseResponse.success(response));
     }

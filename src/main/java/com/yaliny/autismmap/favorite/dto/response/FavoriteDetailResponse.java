@@ -28,8 +28,8 @@ public record FavoriteDetailResponse(
     Double latitude,
     @Schema(title = "경도", example = "48.25")
     Double longitude,
-    @Schema(title = "조용한 환경 여부")
-    boolean isQuiet,
+    @Schema(title = "소음 정도", description = "소음 정도", example = "보통")
+    String noiseLevel,
     @Schema(title = "주차장 유무")
     boolean hasParking,
     @Schema(title = "쉴 수 있는 공간 여부")
@@ -70,7 +70,7 @@ public record FavoriteDetailResponse(
             favorite.getPlace().getAddress(),
             favorite.getPlace().getLatitude(),
             favorite.getPlace().getLongitude(),
-            favorite.getPlace().isQuiet(),
+            favorite.getPlace().getNoiseLevel().getDescription(),
             favorite.getPlace().isHasParking(),
             favorite.getPlace().isHasRestArea(),
             favorite.getPlace().isHasPrivateRoom(),

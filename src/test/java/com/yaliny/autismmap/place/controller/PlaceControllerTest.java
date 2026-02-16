@@ -7,10 +7,7 @@ import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.entity.Role;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import com.yaliny.autismmap.place.dto.request.PlaceListRequest;
-import com.yaliny.autismmap.place.entity.CrowdLevel;
-import com.yaliny.autismmap.place.entity.LightingLevel;
-import com.yaliny.autismmap.place.entity.Place;
-import com.yaliny.autismmap.place.entity.PlaceCategory;
+import com.yaliny.autismmap.place.entity.*;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
 import com.yaliny.autismmap.region.entity.District;
 import com.yaliny.autismmap.region.entity.Province;
@@ -126,7 +123,7 @@ class PlaceControllerTest {
                 .param("address", "경기도 수원시")
                 .param("latitude", "37.5665")
                 .param("longitude", "126.9780")
-                .param("isQuiet", "true")
+                .param("noiseLevel", NoiseLevel.MODERATE.name())
                 .param("hasParking", "true")
                 .param("hasRestArea", "true")
                 .param("hasPrivateRoom", "false")
@@ -195,7 +192,7 @@ class PlaceControllerTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -215,7 +212,7 @@ class PlaceControllerTest {
                 .param("address", "서울시 강남구")
                 .param("latitude", "37.5665")
                 .param("longitude", "126.9780")
-                .param("isQuiet", "true")
+                .param("noiseLevel", NoiseLevel.MODERATE.name())
                 .param("hasParking", "true")
                 .param("hasRestArea", "true")
                 .param("hasPrivateRoom", "true")
@@ -234,7 +231,7 @@ class PlaceControllerTest {
 
         assertThat(findPlace.getName()).isEqualTo("수정된 장소");
         assertThat(findPlace.isHasParking()).isTrue();
-        assertThat(findPlace.isQuiet()).isTrue();
+        assertThat(findPlace.getNoiseLevel()).isEqualTo(NoiseLevel.MODERATE);
         assertThat(findPlace.getDescription()).isEqualTo("설명입니다.2");
         assertThat(findPlace.getAddress()).isEqualTo("서울시 강남구");
         assertThat(findPlace.getDayOff()).isEqualTo("월요일");
@@ -259,7 +256,7 @@ class PlaceControllerTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -279,7 +276,7 @@ class PlaceControllerTest {
                 .param("address", "서울시 강남구")
                 .param("latitude", "37.5665")
                 .param("longitude", "126.9780")
-                .param("isQuiet", "true")
+                .param("noiseLevel", NoiseLevel.MODERATE.name())
                 .param("hasParking", "true")
                 .param("hasRestArea", "true")
                 .param("hasPrivateRoom", "false")
@@ -314,7 +311,7 @@ class PlaceControllerTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -334,7 +331,7 @@ class PlaceControllerTest {
                 .param("address", "서울시 강남구")
                 .param("latitude", "37.5665")
                 .param("longitude", "126.9780")
-                .param("isQuiet", "true")
+                .param("noiseLevel", NoiseLevel.MODERATE.name())
                 .param("hasParking", "true")
                 .param("hasRestArea", "true")
                 .param("hasPrivateRoom", "false")
@@ -369,7 +366,7 @@ class PlaceControllerTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -409,7 +406,7 @@ class PlaceControllerTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -447,7 +444,7 @@ class PlaceControllerTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -485,27 +482,7 @@ class PlaceControllerTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
-            true,
-            true,
-            false,
-            LightingLevel.MODERATE,
-            CrowdLevel.NORMAL,
-            "09:00",
-            "19:00",
-            "월요일"
-        ));
-
-        placeRepository.save(Place.createPlace(
-            "테스트 장소",
-            "설명입니다.",
-            PlaceCategory.CAFE,
-            province,
-            district1,
-            "경기도 수원시",
-            37.5665,
-            126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -525,7 +502,27 @@ class PlaceControllerTest {
             "경기도 수원시",
             37.5665,
             126.9780,
+            NoiseLevel.MODERATE,
             true,
+            true,
+            false,
+            LightingLevel.MODERATE,
+            CrowdLevel.NORMAL,
+            "09:00",
+            "19:00",
+            "월요일"
+        ));
+
+        placeRepository.save(Place.createPlace(
+            "테스트 장소",
+            "설명입니다.",
+            PlaceCategory.CAFE,
+            province,
+            district1,
+            "경기도 수원시",
+            37.5665,
+            126.9780,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -545,7 +542,7 @@ class PlaceControllerTest {
             "경기도 안양시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -589,7 +586,7 @@ class PlaceControllerTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,
@@ -627,7 +624,7 @@ class PlaceControllerTest {
             "경기도 수원시",
             37.5665,
             126.9780,
-            true,
+            NoiseLevel.MODERATE,
             true,
             true,
             false,

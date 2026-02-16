@@ -2,6 +2,7 @@ package com.yaliny.autismmap.place.dto.request;
 
 import com.yaliny.autismmap.place.entity.CrowdLevel;
 import com.yaliny.autismmap.place.entity.LightingLevel;
+import com.yaliny.autismmap.place.entity.NoiseLevel;
 import com.yaliny.autismmap.place.entity.PlaceCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,8 +26,8 @@ public record PlaceCreateRequest(
     Double latitude,
     @Schema(title = "경도", description = "경도", example = "48.25")
     Double longitude,
-    @Schema(title = "조용한 환경 여부", description = "조용한 환경 여부")
-    boolean isQuiet,
+    @Schema(title = "소음 정도", description = "소음 정도", example = "MODERATE")
+    NoiseLevel noiseLevel,
     @Schema(title = "주차장 유무", description = "주차장 유무")
     boolean hasParking,
     @Schema(title = "쉴 수 있는 공간 여부", description = "쉴 수 있는 공간 여부")
