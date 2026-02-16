@@ -51,6 +51,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          port: '22222'
           source: "${{ steps.jar.outputs.path }}"   # 예: build/libs/app.jar
           target: "/srv/nurean/backend/releases/${{ github.sha }}/"
           overwrite: true
@@ -63,6 +64,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          port: '22222'
           command_timeout: 10m
           script: |
             set -euo pipefail
