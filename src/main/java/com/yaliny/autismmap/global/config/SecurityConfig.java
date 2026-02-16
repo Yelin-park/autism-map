@@ -114,6 +114,12 @@ public class SecurityConfig {
                 // 회원 탈퇴
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/members/{memberId}").authenticated()
 
+                // 내정보 조회(로그인 회원 전용)
+                .requestMatchers(HttpMethod.GET, "/api/v1/members/me").authenticated()
+
+                // 로그아웃
+                .requestMatchers("/api/v1/members/logout").permitAll()
+
                 // 장소 관리 - ADMIN 권한 필요
                 .requestMatchers(HttpMethod.POST, "/api/v1/places").hasRole("ADMIN")            // ADMIN 권한만 접근 허용
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/places/{placeId}").hasRole("ADMIN") // ADMIN 권한만 접근 허용

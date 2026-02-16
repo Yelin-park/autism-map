@@ -1,6 +1,8 @@
 package com.yaliny.autismmap.member.controller;
 
+import com.yaliny.autismmap.global.binder.CookieProperties;
 import com.yaliny.autismmap.global.response.BaseResponse;
+import com.yaliny.autismmap.global.security.CustomUserDetails;
 import com.yaliny.autismmap.member.dto.request.LoginRequest;
 import com.yaliny.autismmap.member.dto.request.PasswordRequest;
 import com.yaliny.autismmap.member.dto.request.SignUpRequest;
@@ -10,10 +12,14 @@ import com.yaliny.autismmap.member.dto.response.SignUpResponse;
 import com.yaliny.autismmap.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "회원 관리 기능")
@@ -23,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
 
     private final MemberService memberService;
+    private final CookieProperties cookieProperties;
 
     @Operation(summary = "로그인")
     @PostMapping("/login")
@@ -38,13 +45,26 @@ public class MemberController {
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
-    @Deprecated
     @Operation(summary = "로그아웃")
     @PostMapping("/logout")
-    public ResponseEntity<BaseResponse<String>> logout(Authentication authentication) {
-        String email = (String) authentication.getPrincipal();
-        // 클라이언트에 위임하여 JWT 토큰 삭제
-        return ResponseEntity.ok(BaseResponse.success("로그아웃 성공"));
+    public BaseResponse<Void> logout(HttpServletResponse response) {
+
+        ResponseCookie cookie = ResponseCookie.from("ACCESS_TOKEN", "")
+            .httpOnly(true)
+            .secure(cookieProperties.isSecure())
+            .sameSite(cookieProperties.getSameSite())
+            .path("/")
+            .maxAge(0) // 즉시 만료
+            .domain(
+                cookieProperties.getDomain() == null || cookieProperties.getDomain().isBlank()
+                    ? null
+                    : cookieProperties.getDomain()
+            )
+            .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return BaseResponse.success();
     }
 
     @Operation(summary = "회원탈퇴")
@@ -82,6 +102,15 @@ public class MemberController {
             @RequestBody @Valid PasswordRequest request
     ) {
         MemberInfoResponse response = memberService.updatePassword(memberId, request);
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
+    @Operation(summary = "로그인 사용자 전용 내정보 조회")
+    @GetMapping("/me")
+    public ResponseEntity<BaseResponse<MemberInfoResponse>> getMyInfo(
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        MemberInfoResponse response = memberService.getMemberInfo(userDetails.getMemberId());
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 

@@ -58,8 +58,6 @@ public class JwtFilter extends OncePerRequestFilter {
         String requestUri = request.getRequestURI();
         log.debug("[JwtFilter] 요청 URI: {}", requestUri);
 
-        String authorizationHeader = request.getHeader(AUTHORIZATION_HEADER);
-
         try {
             // 1. 헤더에서 토큰 추출
             String token = extractToken(request);
@@ -107,6 +105,14 @@ public class JwtFilter extends OncePerRequestFilter {
             return authorizationHeader.substring(BEARER_PREFIX.length());
         }
 
+        // 헤더 없으면 쿠키에서 찾기
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("ACCESS_TOKEN".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
         return null;
     }
 
