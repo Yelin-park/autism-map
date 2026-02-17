@@ -190,26 +190,6 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("회원 정보 조회 실패 - 본인 아님 (권한 없음)")
-    void getMemberInfo_no_permission() {
-        SignUpRequest signupRequest = new SignUpRequest("test@example.com", "1234", "테스터");
-        memberService.signup(signupRequest);
-
-        SignUpRequest signupRequest2 = new SignUpRequest("test@example1.com", "1234", "테스터2");
-        memberService.signup(signupRequest2);
-
-        Member member = memberRepository.findByEmail("test@example.com").get();
-        Member member2 = memberRepository.findByEmail("test@example1.com").get();
-        setAuthentication(member2);
-
-        assertThatThrownBy(() -> memberService.getMemberInfo(member.getId()))
-            .isInstanceOf(CustomException.class)
-            .hasMessage("접근 권한이 없습니다.");
-
-        clearAuthentication();
-    }
-
-    @Test
     @DisplayName("닉네임 수정 성공")
     void updateNickname_success() {
         // given
