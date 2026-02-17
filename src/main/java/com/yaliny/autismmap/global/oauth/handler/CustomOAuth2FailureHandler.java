@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.global.oauth.handler;
 
 import com.yaliny.autismmap.global.exception.CustomException;
+import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.oauth.constants.OAuth2Constants;
 import com.yaliny.autismmap.global.utils.DeviceExtractor;
 import jakarta.servlet.ServletException;
@@ -15,8 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
@@ -35,15 +34,15 @@ public class CustomOAuth2FailureHandler implements AuthenticationFailureHandler 
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-        String errorMessage = extractErrorMessage(exception);
+        ErrorCode errorCode = extractErrorCode(exception);
 
         String state = request.getParameter("state");
         String device = extractDeviceFromState(state);
 
-        log.info("[OAuth2FailureHandler] device: {}, error: {}", device, errorMessage);
+        log.info("[OAuth2FailureHandler] device: {}, errorCode: {}", device, errorCode);
 
         // 리다이렉트 URL 생성
-        String redirectUrl = buildRedirectUrl(device, errorMessage);
+        String redirectUrl = buildRedirectUrl(device, errorCode);
 
         log.info("[OAuth2FailureHandler] 리다이렉트 URL: {}", redirectUrl);
         response.sendRedirect(redirectUrl);
@@ -62,38 +61,37 @@ public class CustomOAuth2FailureHandler implements AuthenticationFailureHandler 
     }
 
     /**
-     * 예외에서 에러 메시지 추출
-     * 우선순위: CustomException > AuthenticationException message > 기본 메시지
-     *
-     * @param exception 발생한 예외
-     * @return 에러 메시지
+     * 예외에서 ErrorCode 추출
+     * 우선순위: CustomException > 기본값
      */
-    private String extractErrorMessage(AuthenticationException exception) {
+    private ErrorCode extractErrorCode(AuthenticationException exception) {
         if (exception.getCause() instanceof CustomException customException) {
-            return customException.getMessage();
+            return customException.getErrorCode();
         }
 
-        if (exception.getMessage() != null && !exception.getMessage().isBlank()) {
-            return exception.getMessage();
+        if (exception.getMessage().equals(ErrorCode.DUPLICATE_SOCIAL_EMAIL.getMessage())) {
+            return ErrorCode.DUPLICATE_SOCIAL_EMAIL;
         }
 
-        return DEFAULT_ERROR_MESSAGE;
+        return ErrorCode.OAUTH_TOKEN_REQUEST_FAILED; // 기본값
     }
 
     /**
      * device에 따라 적절한 에러 리다이렉트 URL 생성
      *
      * @param device 디바이스 타입 (web/app)
-     * @param errorMessage 에러 메시지
+     * @param errorCode 에러 코드
      * @return 완성된 리다이렉트 URL
      */
-    private String buildRedirectUrl(String device, String errorMessage) {
+    private String buildRedirectUrl(String device, ErrorCode errorCode) {
         String baseUri = deviceExtractor.isApp(device) ? APP_REDIRECT_URI : WEB_REDIRECT_URI;
 
         return UriComponentsBuilder
             .fromUriString(baseUri)
             .queryParam("error", "true")
-            .build(true)
+            .queryParam("message", errorCode.getMessage())
+            .encode()
+            .build()
             .toUriString();
     }
 }

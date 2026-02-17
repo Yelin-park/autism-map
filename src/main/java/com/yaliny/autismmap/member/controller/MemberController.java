@@ -79,9 +79,9 @@ public class MemberController {
     @Operation(summary = "회원 정보 조회")
     @GetMapping("/{memberId}")
     public ResponseEntity<BaseResponse<MemberInfoResponse>> getMemberInfo(
-        @PathVariable long memberId
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        MemberInfoResponse response = memberService.getMemberInfo(memberId);
+        MemberInfoResponse response = memberService.getMemberInfo(userDetails.getMemberId());
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 

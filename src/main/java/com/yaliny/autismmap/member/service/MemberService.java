@@ -64,8 +64,6 @@ public class MemberService {
     }
 
     public MemberInfoResponse getMemberInfo(Long memberId) {
-        Long tokenMemberId = SecurityUtil.getCurrentMemberId();
-        if (!memberId.equals(tokenMemberId)) throw new CustomException(ACCESS_DENIED);
         Member findMember = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         return MemberInfoResponse.of(findMember);
     }
