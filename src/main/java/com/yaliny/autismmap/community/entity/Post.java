@@ -78,6 +78,7 @@ public class Post extends BaseEntity {
     public void updatePost(PostUpdateRequest request, List<PostMedia> newMedias, List<PostMedia> toPreserve) {
         this.title = request.getTitle();
         this.content = request.getContent();
+        this.category = CategoryType.valueOf(request.getCategory());
         this.mediaList.clear();
         for (PostMedia media : toPreserve) {
             this.addMedia(media);
