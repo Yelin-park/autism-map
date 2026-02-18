@@ -240,39 +240,14 @@ class MemberServiceTest {
         setAuthentication(member);
 
         // when
+        String oldPassword = "oldPassword1234";
         String password = "newPassword1234";
-        PasswordRequest request = new PasswordRequest(password);
+        PasswordRequest request = new PasswordRequest(oldPassword, password);
         MemberInfoResponse memberInfo = memberService.updatePassword(member.getId(), request);
 
         Member findMember = memberRepository.findByEmail("test@example.com").get();
         // then
         assertThat(memberInfo.email()).isEqualTo("test@example.com");
         assertThat(passwordEncoder.matches(password, findMember.getPassword())).isTrue();
-    }
-
-    @Test
-    @DisplayName("비밀번호 수정 실패 - 본인 아님(권한 없음)")
-    void updatePassword_no_permission() {
-        // given
-        SignUpRequest signupRequest = new SignUpRequest("test1@example.com", "oldPassword1234", "테스터1");
-        memberService.signup(signupRequest);
-
-        SignUpRequest signupRequest2 = new SignUpRequest("test2@example.com", "oldPassword1234", "테스터2");
-        memberService.signup(signupRequest2);
-
-        Member member1 = memberRepository.findByEmail("test1@example.com").get();
-        Member member2 = memberRepository.findByEmail("test2@example.com").get();
-        setAuthentication(member2);
-
-        // when
-        String password = "newPassword1234";
-        PasswordRequest request = new PasswordRequest(password);
-
-        // then
-        assertThatThrownBy(() -> memberService.updatePassword(member1.getId(), request))
-                .isInstanceOf(CustomException.class)
-                .hasMessage("접근 권한이 없습니다.");
-
-        clearAuthentication();
     }
 }

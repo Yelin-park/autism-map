@@ -76,6 +76,7 @@ public class MemberController {
         return ResponseEntity.ok(BaseResponse.success("회원탈퇴 성공"));
     }
 
+    @Deprecated
     @Operation(summary = "회원 정보 조회")
     @GetMapping("/{memberId}")
     public ResponseEntity<BaseResponse<MemberInfoResponse>> getMemberInfo(
@@ -96,12 +97,12 @@ public class MemberController {
     }
 
     @Operation(summary = "비밀번호 변경")
-    @PatchMapping("/{memberId}/password")
+    @PatchMapping("/password")
     public ResponseEntity<BaseResponse<MemberInfoResponse>> updatePassword(
-            @PathVariable Long memberId,
-            @RequestBody @Valid PasswordRequest request
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @RequestBody @Valid PasswordRequest request
     ) {
-        MemberInfoResponse response = memberService.updatePassword(memberId, request);
+        MemberInfoResponse response = memberService.updatePassword(userDetails.getMemberId(), request);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 

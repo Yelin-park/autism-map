@@ -1,6 +1,7 @@
 package com.yaliny.autismmap.member.service;
 
 import com.yaliny.autismmap.global.exception.CustomException;
+import com.yaliny.autismmap.global.exception.ErrorCode;
 import com.yaliny.autismmap.global.external.kakao.KakaoUnlinkService;
 import com.yaliny.autismmap.global.jwt.JwtUtil;
 import com.yaliny.autismmap.global.utils.SecurityUtil;
@@ -101,12 +102,15 @@ public class MemberService {
 
     @Transactional
     public MemberInfoResponse updatePassword(Long memberId, PasswordRequest request) {
-        Long tokenMemberId = SecurityUtil.getCurrentMemberId();
-        if (!memberId.equals(tokenMemberId)) throw new CustomException(ACCESS_DENIED);
         Member findMember = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         if (findMember.isSocial()) {
             throw new CustomException(SOCIAL_ACCOUNT_PASSWORD_CHANGE_NOT_ALLOWED);
         }
+
+        if (!passwordEncoder.matches(request.oldPassword(), findMember.getPassword())) {
+            throw new CustomException(INVALID_PASSWORD);
+        }
+
         findMember.updatePassword(passwordEncoder.encode(request.password()));
         return MemberInfoResponse.of(findMember);
     }
