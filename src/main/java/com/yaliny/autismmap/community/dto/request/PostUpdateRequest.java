@@ -10,6 +10,8 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class PostUpdateRequest {
+    @Schema(required = true, title = "카테고리", description = "카테고리", example = "FREE")
+    private String category;
     @Schema(required = true, title = "제목", description = "제목", example = "수원 갈만한 식당있나요?")
     private String title;
     @Schema(required = true, title = "내용", description = "내용", example = "수원에 8살 아들과 함께 갈만한 식당있나요??")
@@ -19,7 +21,8 @@ public class PostUpdateRequest {
     @Schema(title = "미디어 리스트", description = "미디어 리스트")
     private List<PostMediaRequest> mediaList;
 
-    public PostUpdateRequest(String title, String content, List<Long> preserveMediaIds, List<PostMediaRequest> mediaList) {
+    public PostUpdateRequest(String category, String title, String content, List<Long> preserveMediaIds, List<PostMediaRequest> mediaList) {
+        this.category = category;
         this.title = title;
         this.content = content;
         this.preserveMediaIds = preserveMediaIds != null ? preserveMediaIds : new ArrayList<>();

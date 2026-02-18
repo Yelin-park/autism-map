@@ -3,6 +3,7 @@ package com.yaliny.autismmap.community.service;
 import com.yaliny.autismmap.community.dto.request.*;
 import com.yaliny.autismmap.community.dto.response.PostCommentResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
+import com.yaliny.autismmap.community.entity.CategoryType;
 import com.yaliny.autismmap.community.entity.Comment;
 import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
@@ -124,6 +125,7 @@ public class CommunityServiceUnitTest {
     @Test
     @DisplayName("게시글 목록 조회 성공")
     void getPostList_success() {
+        when(post.getCategory()).thenReturn(CategoryType.FREE);
         when(post.getTitle()).thenReturn("제목");
         when(post.getContent()).thenReturn("내용");
         when(post.getMember()).thenReturn(member);
@@ -150,6 +152,7 @@ public class CommunityServiceUnitTest {
     @DisplayName("게시글 상세 조회 성공")
     void getPostDetail_success() {
         when(postRepository.findById(10L)).thenReturn(Optional.of(post));
+        when(post.getCategory()).thenReturn(CategoryType.FREE);
         when(post.getTitle()).thenReturn("제목");
         when(post.getViewCount()).thenReturn(1L);
         when(post.getContent()).thenReturn("내용");
@@ -212,6 +215,7 @@ public class CommunityServiceUnitTest {
         when(request.getMediaList()).thenReturn(List.of(mediaRequest));
 
         when(postRepository.findById(10L)).thenReturn(Optional.of(post));
+        when(post.getCategory()).thenReturn(CategoryType.FREE);
         when(post.getTitle()).thenReturn("제목");
         when(post.getContent()).thenReturn("내용");
         when(post.getMember()).thenReturn(member);

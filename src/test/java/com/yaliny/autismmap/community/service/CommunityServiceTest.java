@@ -275,7 +275,7 @@ class CommunityServiceTest {
         setAuthentication(dummyPost.getMember());
         String mockImage = "imageUrl";
         PostMediaRequest postMediaRequest = new PostMediaRequest(MediaType.IMAGE, mockImage);
-        PostUpdateRequest request = new PostUpdateRequest("수정제목", "수정내용", null, List.of(postMediaRequest));
+        PostUpdateRequest request = new PostUpdateRequest("FREE", "수정제목", "수정내용", null, List.of(postMediaRequest));
 
         communityService.updatePost(dummyPost.getMember().getId(), dummyPostId, request);
 
@@ -292,7 +292,7 @@ class CommunityServiceTest {
         Post dummyPost = createDummyPost();
         long dummyPostId = dummyPost.getId();
         setAuthentication(dummyPost.getMember());
-        PostUpdateRequest request = new PostUpdateRequest("수정제목", "수정내용", null, List.of());
+        PostUpdateRequest request = new PostUpdateRequest("FREE" ,"수정제목", "수정내용", null, List.of());
 
         assertThatThrownBy(() -> communityService.updatePost(dummyPost.getMember().getId(), dummyPostId + 1, request))
             .isInstanceOf(CustomException.class)
