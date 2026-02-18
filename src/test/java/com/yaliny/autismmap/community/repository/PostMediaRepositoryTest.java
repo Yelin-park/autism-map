@@ -1,5 +1,6 @@
 package com.yaliny.autismmap.community.repository;
 
+import com.yaliny.autismmap.community.entity.CategoryType;
 import com.yaliny.autismmap.community.entity.MediaType;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.entity.PostMedia;
@@ -44,6 +45,7 @@ class PostMediaRepositoryTest {
 
         String title = "제목";
         String content = "제곧내";
+        CategoryType category = CategoryType.FREE;
         PostMedia media1 = PostMedia.createPostMedia(MediaType.IMAGE, "url1");
         PostMedia media2 = PostMedia.createPostMedia(MediaType.IMAGE, "url2");
         PostMedia media3 = PostMedia.createPostMedia(MediaType.VIDEO, "url3");
@@ -52,7 +54,7 @@ class PostMediaRepositoryTest {
         postMedia.add(media2);
         postMedia.add(media3);
 
-        Post post = Post.createPost(title, content, member, postMedia);
+        Post post = Post.createPost(category, title, content, member, postMedia);
         postRepository.save(post);
 
         List<PostMedia> postMediaList = postMediaRepository.findAll();

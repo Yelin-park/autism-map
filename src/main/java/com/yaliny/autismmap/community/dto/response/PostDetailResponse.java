@@ -11,6 +11,8 @@ import java.util.List;
 public record PostDetailResponse(
     @Schema(title = "게시글 ID", description = "게시글 ID")
     long postId,
+    @Schema(title = "카테고리", description = "카테고리")
+    String category,
     @Schema(title = "게시글 제목", description = "게시글 제목")
     String title,
     @Schema(title = "게시글 조회수")
@@ -44,6 +46,7 @@ public record PostDetailResponse(
     public static PostDetailResponse of(Post post) {
         return new PostDetailResponse(
             post.getId(),
+            post.getCategory().name(),
             post.getTitle(),
             post.getViewCount(),
             post.getContent(),
@@ -58,6 +61,7 @@ public record PostDetailResponse(
     public static PostDetailResponse ofWithOverriddenViewCount(Post post, long overriddenViewCount) {
         return new PostDetailResponse(
             post.getId(),
+            post.getCategory().name(),
             post.getTitle(),
             overriddenViewCount,
             post.getContent(),

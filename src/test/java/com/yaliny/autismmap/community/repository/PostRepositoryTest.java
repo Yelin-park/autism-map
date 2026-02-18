@@ -1,5 +1,6 @@
 package com.yaliny.autismmap.community.repository;
 
+import com.yaliny.autismmap.community.entity.CategoryType;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.global.config.QuerydslConfig;
 import com.yaliny.autismmap.member.entity.Member;
@@ -38,11 +39,13 @@ class PostRepositoryTest {
 
         String title = "제목";
         String content = "제곧내";
-        Post post = Post.createPost(title, content, member);
+        CategoryType category = CategoryType.FREE;
+        Post post = Post.createPost(category, title, content, member);
         postRepository.save(post);
 
         Post findPost = postRepository.findById(post.getId()).get();
         assertThat(findPost.getTitle()).isEqualTo(title);
         assertThat(findPost.getContent()).isEqualTo(content);
+        assertThat(findPost.getCategory()).isEqualTo(category);
     }
 }

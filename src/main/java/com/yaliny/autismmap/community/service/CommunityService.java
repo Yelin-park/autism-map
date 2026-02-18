@@ -5,6 +5,7 @@ import com.yaliny.autismmap.community.dto.response.PostCommentResponse;
 import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
 import com.yaliny.autismmap.community.dto.response.UploadFileResponse;
+import com.yaliny.autismmap.community.entity.CategoryType;
 import com.yaliny.autismmap.community.entity.Comment;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.community.entity.PostMedia;
@@ -28,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.*;
 
+import static com.yaliny.autismmap.community.entity.CategoryType.getCategoryType;
 import static com.yaliny.autismmap.global.exception.ErrorCode.*;
 
 @Slf4j
@@ -51,15 +53,16 @@ public class CommunityService {
     public Long registerPost(Long memberId, PostCreateRequest request) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
         List<PostMedia> postMediaList = getPostMedias(request.getMediaList());
-        Post post = Post.createPost(request.getTitle(), request.getContent(), member, postMediaList);
+        Post post = Post.createPost(getCategoryType(request.getCategory()), request.getTitle(), request.getContent(), member, postMediaList);
         Post savedPost = postRepository.save(post);
         return savedPost.getId();
     }
 
     @Transactional(readOnly = true)
-    public PostListResponse getPostList(String searchText, PageRequest pageRequest) {
+    public PostListResponse getPostList(String category, String searchText, PageRequest pageRequest) {
+        CategoryType categoryType = category != null ? CategoryType.getCategoryType(category) : null;
         searchText = searchText != null ? searchText : "";
-        Page<Post> response = postRepository.searchPost(searchText, pageRequest);
+        Page<Post> response = postRepository.searchPost(categoryType, searchText, pageRequest);
         return PostListResponse.of(response);
     }
 

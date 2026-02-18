@@ -1,5 +1,8 @@
 package com.yaliny.autismmap.member.entity;
 
+import lombok.Getter;
+
+@Getter
 public enum Role {
 
     USER("사용자"),
@@ -9,9 +12,5 @@ public enum Role {
 
     Role(String description) {
         this.description = description;
-    }
-
-    public String getDescription() {
-        return description;
     }
 }

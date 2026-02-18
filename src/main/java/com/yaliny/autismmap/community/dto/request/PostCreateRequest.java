@@ -15,6 +15,9 @@ public class PostCreateRequest {
     @Schema(required = true, title = "사용자 ID", description = "사용자 ID")
     private long memberId;
 
+    @Schema(required = true, title = "카테고리", description = "카테고리", example = "FREE")
+    private String category;
+
     @Schema(required = true, title = "제목", description = "게시글 제목", example = "수원 갈만한 식당 있나요?")
     private String title;
 
@@ -24,8 +27,9 @@ public class PostCreateRequest {
     @Schema(title = "미디어 리스트", description = "미디어 리스트")
     private List<PostMediaRequest> mediaList = new ArrayList<>();
 
-    public PostCreateRequest(long memberId, String title, String content, List<PostMediaRequest> mediaList) {
+    public PostCreateRequest(long memberId, String category, String title, String content, List<PostMediaRequest> mediaList) {
         this.memberId = memberId;
+        this.category = category;
         this.title = title;
         this.content = content;
         this.mediaList = mediaList != null ? mediaList : new ArrayList<>();

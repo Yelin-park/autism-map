@@ -24,6 +24,10 @@ public class Post extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private CategoryType category;
+
+    @Column(nullable = false)
     private String title;
 
     @Lob
@@ -43,16 +47,17 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private Long viewCount = 0L;
 
-    public static Post createPost(String title, String content, Member member) {
+    public static Post createPost(CategoryType category, String title, String content, Member member) {
         Post post = new Post();
+        post.setCategory(category);
         post.setTitle(title);
         post.setContent(content);
         post.setMember(member);
         return post;
     }
 
-    public static Post createPost(String title, String content, Member member, List<PostMedia> medias) {
-        Post post = createPost(title, content, member);
+    public static Post createPost(CategoryType category, String title, String content, Member member, List<PostMedia> medias) {
+        Post post = createPost(category, title, content, member);
         for (PostMedia media : medias) {
             post.addMedia(media);
         }

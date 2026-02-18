@@ -96,7 +96,7 @@ public class CommunityServiceUnitTest {
     @DisplayName("게시글 등록 성공")
     void registerPost_success() throws IOException {
         PostMediaRequest media = new PostMediaRequest(MediaType.IMAGE, "https://s3.aws.com/post.jpg");
-        PostCreateRequest request = new PostCreateRequest(member.getId(), "제목", "내용", List.of(media));
+        PostCreateRequest request = new PostCreateRequest(member.getId(), "FREE", "제목", "내용", List.of(media));
         when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
         when(postRepository.save(any(Post.class))).thenAnswer(invocation -> {
             Post post = invocation.getArgument(0, Post.class);
@@ -113,7 +113,7 @@ public class CommunityServiceUnitTest {
     @Test
     @DisplayName("게시글 등록 실패 - 회원이 존재하지 않음")
     void registerPost_fail_no_member() {
-        PostCreateRequest request = new PostCreateRequest(member.getId(), "제목", "내용", null);
+        PostCreateRequest request = new PostCreateRequest(member.getId(), "FREE", "제목", "내용", null);
         when(memberRepository.findById(member.getId())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> communityService.registerPost(member.getId(), request))
@@ -135,9 +135,9 @@ public class CommunityServiceUnitTest {
 
         Page<Post> page = new PageImpl<>(List.of(post), pageRequest, 1);
 
-        when(postRepository.searchPost("", pageRequest)).thenReturn(page);
+        when(postRepository.searchPost(null, "", pageRequest)).thenReturn(page);
 
-        PostListResponse response = communityService.getPostList(null, pageRequest);
+        PostListResponse response = communityService.getPostList(null, null, pageRequest);
 
         assertThat(response.page()).isEqualTo(0);
         assertThat(response.totalElements()).isEqualTo(1);

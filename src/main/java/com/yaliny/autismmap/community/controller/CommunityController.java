@@ -48,6 +48,8 @@ public class CommunityController {
     @Operation(summary = "게시글 목록 조회")
     @GetMapping(value = "/posts")
     public ResponseEntity<BaseResponse<PostListResponse>> getPostList(
+        @Parameter(description = "카테고리 상관이 없으면 null로 주세요.")
+        @RequestParam(required = false) String category,
         @Parameter(description = "검색어가 없으면 null로 주세요.")
         @RequestParam(required = false) String searchText,
         @Parameter(description = "페이지")
@@ -55,7 +57,7 @@ public class CommunityController {
         @Parameter(description = "요청 개수")
         @RequestParam(defaultValue = "10") int size
     ) {
-        PostListResponse response = communityService.getPostList(searchText, PageRequest.of(page, size));
+        PostListResponse response = communityService.getPostList(category, searchText, PageRequest.of(page, size));
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 

@@ -1,5 +1,6 @@
 package com.yaliny.autismmap.community.repository;
 
+import com.yaliny.autismmap.community.entity.CategoryType;
 import com.yaliny.autismmap.community.entity.Comment;
 import com.yaliny.autismmap.community.entity.Post;
 import com.yaliny.autismmap.global.config.QuerydslConfig;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.CacheAwareContextLoaderDelegate;
 
 import java.util.Arrays;
 import java.util.List;
@@ -51,7 +53,8 @@ class CommentRepositoryTest {
 
         String title = "제목";
         String content = "제곧내";
-        Post post = Post.createPost(title, content, member1);
+        CategoryType category = CategoryType.FREE;
+        Post post = Post.createPost(category, title, content, member1);
         postRepository.save(post);
 
         Comment comment1 = Comment.createComment("댓글", post, member2);

@@ -2,6 +2,7 @@ package com.yaliny.autismmap.community.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.yaliny.autismmap.community.entity.CategoryType;
 import com.yaliny.autismmap.community.entity.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,7 +22,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<Post> searchPost(String searchText, Pageable pageable) {
+    public Page<Post> searchPost(CategoryType categoryType, String searchText, Pageable pageable) {
         List<Post> content = queryFactory
             .selectFrom(post)
             .join(post.member, member).fetchJoin()
@@ -29,7 +30,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                 titleContains(searchText)
                     .or(contentContains(searchText))
                     .or(memberNickNameContains(searchText))
+                    .and(categoryTypeEq(categoryType))
             )
+            .orderBy(post.createdAt.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetch();
@@ -41,6 +44,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                 titleContains(searchText)
                     .or(contentContains(searchText))
                     .or(memberNickNameContains(searchText))
+                    .and(categoryTypeEq(categoryType))
             )
             .fetchOne();
 
@@ -57,5 +61,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
     private BooleanExpression memberNickNameContains(String searchText) {
         return searchText != null ? post.member.nickname.contains(searchText) : null;
+    }
+
+    private BooleanExpression categoryTypeEq(CategoryType categoryType) {
+        return categoryType != null ? post.category.eq(categoryType) : null;
     }
 }

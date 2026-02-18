@@ -4,10 +4,7 @@ import com.yaliny.autismmap.community.dto.request.*;
 import com.yaliny.autismmap.community.dto.response.PostCommentResponse;
 import com.yaliny.autismmap.community.dto.response.PostDetailResponse;
 import com.yaliny.autismmap.community.dto.response.PostListResponse;
-import com.yaliny.autismmap.community.entity.Comment;
-import com.yaliny.autismmap.community.entity.MediaType;
-import com.yaliny.autismmap.community.entity.Post;
-import com.yaliny.autismmap.community.entity.PostMedia;
+import com.yaliny.autismmap.community.entity.*;
 import com.yaliny.autismmap.community.repository.CommentRepository;
 import com.yaliny.autismmap.community.repository.PostMediaRepository;
 import com.yaliny.autismmap.community.repository.PostRepository;
@@ -82,8 +79,10 @@ class CommunityServiceTest {
         Member member = getMember("test@test123.com", "닉네임123");
         String title = "제목입니다.";
         String content = "내용입니다.";
+        CategoryType category = CategoryType.FREE;
 
         Post post = Post.createPost(
+            category,
             title,
             content,
             member
@@ -137,6 +136,7 @@ class CommunityServiceTest {
 
         String title = "제목입니다.";
         String content = "내용입니다.";
+        String category = "FREE";
 
         PostMediaRequest image = new PostMediaRequest(
             MediaType.IMAGE,
@@ -154,6 +154,7 @@ class CommunityServiceTest {
 
         PostCreateRequest request = new PostCreateRequest(
             member.getId(),
+            category,
             title,
             content,
             list
@@ -174,9 +175,11 @@ class CommunityServiceTest {
     void registerPost_fail_member_not_found() {
         String title = "제목입니다.";
         String content = "내용입니다.";
+        String category = "FREE";
 
         PostCreateRequest request = new PostCreateRequest(
             1L,
+            category,
             title,
             content,
             null
@@ -192,7 +195,7 @@ class CommunityServiceTest {
     void getPost_success() {
         createDummyPost();
 
-        PostListResponse result = communityService.getPostList(null, PageRequest.of(0, 10));
+        PostListResponse result = communityService.getPostList(null, null, PageRequest.of(0, 10));
 
         assertThat(result.content().size()).isEqualTo(1);
         assertThat(result.content().get(0).nickName()).isEqualTo("닉네임123");
@@ -206,8 +209,10 @@ class CommunityServiceTest {
         Member member = getMember("test@test1234.com", "닉네임1234");
         String title = "제목1입니다.";
         String content = "내용1입니다.";
+        CategoryType category = CategoryType.FREE;
 
         Post post = Post.createPost(
+            category,
             title,
             content,
             member
@@ -300,9 +305,11 @@ class CommunityServiceTest {
         Member member = getMember();
         String title = "제목입니다.";
         String content = "내용입니다.";
+        String category = "FREE";
 
         PostCreateRequest request = new PostCreateRequest(
             member.getId(),
+            category,
             title,
             content,
             null
