@@ -22,14 +22,28 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        Exception exception = (Exception) request.getAttribute("exception");
+        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
+
+        if (exception instanceof io.jsonwebtoken.ExpiredJwtException) {
+            errorCode = ErrorCode.EXPIRED_TOKEN;
+        } else if (exception instanceof io.jsonwebtoken.security.SignatureException) {
+            errorCode = ErrorCode.INVALID_SIGNATURE;
+        } else if (exception instanceof io.jsonwebtoken.MalformedJwtException) {
+            errorCode = ErrorCode.MALFORMED_TOKEN;
+        } else if (exception instanceof io.jsonwebtoken.UnsupportedJwtException) {
+            errorCode = ErrorCode.UNSUPPORTED_TOKEN;
+        } else if (exception instanceof IllegalArgumentException) {
+            errorCode = ErrorCode.EMPTY_TOKEN;
+        }
+
+        response.setStatus(errorCode.getStatus().value());
         response.setContentType("application/json;charset=UTF-8");
 
         BaseResponse<Void> body = BaseResponse.error(
-            HttpStatus.UNAUTHORIZED.value(), ErrorCode.UNAUTHORIZED.getMessage()
+            errorCode.getStatus().value(), errorCode.getMessage()
         );
 
         objectMapper.writeValue(response.getOutputStream(), body);
     }
-
 }

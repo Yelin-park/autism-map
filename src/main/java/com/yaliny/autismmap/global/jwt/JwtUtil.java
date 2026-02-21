@@ -53,17 +53,12 @@ public class JwtUtil {
             getClaims(token); // 파싱이 가능해야 유효한 토큰
             return true;
         } catch (ExpiredJwtException e) {
-            log.error("만료된 JWT 토큰: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            log.error("지원하지 않는 JWT 토큰: {}", e.getMessage());
-        } catch (MalformedJwtException e) {
-            log.error("잘못된 JWT 구조: {}", e.getMessage());
-        } catch (SignatureException e) {
-            log.error("서명 오류 : {}", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            log.error("JWT claims 비어있음 : {}", e.getMessage());
+            log.warn("[JwtUtil] 토큰 만료: {}", e.getMessage());
+            throw e;
+        } catch (JwtException | IllegalArgumentException e) {
+            log.warn("[JwtUtil] 유효하지 않은 토큰: {}", e.getMessage());
+            return false;
         }
-        return false;
     }
 
     /**
@@ -74,8 +69,7 @@ public class JwtUtil {
     }
 
     public String getEmail(String token) {
-        Claims claims = getClaims(token);
-        return claims.get("email", String.class);
+        return getClaims(token).get("email", String.class);
     }
 
     public Role getRole(String token) {
@@ -83,8 +77,7 @@ public class JwtUtil {
     }
 
     public Long getMemberId(String token) {
-        Claims claims = getClaims(token);
-        return Long.parseLong(claims.getSubject());
+        return Long.parseLong(getClaims(token).getSubject());
     }
 
 }

@@ -23,6 +23,16 @@ public enum ErrorCode {
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "유효성 검사에 실패했습니다."),
 
+    // JWT 관련
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
+    INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, "토큰 서명이 유효하지 않습니다."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰 형식입니다."),
+    MALFORMED_TOKEN(HttpStatus.UNAUTHORIZED, "잘못된 토큰 구조입니다."),
+    UNSUPPORTED_TOKEN(HttpStatus.UNAUTHORIZED, "지원하지 않는 토큰입니다."),
+    EMPTY_TOKEN(HttpStatus.UNAUTHORIZED, "토큰 정보가 없습니다."),
+    //REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 존재하지 않습니다."),
+    //INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다."),
+
     // OAuth2 관련
     KAKAO_UNLINK_ID_MISMATCH(HttpStatus.BAD_REQUEST, "카카오 연결해제 응답 ID가 불일치합니다."),
     INVALID_OAUTH_RESPONSE(HttpStatus.BAD_REQUEST, "OAuth 응답이 유효하지 않습니다."),

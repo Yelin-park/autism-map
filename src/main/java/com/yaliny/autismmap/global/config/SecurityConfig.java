@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -74,7 +75,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Actuator health, info만 공개
                 .requestMatchers(EndpointRequest.to(HealthEndpoint.class, InfoEndpoint.class)).permitAll()
-                // 공개 엔드포인트
+                // 공개 엔드포인트 및 정적 리소스
                 .requestMatchers(
                     "/",
                     "/h2-console/**",
@@ -83,49 +84,34 @@ public class SecurityConfig {
                     "/v3/api-docs/**",
                     "/favicon.ico",
                     "/nurean/v1/api-docs/**"
-                ).permitAll() // 인증없이 허용
+                ).permitAll()
 
-                // 인증 API
+                // 인증 관련 API
                 .requestMatchers(
                     "/api/v1/members/signup",
                     "/api/v1/members/login",
+                    "/api/v1/members/reissue",
                     "/api/v1/members/logout",
-                    "/api/v1/regions/**",
                     "/api/v1/oauth/**",
-                    "/api/v1/public/member/delete"
+                    "/api/v1/regions/**",
+                    "/api/v1/public/**"
                 ).permitAll()
 
                 // OAuth2 엔드포인트
                 .requestMatchers(
                     "/oauth/**",
                     "/oauth2/**",
-                    "/login/oauth2/**",
-                    "/oauth2/authorization/**"
+                    "/login/oauth2/**"
                 ).permitAll()
 
-                // 게시글 조회, 댓글 조회
-                .requestMatchers(HttpMethod.GET, "/api/v1/community/posts").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/community/posts/*").permitAll()
+                // 게시글/장소 조회 (GET 메서드만 허용)
+                .requestMatchers(HttpMethod.GET, "/api/v1/community/posts/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/places/**").permitAll()
 
-                // 장소 조회
-                .requestMatchers(HttpMethod.GET, "/api/v1/places").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/places/*").permitAll()
+                // 관리자 전용 API
+                .requestMatchers("/api/v1/places/**").hasRole("ADMIN")
 
-                // 회원 탈퇴
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/members/{memberId}").authenticated()
-
-                // 내정보 조회(로그인 회원 전용)
-                .requestMatchers(HttpMethod.GET, "/api/v1/members/me").authenticated()
-
-                // 로그아웃
-                .requestMatchers("/api/v1/members/logout").permitAll()
-
-                // 장소 관리 - ADMIN 권한 필요
-                .requestMatchers(HttpMethod.POST, "/api/v1/places").hasRole("ADMIN")            // ADMIN 권한만 접근 허용
-                .requestMatchers(HttpMethod.PATCH, "/api/v1/places/{placeId}").hasRole("ADMIN") // ADMIN 권한만 접근 허용
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/places/{placeId}").hasRole("ADMIN") // ADMIN 권한만 접근 허용
-
-                // 나머지 요청은 인증 필요
+                // 나머지 모든 요청은 인증 필요
                 .anyRequest().authenticated()
             )
 
@@ -171,7 +157,8 @@ public class SecurityConfig {
     public AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) -> {
             response.setStatus(HttpStatus.FORBIDDEN.value());
-            response.setContentType("application/json;charset=UTF-8");
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding("UTF-8");
 
             BaseResponse<Void> baseResponse = BaseResponse.error(
                 ErrorCode.ACCESS_DENIED.getStatus().value(),
@@ -181,5 +168,4 @@ public class SecurityConfig {
             response.getWriter().write(objectMapper.writeValueAsString(baseResponse));
         };
     }
-
 }

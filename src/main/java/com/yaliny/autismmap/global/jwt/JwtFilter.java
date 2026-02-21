@@ -1,21 +1,14 @@
 package com.yaliny.autismmap.global.jwt;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yaliny.autismmap.global.response.BaseResponse;
 import com.yaliny.autismmap.global.security.CustomUserDetails;
+import com.yaliny.autismmap.member.entity.Role;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,10 +37,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
-    private static final String ROLE_PREFIX = "ROLE_";
 
     private final JwtUtil jwtUtil;
-    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(
@@ -56,7 +47,6 @@ public class JwtFilter extends OncePerRequestFilter {
         FilterChain filterChain
     ) throws ServletException, IOException {
         String requestUri = request.getRequestURI();
-        log.debug("[JwtFilter] 요청 URI: {}", requestUri);
 
         try {
             // 1. 헤더에서 토큰 추출
@@ -67,28 +57,17 @@ public class JwtFilter extends OncePerRequestFilter {
                 setAuthentication(token, request);
                 log.debug("[JwtFilter] 인증 성공: {}", requestUri);
             }
-
             // 3. 다음 필터로 요청 전달
             filterChain.doFilter(request, response);
 
-        } catch (ExpiredJwtException e) {
-            log.warn("[JwtFilter] 토큰 만료: {}", requestUri);
-            handleJwtException(response, "토큰이 만료되었습니다.", HttpStatus.UNAUTHORIZED);
-        } catch (MalformedJwtException e) {
-            log.warn("[JwtFilter] 잘못된 토큰 형식: {}", requestUri);
-            handleJwtException(response, "유효하지 않은 토큰 형식입니다.", HttpStatus.UNAUTHORIZED);
-        } catch (UnsupportedJwtException e) {
-            log.warn("[JwtFilter] 지원하지 않는 토큰: {}", requestUri);
-            handleJwtException(response, "지원하지 않는 토큰입니다.", HttpStatus.UNAUTHORIZED);
-        } catch (SignatureException e) {
-            log.warn("[JwtFilter] 토큰 서명 오류: {}", requestUri);
-            handleJwtException(response, "토큰 서명이 유효하지 않습니다.", HttpStatus.UNAUTHORIZED);
-        } catch (IllegalArgumentException e) {
-            log.warn("[JwtFilter] 토큰 정보 없음: {}", requestUri);
-            handleJwtException(response, "토큰 정보가 없습니다.", HttpStatus.UNAUTHORIZED);
+        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException e) {
+            log.warn("[JwtFilter] JWT 인증 실패: {} - {}", requestUri, e.getMessage());
+            request.setAttribute("exception", e);
+            filterChain.doFilter(request, response);
         } catch (Exception e) {
             log.error("[JwtFilter] 예상치 못한 오류 발생: {}", requestUri, e);
-            handleJwtException(response, "인증 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+            request.setAttribute("exception", e);
+            filterChain.doFilter(request, response);
         }
     }
 
@@ -123,84 +102,35 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param request HTTP 요청
      */
     private void setAuthentication(String token, HttpServletRequest request) {
-        try {
-            Claims claims = jwtUtil.getClaims(token);
+        Claims claims = jwtUtil.getClaims(token);
 
-            String memberId = claims.getSubject();
-            String email = claims.get("email", String.class);
-            String role = claims.get("role", String.class);
+        Long memberId = Long.parseLong(claims.getSubject());
+        String email = claims.get("email", String.class);
+        String roleName = claims.get("role", String.class);
+        Role role = Role.valueOf(roleName);
 
-            // UserDetails 생성
-            CustomUserDetails userDetails = new CustomUserDetails(
-                Long.parseLong(memberId),
-                email,
-                role,
-                List.of(new SimpleGrantedAuthority(ROLE_PREFIX + role))
-            );
-
-            // 인증 객체 생성
-            UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities()
-                );
-
-            authentication.setDetails(
-                new WebAuthenticationDetailsSource().buildDetails(request)
-            );
-
-            // SecurityContext에 저장
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            log.debug("[JwtFilter] 인증 정보 설정 완료 - memberId: {}, role: {}", memberId, role);
-
-        } catch (Exception e) {
-            log.error("[JwtFilter] 인증 정보 설정 실패", e);
-            SecurityContextHolder.clearContext();
-            throw e;
-        }
-    }
-
-    /**
-     * JWT 예외 처리 - JSON 형식의 에러 응답 반환
-     *
-     * @param response HTTP 응답
-     * @param message 에러 메시지
-     * @param status HTTP 상태 코드
-     */
-    private void handleJwtException(
-        HttpServletResponse response,
-        String message,
-        HttpStatus status
-    ) throws IOException {
-
-        SecurityContextHolder.clearContext();
-
-        response.setStatus(status.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
-
-        BaseResponse<Void> errorResponse = BaseResponse.error(
-            status.value(),
-            message
+        CustomUserDetails userDetails = new CustomUserDetails(
+            memberId,
+            email,
+            roleName,
+            List.of(new SimpleGrantedAuthority(role.getAuthority()))
         );
 
-        String jsonResponse = objectMapper.writeValueAsString(errorResponse);
-        response.getWriter().write(jsonResponse);
+        UsernamePasswordAuthenticationToken authentication =
+            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
-    /**
-     * 특정 경로에 대해 필터를 건너뛸지 결정
-     * 현재는 모든 요청에 대해 필터 적용
-     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-
-        // 필요시 특정 경로는 필터를 건너뛰도록 설정 가능
-        // 예: return path.startsWith("/public");
-
-        return false;
+        return path.startsWith("/h2-console") ||
+               path.startsWith("/swagger-ui") ||
+               path.startsWith("/v3/api-docs") ||
+               path.endsWith(".ico") ||
+               path.endsWith(".png") ||
+               path.endsWith(".jpg");
     }
 }
