@@ -3,7 +3,7 @@
 
     <!-- 로그 디렉터리: 기본값 /app/logs, 환경변수 LOG_DIR로 오버라이드 가능 -->
 <!--    <property name="LOG_DIR" value="${LOG_DIR:-/app/logs}"/>-->
-    <property name="LOG_DIR" value="${LOG_DIR:-/srv/nurean/backend/shared/logs}"/>
+    <property name="LOG_DIR" value="${LOG_DIR:./logs}"/>
 
     <!-- 콘솔 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
