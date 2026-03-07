@@ -14,4 +14,15 @@ public enum LightingLevel {
         this.description = description;
     }
 
+    public static LightingLevel from(int level) {
+        return switch (level) {
+            case 1 -> DARK;
+            case 2 -> DARK;
+            case 3 -> MODERATE;
+            case 4 -> BRIGHT;
+            case 5 -> BRIGHT;
+            default -> throw new IllegalArgumentException("Invalid level: " + level);
+        };
+    }
+
 }

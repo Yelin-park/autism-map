@@ -17,4 +17,15 @@ public enum NoiseLevel {
         this.level = level;
         this.description = description;
     }
+
+    public static NoiseLevel from(int level) {
+        return switch (level) {
+            case 1 -> VERY_QUIET;
+            case 2 -> QUIET;
+            case 3 -> MODERATE;
+            case 4 -> NOISY;
+            case 5 -> VERY_NOISY;
+            default -> throw new IllegalArgumentException("Invalid level: " + level);
+        };
+    }
 }

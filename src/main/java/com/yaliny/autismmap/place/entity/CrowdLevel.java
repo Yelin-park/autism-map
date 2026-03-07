@@ -13,4 +13,15 @@ public enum CrowdLevel {
     CrowdLevel(String description) {
         this.description = description;
     }
+
+    public static CrowdLevel from(int level) {
+        return switch (level) {
+            case 1 -> QUIET;
+            case 2 -> QUIET;
+            case 3 -> NORMAL;
+            case 4 -> CROWDED;
+            case 5 -> CROWDED;
+            default -> throw new IllegalArgumentException("Invalid level: " + level);
+        };
+    }
 }

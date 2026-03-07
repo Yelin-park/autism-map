@@ -16,4 +16,16 @@ public enum PlaceCategory {
     PlaceCategory(String description) {
         this.description = description;
     }
+
+    public static PlaceCategory from(String description) {
+        return switch (description) {
+            case "산책길" -> WALKING_PATH;
+            case "음식점" -> RESTAURANT;
+            case "카페" -> CAFE;
+            case "숙소" -> LODGING;
+            case "가볼만한 곳" -> ATTRACTION;
+            case "기타" -> ETC;
+            default -> throw new IllegalArgumentException("Invalid description: " + description);
+        };
+    }
 }

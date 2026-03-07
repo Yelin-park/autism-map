@@ -108,6 +108,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/community/posts/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/places/**").permitAll()
 
+                // 엑셀 데이터 저장
+                .requestMatchers("/api/v1/places/admin/excel").hasRole("ADMIN")
+
                 // 관리자 전용 API
                 .requestMatchers("/api/v1/places/**").hasRole("ADMIN")
 
