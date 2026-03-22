@@ -1,6 +1,5 @@
 package com.yaliny.autismmap.place.service;
 
-import com.yaliny.autismmap.place.dto.request.PlaceExcelRowDto;
 import com.yaliny.autismmap.place.entity.*;
 import com.yaliny.autismmap.place.repository.PlaceRepository;
 import com.yaliny.autismmap.region.entity.District;
@@ -8,18 +7,19 @@ import com.yaliny.autismmap.region.entity.Province;
 import com.yaliny.autismmap.region.repository.DistrictRepository;
 import com.yaliny.autismmap.region.repository.ProvinceRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PlaceExcelService {
@@ -50,6 +50,8 @@ public class PlaceExcelService {
                     (long) row.getCell(12).getNumericCellValue()
                 ).orElseThrow();
 
+                log.info("low: {}, province: {}, district: {}", i, row.getCell(11).getNumericCellValue(), row.getCell(12).getNumericCellValue());
+
                 Place place = Place.createPlace(
                     row.getCell(1).getStringCellValue(),
                     row.getCell(15).getStringCellValue(),
@@ -76,7 +78,7 @@ public class PlaceExcelService {
             placeRepository.saveAll(places);
 
         } catch (Exception e) {
-            throw new RuntimeException("엑셀 업로드 실패", e);
+            throw new RuntimeException("엑셀 업로드 실패!!", e);
         }
     }
 
@@ -125,86 +127,4 @@ public class PlaceExcelService {
 
         return localTime;
     }
-
-    /*@Transactional
-    public void saveExcel(List<PlaceExcelRowDto> rows) {
-
-        List<Place> places = new ArrayList<>();
-
-        for (PlaceExcelRowDto dto : rows) {
-
-            Province province = provinceRepository.findById(dto.getProvinceId())
-                .orElseThrow();
-
-            District district = districtRepository.findById(dto.getDistrictId())
-                .orElseThrow();
-
-            Place place = Place.createPlace(
-                dto.getName(),
-                dto.getDescription(),
-                PlaceCategory.valueOf(dto.getCategory()),
-                province,
-                district,
-                dto.getAddress(),
-                dto.getLatitude(),
-                dto.getLongitude(),
-                NoiseLevel.from(dto.getNoiseLevel()),
-                dto.isHasParking(),
-                dto.isHasRestArea(),
-                dto.isHasPrivateRoom(),
-                LightingLevel.from(dto.getLightingLevel()),
-                CrowdLevel.from(dto.getCrowdLevel()),
-                dto.getBusinessStartTime(),
-                dto.getBusinessClosingTime(),
-                dto.getDayOff()
-            );
-
-            places.add(place);
-        }
-
-        placeRepository.saveAll(places);
-    }
-
-    public List<PlaceExcelRowDto> readExcel(MultipartFile file) throws IOException {
-
-        List<PlaceExcelRowDto> rows = new ArrayList<>();
-
-        Workbook workbook = new XSSFWorkbook(file.getInputStream());
-        Sheet sheet = workbook.getSheetAt(0);
-
-        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-
-            Row row = sheet.getRow(i);
-
-            PlaceExcelRowDto dto = new PlaceExcelRowDto();
-
-            dto.setCategory(row.getCell(0).getStringCellValue());
-            dto.setName(row.getCell(1).getStringCellValue());
-
-            dto.setNoiseLevel((int) row.getCell(2).getNumericCellValue());
-            dto.setLightingLevel((int) row.getCell(3).getNumericCellValue());
-            dto.setCrowdLevel((int) row.getCell(4).getNumericCellValue());
-
-            dto.setHasParking(row.getCell(5).getBooleanCellValue());
-            dto.setHasRestArea(row.getCell(6).getBooleanCellValue());
-
-            dto.setBusinessStartTime(row.getCell(7).getStringCellValue());
-            dto.setBusinessClosingTime(row.getCell(8).getStringCellValue());
-
-            dto.setDayOff(row.getCell(9).getStringCellValue());
-            dto.setAddress(row.getCell(10).getStringCellValue());
-
-            dto.setProvinceId((long) row.getCell(11).getNumericCellValue());
-            dto.setDistrictId((long) row.getCell(12).getNumericCellValue());
-
-            dto.setLongitude(row.getCell(13).getNumericCellValue());
-            dto.setLatitude(row.getCell(14).getNumericCellValue());
-
-            dto.setDescription(row.getCell(15).getStringCellValue());
-
-            rows.add(dto);
-        }
-
-        return rows;
-    }*/
 }
