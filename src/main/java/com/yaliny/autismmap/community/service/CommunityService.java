@@ -14,7 +14,6 @@ import com.yaliny.autismmap.community.repository.PostRepository;
 import com.yaliny.autismmap.community.service.view.ViewCountService;
 import com.yaliny.autismmap.global.exception.CustomException;
 import com.yaliny.autismmap.global.external.s3.S3Uploader;
-import com.yaliny.autismmap.global.utils.SecurityUtil;
 import com.yaliny.autismmap.member.entity.Member;
 import com.yaliny.autismmap.member.repository.MemberRepository;
 import jakarta.persistence.EntityManager;
@@ -114,6 +113,9 @@ public class CommunityService {
 
         if (request.parentCommentId() != null) {
             parentComment = commentRepository.findById(request.parentCommentId()).orElseThrow(() -> new CustomException(COMMENT_NOT_FOUND));
+            if (!Objects.equals(parentComment.getPost().getId(), post.getId())) {
+                throw new CustomException(INVALID_PARENT_COMMENT);
+            }
         }
 
         Comment comment = Comment.createComment(request.content(), post, member, parentComment);
