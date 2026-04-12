@@ -23,15 +23,12 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
     @Override
     public Page<Post> searchPost(CategoryType categoryType, String searchText, Pageable pageable) {
+        BooleanExpression searchCondition = searchTextContains(searchText);
+
         List<Post> content = queryFactory
             .selectFrom(post)
             .join(post.member, member).fetchJoin()
-            .where(
-                titleContains(searchText)
-                    .or(contentContains(searchText))
-                    .or(memberNickNameContains(searchText))
-                    .and(categoryTypeEq(categoryType))
-            )
+            .where(searchCondition, categoryTypeEq(categoryType))
             .orderBy(post.createdAt.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
@@ -40,27 +37,20 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
         Long total = queryFactory
             .select(post.count())
             .from(post)
-            .where(
-                titleContains(searchText)
-                    .or(contentContains(searchText))
-                    .or(memberNickNameContains(searchText))
-                    .and(categoryTypeEq(categoryType))
-            )
+            .where(searchCondition, categoryTypeEq(categoryType))
             .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
-    private BooleanExpression titleContains(String searchText) {
-        return searchText != null ? post.title.contains(searchText) : null;
-    }
+    private BooleanExpression searchTextContains(String searchText) {
+        if (searchText == null || searchText.isBlank()) {
+            return null;
+        }
 
-    private BooleanExpression contentContains(String searchText) {
-        return searchText != null ? post.content.contains(searchText) : null;
-    }
-
-    private BooleanExpression memberNickNameContains(String searchText) {
-        return searchText != null ? post.member.nickname.contains(searchText) : null;
+        return post.title.contains(searchText)
+            .or(post.content.contains(searchText))
+            .or(post.member.nickname.contains(searchText));
     }
 
     private BooleanExpression categoryTypeEq(CategoryType categoryType) {
