@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
@@ -47,5 +49,27 @@ class PostRepositoryTest {
         assertThat(findPost.getTitle()).isEqualTo(title);
         assertThat(findPost.getContent()).isEqualTo(content);
         assertThat(findPost.getCategory()).isEqualTo(category);
+    }
+
+    @Test
+    @DisplayName("카테고리 필터는 제목 검색 결과 전체에 적용된다")
+    void searchPost_appliesCategoryFilterToWholeSearchCondition() {
+        Member member = Member.createMember("filter@test.com", "test", "writer");
+        memberRepository.save(member);
+
+        Post freePost = Post.createPost(CategoryType.FREE, "같은검색어", "free content", member);
+        Post questionPost = Post.createPost(CategoryType.QNA, "같은검색어", "question content", member);
+
+        postRepository.save(freePost);
+        postRepository.save(questionPost);
+
+        Page<Post> result = postRepository.searchPost(
+            CategoryType.FREE,
+            "같은검색어",
+            PageRequest.of(0, 10)
+        );
+
+        assertThat(result.getContent()).extracting(Post::getCategory)
+            .containsExactly(CategoryType.FREE);
     }
 }
