@@ -17,9 +17,10 @@
 <p align="center">
   <img src="image/메인.png" alt="메인 화면 미리보기" width="600"/><br>
   <img src="image/로그인.png" alt="로그인 화면 미리보기" width="600"/><br>
-  <img src="image/장소상세.png" alt="장소 상세 화면 미리보기" width="600"/><br>
+  <img src="image/장소상세.png" alt="장소 상세 화면 미리보기" width="400"/><br>
   <img src="image/커뮤니티.png" alt="커뮤니티 화면 미리보기" width="600"/><br>
-  <img src="image/게시글과댓글.png" alt="게시글과 댓글 화면 미리보기" width="600"/><br>
+  <img src="image/커뮤니티상세1.png" alt="게시글과 댓글 화면 미리보기" width="600"/><br>
+  <img src="image/커뮤니티상세2.png" alt="게시글과 댓글 화면 미리보기" width="600"/><br>
 </p>
 
 ---
