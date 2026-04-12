@@ -319,6 +319,25 @@ public class CommunityServiceUnitTest {
     }
 
     @Test
+    @DisplayName("댓글 등록 실패 - 다른 게시글의 부모 댓글")
+    void registerPostComment_fail_parentCommentBelongsToAnotherPost() {
+        Post anotherPost = mock(Post.class);
+        Comment parentComment = mock(Comment.class);
+        PostCommentCreateRequest request = new PostCommentCreateRequest(member.getId(), "?볤??볤?", 101L);
+
+        when(postRepository.findById(10L)).thenReturn(Optional.of(post));
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
+        when(commentRepository.findById(101L)).thenReturn(Optional.of(parentComment));
+        when(post.getId()).thenReturn(10L);
+        when(parentComment.getPost()).thenReturn(anotherPost);
+        when(anotherPost.getId()).thenReturn(999L);
+
+        assertThatThrownBy(() -> communityService.registerPostComment(member.getId(), 10L, request))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.INVALID_PARENT_COMMENT.getMessage());
+    }
+
+    @Test
     @DisplayName("댓글 등록 실패 - 존재하지 않는 게시글")
     void registerPostComment_fail_post_not_found() {
         PostCommentCreateRequest request = new PostCommentCreateRequest(10L, "댓글댓글", null);
