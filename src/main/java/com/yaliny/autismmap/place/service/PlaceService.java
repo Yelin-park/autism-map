@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -50,6 +51,7 @@ public class PlaceService {
 
         Province province = provinceRepository.findById(request.provinceId()).orElseThrow(() -> new CustomException(REGION_NOT_FOUND));
         District district = districtRepository.findById(request.districtId()).orElseThrow(() -> new CustomException(REGION_NOT_FOUND));
+        validateDistrictBelongsToProvince(province, district);
 
         List<PlaceImage> placeImages = uploadPlaceImages(request.images(), "place-images");
 
@@ -64,6 +66,7 @@ public class PlaceService {
         Place place = placeRepository.findById(placeId).orElseThrow(() -> new CustomException(PLACE_NOT_FOUND));
         Province province = provinceRepository.findById(request.provinceId()).orElseThrow(() -> new CustomException(REGION_NOT_FOUND));
         District district = districtRepository.findById(request.districtId()).orElseThrow(() -> new CustomException(REGION_NOT_FOUND));
+        validateDistrictBelongsToProvince(province, district);
 
         List<Long> preserveIds = Optional.ofNullable(request.preserveImageIds())
             .orElse(Collections.emptyList());
@@ -156,6 +159,12 @@ public class PlaceService {
                 }
                 return PlaceImage.createPlaceImage(uploadedUrl);
             }).toList();
+    }
+
+    private static void validateDistrictBelongsToProvince(Province province, District district) {
+        if (district.getProvince() == null || !Objects.equals(district.getProvince().getId(), province.getId())) {
+            throw new CustomException(REGION_NOT_FOUND);
+        }
     }
 
     private static Place createPlace(PlaceCreateRequest request, Province province, District district, List<PlaceImage> placeImages) {
