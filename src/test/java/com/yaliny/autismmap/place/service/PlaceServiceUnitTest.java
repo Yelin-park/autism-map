@@ -57,6 +57,7 @@ public class PlaceServiceUnitTest {
 
         district = District.createDistrict("강남구");
         ReflectionTestUtils.setField(district, "id", 1L);
+        province.addDistrict(district);
 
         place = mock(Place.class);
         ReflectionTestUtils.setField(place, "id", 10L);
@@ -113,6 +114,29 @@ public class PlaceServiceUnitTest {
         assertThatThrownBy(() -> placeService.registerPlace(request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.REGION_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("?μ냼 ?깅줉 ?ㅽ뙣 - province와 district 소속 불일치")
+    void registerPlace_fail_districtNotInProvince() {
+        Province otherProvince = Province.createProvince("other");
+        ReflectionTestUtils.setField(otherProvince, "id", 2L);
+
+        District otherDistrict = District.createDistrict("other district");
+        ReflectionTestUtils.setField(otherDistrict, "id", 2L);
+        otherProvince.addDistrict(otherDistrict);
+
+        PlaceCreateRequest request = mock(PlaceCreateRequest.class);
+        when(request.provinceId()).thenReturn(province.getId());
+        when(request.districtId()).thenReturn(otherDistrict.getId());
+        when(provinceRepository.findById(province.getId())).thenReturn(Optional.of(province));
+        when(districtRepository.findById(otherDistrict.getId())).thenReturn(Optional.of(otherDistrict));
+
+        assertThatThrownBy(() -> placeService.registerPlace(request))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.REGION_NOT_FOUND.getMessage());
+
+        verify(placeRepository, never()).save(any());
     }
 
     @Test
@@ -186,6 +210,30 @@ public class PlaceServiceUnitTest {
         assertThatThrownBy(() -> placeService.updatePlace(99L, request))
             .isInstanceOf(CustomException.class)
             .hasMessage(ErrorCode.PLACE_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("?μ냼 ?섏젙 ?ㅽ뙣 - province와 district 소속 불일치")
+    void updatePlace_fail_districtNotInProvince() {
+        Province otherProvince = Province.createProvince("other");
+        ReflectionTestUtils.setField(otherProvince, "id", 2L);
+
+        District otherDistrict = District.createDistrict("other district");
+        ReflectionTestUtils.setField(otherDistrict, "id", 2L);
+        otherProvince.addDistrict(otherDistrict);
+
+        PlaceUpdateRequest request = mock(PlaceUpdateRequest.class);
+        when(request.provinceId()).thenReturn(province.getId());
+        when(request.districtId()).thenReturn(otherDistrict.getId());
+        when(placeRepository.findById(10L)).thenReturn(Optional.of(place));
+        when(provinceRepository.findById(province.getId())).thenReturn(Optional.of(province));
+        when(districtRepository.findById(otherDistrict.getId())).thenReturn(Optional.of(otherDistrict));
+
+        assertThatThrownBy(() -> placeService.updatePlace(10L, request))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(ErrorCode.REGION_NOT_FOUND.getMessage());
+
+        verify(place, never()).updatePlace(any(), any(), any(), anyList(), anyList());
     }
 
     @Test
