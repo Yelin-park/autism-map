@@ -35,9 +35,9 @@
 
 ## 🧱 기술 스택
 
-| 구분          | 사용 기술                                 |
+| 구분          | 사용 기술                             |
 |-------------|---------------------------------------|
-| Language    | Java 17                               |
+| Language    | Java 21                               |
 | Framework   | Spring Boot 3.3.x, Spring MVC         |
 | Auth        | Spring Security, JWT (jjwt)           |
 | DB/ORM      | JPA(Hibernate), QueryDSL              |

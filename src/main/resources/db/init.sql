@@ -1,4 +1,23 @@
 -- auto-generated definition
+create table member
+(
+    member_id   bigint auto_increment
+        primary key,
+    email       varchar(255)          not null,
+    password    varchar(255)          null,
+    nickname    varchar(255)          not null,
+    role        enum ('USER', 'ADMIN') not null,
+    is_social   bit                   not null,
+    provider    enum ('GOOGLE', 'KAKAO') null,
+    provider_id varchar(255)          null,
+    del_yn      int default 0         not null,
+    created_at  datetime(6)           null,
+    updated_at  datetime(6)           null,
+    constraint uk_member_email unique (email),
+    constraint uk_member_nickname unique (nickname)
+);
+
+-- auto-generated definition
 create table province
 (
     province_id bigint auto_increment
@@ -72,23 +91,6 @@ create table comment
 );
 
 -- auto-generated definition
-create table favorite
-(
-    favorite_id bigint auto_increment
-        primary key,
-    member_id   bigint      not null,
-    place_id    bigint      not null,
-    created_at  datetime(6) null,
-    updated_at  datetime(6) null,
-    constraint fk_favorite_member
-        foreign key (member_id) references member (member_id)
-            on delete cascade,
-    constraint fk_favorite_place
-        foreign key (place_id) references place (place_id)
-            on delete cascade
-);
-
--- auto-generated definition
 create table place
 (
     place_id              bigint auto_increment
@@ -131,6 +133,23 @@ create table place_image
         foreign key (place_id) references place (place_id)
 );
 
+
+-- auto-generated definition
+create table favorite
+(
+    favorite_id bigint auto_increment
+        primary key,
+    member_id   bigint      not null,
+    place_id    bigint      not null,
+    created_at  datetime(6) null,
+    updated_at  datetime(6) null,
+    constraint fk_favorite_member
+        foreign key (member_id) references member (member_id)
+            on delete cascade,
+    constraint fk_favorite_place
+        foreign key (place_id) references place (place_id)
+            on delete cascade
+);
 
 insert into province (province_id, name)
 values  (1, '서울특별시'),
